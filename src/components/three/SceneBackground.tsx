@@ -34,12 +34,12 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0; // Adjusted for less overall brightness
+    renderer.toneMappingExposure = 1.2; 
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    // Reduced bloom strength from 1.2 to 0.6 for a subtle look
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
+    // Increased bloom strength slightly for a better aura
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.5, 0.8);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -68,12 +68,12 @@ export const SceneBackground: React.FC = () => {
     const planetMat = new THREE.MeshStandardMaterial({
       map: albedo,
       bumpMap: bump,
-      bumpScale: 0.15,
+      bumpScale: 0.5, // Increased for more noticeable terrain
       transparent: true,
-      roughness: 0.6,
-      metalness: 0.8,
-      emissive: new THREE.Color("#220055"), // Darker emissive for less glow
-      emissiveIntensity: 0.4 // Reduced intensity
+      roughness: 0.4,
+      metalness: 0.9,
+      emissive: new THREE.Color("#220055"), 
+      emissiveIntensity: 1.2 // Increased glow as requested
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -84,10 +84,10 @@ export const SceneBackground: React.FC = () => {
         `
         #ifdef USE_MAP
           vec4 texelColor = texture2D( map, vMapUv );
-          float oceanMask = smoothstep(0.0, 0.35, texelColor.b - texelColor.r);
-          vec3 oceanColor = vec3(0.01, 0.005, 0.02); 
-          vec3 purpleTint = vec3(0.4, 0.1, 0.6); 
-          vec3 landColor = mix(texelColor.rgb * 1.5, purpleTint, 0.5);
+          float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
+          vec3 oceanColor = vec3(0.005, 0.002, 0.015); 
+          vec3 purpleTint = vec3(0.5, 0.1, 0.8); 
+          vec3 landColor = mix(texelColor.rgb * 2.0, purpleTint, 0.4);
           vec3 finalColor = mix(landColor, oceanColor, oceanMask);
           diffuseColor = vec4(finalColor, uOpacity); 
         #endif
@@ -102,9 +102,9 @@ export const SceneBackground: React.FC = () => {
     // Atmosphere
     const atmoGeo = new THREE.SphereGeometry(6.75, 64, 64);
     const atmoMat = new THREE.ShaderMaterial({
-      uniforms: { glowColor: { value: new THREE.Color("#4400aa") }, uOpacity: { value: 1.0 } },
-      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.7 - dot(vNormal, vec3(0,0,1)), 6.0 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
-      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 1.2 ); }`,
+      uniforms: { glowColor: { value: new THREE.Color("#6600ff") }, uOpacity: { value: 1.0 } },
+      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.65 - dot(vNormal, vec3(0,0,1)), 6.0 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
+      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 1.5 ); }`,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
     });
     const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
@@ -167,8 +167,8 @@ export const SceneBackground: React.FC = () => {
     cityGroup.add(ground);
 
     // Lights
-    scene.add(new THREE.AmbientLight(0x0a0a15, 0.8));
-    const purpleWash = new THREE.DirectionalLight(0x4400aa, 1.5);
+    scene.add(new THREE.AmbientLight(0x101025, 1.0));
+    const purpleWash = new THREE.DirectionalLight(0x6600ff, 2.0);
     purpleWash.position.set(300, 700, 200);
     scene.add(purpleWash);
 
