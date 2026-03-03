@@ -35,9 +35,9 @@ export const AICopyTool: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full max-w-lg aspect-[3/4] p-8 md:p-12 rounded-[6rem] md:rounded-[8rem] border border-white/10 bg-black/60 backdrop-blur-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-700">
+    <div className="relative w-full max-w-lg h-full min-h-[500px] p-8 md:p-12 rounded-[6rem] md:rounded-[8rem] border border-white/10 bg-black/60 backdrop-blur-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-700">
       <div className="mb-8 text-center shrink-0">
-        <h3 className="inline-flex items-center gap-3 text-2xl md:text-4xl font-black tracking-tighter uppercase mb-2">
+        <h3 className="inline-flex items-center gap-3 text-2xl md:text-3xl font-black tracking-tighter uppercase mb-2">
           <Sparkles className="w-5 md:w-6 h-5 md:h-6 text-accent" />
           STRATEGIST
         </h3>
@@ -48,7 +48,7 @@ export const AICopyTool: React.FC = () => {
 
       <div className="flex gap-2 mb-8 shrink-0">
         <Input
-          placeholder="Keywords..."
+          placeholder="Growth Keywords..."
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
           className="bg-white/5 border-white/10 focus:border-accent/50 h-14 md:h-16 rounded-full px-6 md:px-8 text-sm placeholder:opacity-20"
@@ -86,7 +86,7 @@ export const AICopyTool: React.FC = () => {
         {suggestions.length === 0 && !isLoading && (
           <div className="h-full flex flex-col items-center justify-center opacity-5">
             <Sparkles className="w-12 h-12 mb-4" />
-            <p className="text-[8px] uppercase tracking-[1em] font-code">Network Standby</p>
+            <p className="text-[8px] uppercase tracking-[1em] font-code text-center">Network Standby</p>
           </div>
         )}
       </div>

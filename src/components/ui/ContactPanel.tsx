@@ -13,7 +13,7 @@ export const ContactPanel: React.FC = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="relative p-8 md:p-16 rounded-[6rem] md:rounded-[10rem] border border-white/10 bg-black/60 backdrop-blur-2xl shadow-2xl transition-all duration-700">
+      <div className="relative p-8 md:p-12 lg:p-16 rounded-[6rem] md:rounded-[8rem] lg:rounded-[10rem] border border-white/10 bg-black/60 backdrop-blur-2xl shadow-2xl transition-all duration-700">
         <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -26,7 +26,7 @@ export const ContactPanel: React.FC = () => {
                 onFocus={() => setIsFocused("name")}
                 onBlur={() => setIsFocused(null)}
                 placeholder="Identity"
-                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 md:h-20 rounded-full px-10 transition-all text-sm md:text-lg"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 md:h-18 lg:h-20 rounded-full px-10 transition-all text-sm md:text-lg"
               />
             </div>
             <div className="space-y-2">
@@ -35,22 +35,22 @@ export const ContactPanel: React.FC = () => {
                 onFocus={() => setIsFocused("email")}
                 onBlur={() => setIsFocused(null)}
                 placeholder="Link"
-                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 md:h-20 rounded-full px-10 transition-all text-sm md:text-lg"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 md:h-18 lg:h-20 rounded-full px-10 transition-all text-sm md:text-lg"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[9px] uppercase tracking-[0.4em] text-accent/50 font-code ml-8">Expansion Objective</Label>
+            <Label className="text-[9px] uppercase tracking-[0.4em] text-accent/50 font-code ml-8">Growth Objective</Label>
             <Textarea
               onFocus={() => setIsFocused("message")}
               onBlur={() => setIsFocused(null)}
               placeholder="Detail infiltration goals..."
-              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[120px] md:min-h-[180px] rounded-[3rem] md:rounded-[5rem] p-8 md:p-12 transition-all text-sm md:text-lg resize-none"
+              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[120px] md:min-h-[160px] lg:min-h-[180px] rounded-[3rem] md:rounded-[5rem] p-8 md:p-10 lg:p-12 transition-all text-sm md:text-lg resize-none"
             />
           </div>
 
-          <Button className="w-full bg-accent hover:bg-white text-black h-16 md:h-24 rounded-full text-lg md:text-2xl font-black uppercase tracking-[0.3em] transition-all duration-700 active:scale-95 shadow-lg">
+          <Button className="w-full bg-accent hover:bg-white text-black h-16 md:h-20 lg:h-24 rounded-full text-lg md:text-xl lg:text-2xl font-black uppercase tracking-[0.3em] transition-all duration-700 active:scale-95 shadow-lg">
             Establish Authority
           </Button>
 
