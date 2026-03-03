@@ -8,39 +8,50 @@ import { PortfolioPortal } from "@/components/ui/PortfolioPortal";
 import { AICopyTool } from "@/components/ui/AICopyTool";
 import { ContactPanel } from "@/components/ui/ContactPanel";
 
-// Realistic Jagged Lightning Bolt component
+// Realistic Jagged Lightning Bolt component jumping from text edges
 const LightningBolt = () => {
   const [path, setPath] = useState("");
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const generatePath = () => {
-      // Start near the center where the text is
-      const startX = 50 + (Math.random() - 0.5) * 20;
-      const startY = 50 + (Math.random() - 0.5) * 5;
+      // Start positions distributed around the text area edges
+      const isHorizontal = Math.random() > 0.5;
+      let startX, startY;
+      
+      if (isHorizontal) {
+        startX = 35 + Math.random() * 30; // Between 35% and 65% width
+        startY = Math.random() > 0.5 ? 45 : 55; // Near top or bottom edge of text
+      } else {
+        startX = Math.random() > 0.5 ? 35 : 65; // Near left or right edge of text
+        startY = 48 + Math.random() * 4; // Near center height
+      }
       
       let currentX = startX;
       let currentY = startY;
       let newPath = `M ${startX} ${startY}`;
       
-      const segments = 5 + Math.floor(Math.random() * 5);
+      const segments = 4 + Math.floor(Math.random() * 4);
       for (let i = 0; i < segments; i++) {
-        currentX += (Math.random() - 0.5) * 15;
-        currentY += (Math.random() - 0.5) * 15;
+        // Bolts move outward from the text area
+        const moveX = (currentX - 50) * 0.5 + (Math.random() - 0.5) * 10;
+        const moveY = (currentY - 50) * 0.5 + (Math.random() - 0.5) * 10;
+        currentX += moveX;
+        currentY += moveY;
         newPath += ` L ${currentX} ${currentY}`;
       }
       return newPath;
     };
 
     const triggerBolt = () => {
-      if (Math.random() > 0.6) {
+      if (Math.random() > 0.5) {
         setPath(generatePath());
         setIsVisible(true);
-        setTimeout(() => setIsVisible(false), 50 + Math.random() * 150);
+        setTimeout(() => setIsVisible(false), 80 + Math.random() * 120);
       }
     };
     
-    const interval = setInterval(triggerBolt, 600);
+    const interval = setInterval(triggerBolt, 400);
     return () => clearInterval(interval);
   }, []);
 
@@ -52,17 +63,17 @@ const LightningBolt = () => {
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
       initial={{ opacity: 0 }}
-      animate={{ opacity: [0, 1, 0.5, 1, 0] }}
-      transition={{ duration: 0.15 }}
+      animate={{ opacity: [0, 1, 0.7, 1, 0] }}
+      transition={{ duration: 0.2 }}
     >
       <path
         d={path}
         fill="none"
         stroke="hsl(var(--primary))"
-        strokeWidth="0.5"
+        strokeWidth="0.4"
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ filter: "drop-shadow(0 0 5px #C41BFD) drop-shadow(0 0 10px #C41BFD)" }}
+        style={{ filter: "drop-shadow(0 0 8px #C41BFD) drop-shadow(0 0 15px #C41BFD)" }}
       />
     </motion.svg>
   );
@@ -101,7 +112,7 @@ export default function AuraForgePage() {
           className="absolute inset-0 flex flex-col items-center justify-center p-6"
         >
           <div className="text-center relative">
-            {/* Cinematic Lightning originating from text area */}
+            {/* Cinematic Lightning originating from text edges */}
             <LightningBolt />
             <LightningBolt />
             <LightningBolt />
@@ -112,9 +123,9 @@ export default function AuraForgePage() {
               transition={{ duration: 1.5, ease: "easeOut" }}
               className="relative"
             >
-              {/* Refined 3D Text without pulse */}
-              <h1 className="text-6xl md:text-[8rem] font-black text-white uppercase leading-none tracking-tighter relative z-10 
-                [text-shadow:0_1px_0_#ccc,0_2px_0_#c9c9c9,0_3px_0_#bbb,0_4px_0_#b9b9b9,0_5px_0_#aaa,0_6px_1px_rgba(0,0,0,.1),0_0_5px_rgba(0,0,0,.1),0_1px_3px_rgba(0,0,0,.3),0_3px_5px_rgba(0,0,0,.2),0_5px_10px_rgba(0,0,0,.25),0_10px_10px_rgba(0,0,0,.2),0_20px_20px_rgba(0,0,0,.15),0_0_40px_rgba(196,27,253,0.3)]
+              {/* Intense Glow 3D Text */}
+              <h1 className="text-6xl md:text-[8.5rem] font-black text-white uppercase leading-none tracking-tighter relative z-10 
+                [text-shadow:0_1px_0_#ccc,0_2px_0_#c9c9c9,0_3px_0_#bbb,0_4px_0_#b9b9b9,0_5px_0_#aaa,0_6px_1px_rgba(0,0,0,.1),0_0_5px_rgba(0,0,0,.1),0_1px_3px_rgba(0,0,0,.3),0_3px_5px_rgba(0,0,0,.2),0_5px_10px_rgba(0,0,0,.25),0_10px_10px_rgba(0,0,0,.2),0_20px_20px_rgba(0,0,0,.15),0_0_30px_#C41BFD,0_0_60px_rgba(196,27,253,0.4)]
               ">
                 MIX AURA
               </h1>
@@ -122,7 +133,7 @@ export default function AuraForgePage() {
 
             <motion.p 
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
+              animate={{ opacity: 0.9 }}
               transition={{ delay: 1, duration: 2 }}
               className="font-code tracking-[0.8em] text-accent uppercase text-center text-[10px] md:text-sm mb-8 mt-4 glow-purple"
             >

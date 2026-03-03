@@ -38,7 +38,7 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.85);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.4, 0.85);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -57,7 +57,7 @@ export const SceneBackground: React.FC = () => {
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // Planet Textures
+    // Advanced Planet Shaders
     const loader = new THREE.TextureLoader();
     const albedo = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
     const bump = loader.load("https://threejs.org/examples/textures/planets/earth_bump_2048.jpg");
@@ -165,14 +165,15 @@ export const SceneBackground: React.FC = () => {
     }
 
     // Lights
-    scene.add(new THREE.AmbientLight(0x050510, 0.1)); 
+    scene.add(new THREE.AmbientLight(0x050510, 0.05)); 
     
-    const sun = new THREE.DirectionalLight(0xffffff, 3.5);
-    sun.position.set(20, 10, 20);
+    // Directional Sun Light to create Day/Night side
+    const sun = new THREE.DirectionalLight(0xffffff, 4.0);
+    sun.position.set(40, 20, 40);
     scene.add(sun);
 
-    const purpleFill = new THREE.PointLight(0x6600ff, 1.0, 50);
-    purpleFill.position.set(-20, 10, -20);
+    const purpleFill = new THREE.PointLight(0x6600ff, 1.5, 60);
+    purpleFill.position.set(-30, 15, -30);
     scene.add(purpleFill);
 
     const animate = () => {
