@@ -12,8 +12,8 @@ export const ContactPanel: React.FC = () => {
   const [isFocused, setIsFocused] = useState<string | null>(null);
 
   return (
-    <div className="max-w-2xl mx-auto w-full">
-      <div className="relative p-8 md:p-16 rounded-[5rem] border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl">
+    <div className="max-w-2xl mx-auto w-full px-4 md:px-0">
+      <div className="relative p-8 md:p-16 rounded-[6rem] border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl transition-all duration-500">
         <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -21,7 +21,7 @@ export const ContactPanel: React.FC = () => {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
-              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-4">Identifier</Label>
+              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-6">Identifier</Label>
               <Input
                 onFocus={() => setIsFocused("name")}
                 onBlur={() => setIsFocused(null)}
@@ -30,7 +30,7 @@ export const ContactPanel: React.FC = () => {
               />
             </div>
             <div className="space-y-3">
-              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-4">Terminal</Label>
+              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-6">Terminal</Label>
               <Input
                 onFocus={() => setIsFocused("email")}
                 onBlur={() => setIsFocused(null)}
@@ -41,12 +41,12 @@ export const ContactPanel: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-4">Transmission</Label>
+            <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-6">Transmission</Label>
             <Textarea
               onFocus={() => setIsFocused("message")}
               onBlur={() => setIsFocused(null)}
               placeholder="Your vision..."
-              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[150px] rounded-[2.5rem] p-8 transition-all duration-500"
+              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[150px] rounded-[3.5rem] p-8 transition-all duration-500"
             />
           </div>
 
@@ -56,7 +56,7 @@ export const ContactPanel: React.FC = () => {
 
           <div className="flex justify-between items-center pt-6 border-t border-white/5">
             <div className="flex gap-3">
-              <div className={`w-1.5 h-1.5 rounded-full ${isFocused ? 'bg-accent animate-pulse' : 'bg-white/10'}`} />
+              <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-500 ${isFocused ? 'bg-accent animate-pulse' : 'bg-white/10'}`} />
               <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
               <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
             </div>
@@ -65,7 +65,7 @@ export const ContactPanel: React.FC = () => {
         </motion.div>
 
         {/* Glossy Overlay */}
-        <div className="absolute inset-0 rounded-[5rem] bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 rounded-[6rem] bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
       </div>
     </div>
   );

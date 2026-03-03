@@ -45,89 +45,91 @@ export default function AuraForgePage() {
       <SceneBackground />
 
       {/* FIXED CONTENT LAYERS */}
-      <div className="fixed inset-0 pointer-events-none z-10 flex items-center justify-center p-6 md:p-12">
-        
-        {/* SCENE 1: THE ORIGIN */}
-        <motion.div 
-          style={{ opacity: scene1Opacity, scale: scene1Scale }}
-          className="text-center max-w-4xl"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="mb-6"
+      <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
+        <div className="h-full w-full flex items-center justify-center p-6 md:p-12">
+          
+          {/* SCENE 1: THE ORIGIN */}
+          <motion.div 
+            style={{ opacity: scene1Opacity, scale: scene1Scale }}
+            className="text-center max-w-4xl absolute"
           >
-            <h1 className="text-7xl md:text-[12rem] font-bold tracking-tighter text-white uppercase leading-[0.8]">
-              MIX <br /> AURA
-            </h1>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="mb-6"
+            >
+              <h1 className="text-7xl md:text-[12rem] font-bold tracking-tighter text-white uppercase leading-[0.8]">
+                MIX <br /> AURA
+              </h1>
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 1.5 }}
+              className="text-xs md:text-sm font-code tracking-[1.5em] text-accent/80 uppercase ml-4"
+            >
+              Digital Architects
+            </motion.p>
           </motion.div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 1.5 }}
-            className="text-xs md:text-sm font-code tracking-[1.5em] text-accent/80 uppercase ml-4"
+
+          {/* SCENE 2: CELESTIAL INTELLIGENCE */}
+          <motion.div 
+            style={{ opacity: scene2Opacity, y: scene2Y }}
+            className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 pointer-events-auto items-center absolute"
           >
-            Digital Architects
-          </motion.p>
-        </motion.div>
-
-        {/* SCENE 2: CELESTIAL INTELLIGENCE */}
-        <motion.div 
-          style={{ opacity: scene2Opacity, y: scene2Y }}
-          className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 pointer-events-auto items-center"
-        >
-          <div className="space-y-8">
-            <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.85] uppercase">
-              DATA <br />
-              <span className="text-accent">AURA</span>
-            </h2>
-            <p className="text-lg text-white/60 max-w-sm leading-relaxed font-medium">
-              Translating cosmic noise into digital dominance through refined intelligence.
-            </p>
-            <div className="flex gap-4">
-              <div className="h-px flex-1 bg-white/10 self-center" />
-              <p className="text-[10px] font-code uppercase tracking-widest text-accent/60">Node sync: active</p>
+            <div className="space-y-8 order-2 md:order-1">
+              <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.85] uppercase">
+                DATA <br />
+                <span className="text-accent">AURA</span>
+              </h2>
+              <p className="text-lg text-white/60 max-w-sm leading-relaxed font-medium">
+                Translating planetary intelligence into digital dominance through refined resonance.
+              </p>
+              <div className="flex gap-4">
+                <div className="h-px flex-1 bg-white/10 self-center" />
+                <p className="text-[10px] font-code uppercase tracking-widest text-accent/60">Node sync: active</p>
+              </div>
             </div>
-          </div>
-          <div className="relative">
-            <AICopyTool />
-          </div>
-        </motion.div>
-
-        {/* SCENE 3: STELLAR PORTFOLIO */}
-        <motion.div 
-          style={{ opacity: scene3Opacity, scale: scene3Scale }}
-          className="w-full max-w-7xl pointer-events-auto h-full flex flex-col justify-center"
-        >
-          <div className="mb-12 flex items-end justify-between">
-            <div>
-              <h2 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-[0.8]">Portals</h2>
-              <p className="text-accent/60 font-code uppercase tracking-[0.5em] text-[10px] mt-4">Selected Explorations</p>
+            <div className="w-full order-1 md:order-2">
+              <AICopyTool />
             </div>
-            <div className="hidden md:block text-[10px] font-code text-white/20 uppercase tracking-[0.3em]">
-              Orbit: 03 / Sector: Portfolio
+          </motion.div>
+
+          {/* SCENE 3: STELLAR PORTFOLIO */}
+          <motion.div 
+            style={{ opacity: scene3Opacity, scale: scene3Scale }}
+            className="w-full max-w-7xl pointer-events-auto flex flex-col justify-center absolute inset-x-0 mx-auto px-6 md:px-12"
+          >
+            <div className="mb-8 md:mb-12 flex items-end justify-between">
+              <div>
+                <h2 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-[0.8]">Portals</h2>
+                <p className="text-accent/60 font-code uppercase tracking-[0.5em] text-[10px] mt-4">Selected Explorations</p>
+              </div>
+              <div className="hidden md:block text-[10px] font-code text-white/20 uppercase tracking-[0.3em]">
+                Orbit: 03 / Sector: Portfolio
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            {PROJECTS.map((project, idx) => (
-              <PortfolioPortal key={idx} project={project} index={idx} />
-            ))}
-          </div>
-        </motion.div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              {PROJECTS.map((project, idx) => (
+                <PortfolioPortal key={idx} project={project} index={idx} />
+              ))}
+            </div>
+          </motion.div>
 
-        {/* SCENE 4: COMMAND CENTER */}
-        <motion.div 
-          style={{ opacity: scene4Opacity }}
-          className="w-full max-w-4xl pointer-events-auto"
-        >
-          <div className="text-center mb-16">
-            <h2 className="text-6xl md:text-[10rem] font-black tracking-tighter mb-4 uppercase leading-none">IGNITE</h2>
-            <p className="text-accent/60 font-code tracking-[0.6em] uppercase text-xs">Synchronize your vision</p>
-          </div>
-          <ContactPanel />
-        </motion.div>
+          {/* SCENE 4: COMMAND CENTER */}
+          <motion.div 
+            style={{ opacity: scene4Opacity }}
+            className="w-full max-w-4xl pointer-events-auto absolute"
+          >
+            <div className="text-center mb-12 md:mb-16">
+              <h2 className="text-6xl md:text-[10rem] font-black tracking-tighter mb-4 uppercase leading-none">IGNITE</h2>
+              <p className="text-accent/60 font-code tracking-[0.6em] uppercase text-xs">Synchronize your vision</p>
+            </div>
+            <ContactPanel />
+          </motion.div>
 
+        </div>
       </div>
 
       {/* STATUS HUD */}

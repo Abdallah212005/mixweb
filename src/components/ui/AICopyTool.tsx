@@ -35,7 +35,7 @@ export const AICopyTool: React.FC = () => {
   };
 
   return (
-    <div className="relative p-8 md:p-12 rounded-[4rem] border border-white/10 bg-black/40 backdrop-blur-2xl shadow-2xl overflow-hidden min-h-[500px] flex flex-col">
+    <div className="relative w-full max-w-md mx-auto p-8 md:p-12 rounded-[5rem] border border-white/10 bg-black/40 backdrop-blur-2xl shadow-2xl overflow-hidden min-h-[600px] flex flex-col transition-all duration-500">
       <div className="mb-8">
         <h3 className="flex items-center gap-3 text-3xl font-bold tracking-tighter uppercase mb-2">
           <Sparkles className="w-6 h-6 text-accent" />
@@ -51,13 +51,13 @@ export const AICopyTool: React.FC = () => {
           placeholder="Keywords..."
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
-          className="bg-white/5 border-white/10 focus:border-accent/50 h-12 rounded-full px-6"
+          className="bg-white/5 border-white/10 focus:border-accent/50 h-12 rounded-full px-6 transition-all"
           onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
         />
         <Button 
           onClick={handleGenerate} 
           disabled={isLoading || !keywords.trim()}
-          className="bg-accent hover:bg-accent/80 text-black font-bold h-12 w-12 rounded-full shadow-lg"
+          className="bg-accent hover:bg-white text-black font-bold h-12 w-12 shrink-0 rounded-full shadow-lg transition-transform active:scale-90"
         >
           {isLoading ? <Loader2 className="animate-spin w-5 h-5" /> : "GO"}
         </Button>
@@ -72,7 +72,7 @@ export const AICopyTool: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: idx * 0.1 }}
-              className="group relative p-6 rounded-[2rem] bg-white/5 border border-white/5 hover:border-accent/30 transition-all"
+              className="group relative p-6 rounded-[3rem] bg-white/5 border border-white/5 hover:border-accent/30 transition-all"
             >
               <p className="text-sm leading-relaxed pr-10 font-medium">{suggestion}</p>
               <button
