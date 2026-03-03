@@ -1,0 +1,258 @@
+{
+  "entities": {
+    "Service": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Service",
+      "type": "object",
+      "description": "Represents a core digital agency service offered by Mix Aura, such as Digital Marketing or Web Development. These services are visualized in the 'Digital Intelligence' scene.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Service entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The name or title of the service, e.g., 'Digital Marketing' or 'Web Development'."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed explanation explaining what the service entails and its benefits to clients."
+        },
+        "visualIdentifier": {
+          "type": "string",
+          "description": "An optional string identifier that can be used to map to a specific 3D visualization or animation style for this service in the UI (e.g., 'data_streams', 'wireframe_structures')."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description"
+      ]
+    },
+    "Project": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Project",
+      "type": "object",
+      "description": "Represents a portfolio project or case study executed by Mix Aura, displayed as a glowing holographic portal in the 'Power & Impact' scene.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Project entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The concise title of the project, displayed prominently on the holographic portal."
+        },
+        "shortDescription": {
+          "type": "string",
+          "description": "A brief, impactful summary or tagline of the project, visible when interacting with the holographic portal."
+        },
+        "fullDescription": {
+          "type": "string",
+          "description": "The comprehensive case study content, detailing the client, challenge, solution, and results, displayed in the full-screen cinematic view upon selection."
+        },
+        "coverImageUrl": {
+          "type": "string",
+          "description": "URL to the primary image or thumbnail used for the holographic portal representation of the project.",
+          "format": "uri"
+        },
+        "detailImageUrls": {
+          "type": "array",
+          "description": "An array of URLs for additional high-resolution images that provide visual details and context within the full-screen case study view.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "videoUrl": {
+          "type": "string",
+          "description": "Optional URL to a video showcasing the project, intended for embedding within the full-screen case study.",
+          "format": "uri"
+        },
+        "websiteUrl": {
+          "type": "string",
+          "description": "Optional URL to the live website or application that was developed as part of this project.",
+          "format": "uri"
+        },
+        "serviceIds": {
+          "type": "array",
+          "description": "References to Service entities that were directly involved in the execution of this project. (Relationship: Project N:N Service)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "shortDescription",
+        "fullDescription",
+        "coverImageUrl"
+      ]
+    },
+    "ContactSubmission": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactSubmission",
+      "type": "object",
+      "description": "Records details from a user's submission via the futuristic contact panel, acting as a digital command center.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ContactSubmission entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the person submitting the contact form."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the person submitting the contact form, used for replies.",
+          "format": "email"
+        },
+        "message": {
+          "type": "string",
+          "description": "The actual message content provided by the user in the contact form."
+        },
+        "submissionDateTime": {
+          "type": "string",
+          "description": "The exact date and time when the contact form was submitted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "message",
+        "submissionDateTime"
+      ]
+    },
+    "WebsiteSetting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WebsiteSetting",
+      "type": "object",
+      "description": "Stores global configuration and static content for the Mix Aura website, intended to be a single record entity that defines universal site-wide values.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WebsiteSetting entity. Typically, this would be a fixed value like 'global' as there is only one record."
+        },
+        "companyName": {
+          "type": "string",
+          "description": "The official name of the company, 'Mix Aura'."
+        },
+        "tagline": {
+          "type": "string",
+          "description": "The primary tagline of the company, 'We Engineer Digital Influence', displayed in the 'Birth of an Aura' scene."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "The general contact email address for the company, displayed in the 'Control Panel (Contact)' scene.",
+          "format": "email"
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "The general contact phone number for the company."
+        },
+        "officeAddress": {
+          "type": "string",
+          "description": "The physical office address of the company."
+        },
+        "socialMediaLinksJson": {
+          "type": "string",
+          "description": "A JSON string representing an array of social media link objects, where each object should have 'platform' (string) and 'url' (URI) properties. Example: '[{\"platform\": \"LinkedIn\", \"url\": \"https://linkedin.com/company/mxaura\"}, {\"platform\": \"Twitter\", \"url\": \"https://twitter.com/mxaura\"}]'."
+        }
+      },
+      "required": [
+        "id",
+        "companyName",
+        "tagline",
+        "contactEmail"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/services/{serviceId}",
+        "definition": {
+          "entityName": "Service",
+          "schema": {
+            "$ref": "#/backend/entities/Service"
+          },
+          "description": "Collection for digital agency services offered by Mix Aura. All documents are publicly readable by all users (anonymous and authenticated). Managed by administrators. Includes denormalized 'id' field for direct document referencing.",
+          "params": [
+            {
+              "name": "serviceId",
+              "description": "The unique identifier for a specific service."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/projects/{projectId}",
+        "definition": {
+          "entityName": "Project",
+          "schema": {
+            "$ref": "#/backend/entities/Project"
+          },
+          "description": "Collection for portfolio projects and case studies. All documents are publicly readable by all users (anonymous and authenticated). Managed by administrators. Includes denormalized 'id' field for direct document referencing.",
+          "params": [
+            {
+              "name": "projectId",
+              "description": "The unique identifier for a specific project."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/contact_submissions/{submissionId}",
+        "definition": {
+          "entityName": "ContactSubmission",
+          "schema": {
+            "$ref": "#/backend/entities/ContactSubmission"
+          },
+          "description": "Collection for contact form submissions. Any user (anonymous or authenticated) can create new submissions. Only authenticated administrators can read or list submissions. Includes denormalized 'id' field for direct document referencing.",
+          "params": [
+            {
+              "name": "submissionId",
+              "description": "The unique identifier for a specific contact form submission."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/website_settings/global",
+        "definition": {
+          "entityName": "WebsiteSetting",
+          "schema": {
+            "$ref": "#/backend/entities/WebsiteSetting"
+          },
+          "description": "A single document storing global website configuration and static content. This document is publicly readable by all users. Only authenticated administrators can update this document. The document ID is fixed as 'global'."
+        }
+      },
+      {
+        "path": "/roles_admin/{adminUid}",
+        "definition": {
+          "entityName": "Role",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "A dedicated collection for Database Access Control (DBAC) to identify administrators. The existence of a document at `/roles_admin/{uid}` grants administrative privileges to the user with that UID. This collection allows for Authorization Independence as admin checks rely solely on the `exists()` function, avoiding hierarchical authorization dependencies. Only administrators should be able to manage documents within this collection.",
+          "params": [
+            {
+              "name": "adminUid",
+              "description": "The unique user ID (UID) of an authenticated Firebase user who has administrative privileges."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure for AuraForge prioritizes simplicity, explicit security, and adherence to the core design principles of Authorization Independence and QAPs (Queries Are Not Filters). Given that the application is primarily a public-facing cinematic portfolio website with a contact form, the authorization model is largely straightforward, focusing on global read access for public content and restricted admin access for managing content and viewing submissions.\n\n**Authorization Independence:** This is achieved primarily through the segregation of administrative roles into a dedicated collection (`/roles_admin/{adminUid}`). This means that any security rule requiring an 'admin' check will simply use `exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))`. This approach eliminates the need for `get()` operations on other document paths to determine user roles, thus preventing hierarchical authorization dependencies and allowing for atomic operations. For public data collections (`/services`, `/projects`, `/website_settings`), authorization is globally open for reads, requiring no complex lookups. For `/contact_submissions`, creation is public, and read/list access is restricted to administrators, again leveraging the independent `roles_admin` collection. No attributes are denormalized into `Service`, `Project`, `ContactSubmission`, or `WebsiteSetting` documents specifically for authorization because their access patterns are inherently global or tied directly to the requester's UID through the `roles_admin` collection, making internal denormalization redundant for these use cases.\n\n**QAPs (Queries Are Not Filters):** Each collection is designed with a homogeneous security posture, ensuring that rules do not act as filters on data that users are not intended to see in the first place.\n*   `/services` and `/projects`: All documents in these collections are public and intended to be listed and read by anyone. Security rules will simply allow all reads, fulfilling the QAP principle as any `list` query will return all publicly available content.\n*   `/website_settings`: This is a single document, also publicly readable. Any read query is implicitly secure.\n*   `/contact_submissions`: This collection permits `create` operations by any user. However, `read` and `list` operations are strictly limited to authenticated administrators. This design ensures that when an admin queries this collection, they retrieve all submissions without rules filtering out documents that they might not have permission to see (they have permission to see all). Conversely, non-admin users are explicitly denied `read` or `list` access, preventing them from running queries that would then be filtered.\n\n**Structural Segregation:** Each collection (`/services`, `/projects`, `/contact_submissions`, `/website_settings`, `/roles_admin`) serves a distinct purpose and has a consistent security posture. This eliminates the complexity of mixing public and private data within the same collection, making security rules much simpler and easier to debug. For instance, there's no need to differentiate between 'draft' and 'published' projects in the same collection with complex logic; all `/projects` are considered public and final.\n\n**Access Modeling:** The design leverages Path-Based ownership for the admin roles (`/roles_admin/{adminUid}`) where the `uid` directly grants a role. For public content, global read access is applied. There are no user-owned or collaborative data models in this application context requiring those specific patterns."
+  }
+}
