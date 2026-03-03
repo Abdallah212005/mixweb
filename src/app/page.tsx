@@ -24,16 +24,16 @@ export default function AuraForgePage() {
 
   // Snappy but smooth progress for UI elements
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 30, // Even smoother
+    stiffness: 30,
     damping: 35,
     restDelta: 0.001
   });
 
-  // Sync with background stages
-  const scene1Opacity = useTransform(smoothProgress, [0, 0.2], [1, 0]);
-  const scene2Opacity = useTransform(smoothProgress, [0.3, 0.45, 0.6], [0, 1, 0]);
-  const scene3Opacity = useTransform(smoothProgress, [0.7, 0.85, 0.94], [0, 1, 0]);
-  const scene4Opacity = useTransform(smoothProgress, [0.96, 1], [0, 1]);
+  // Sync with background stages (Adjusted for slower entry)
+  const scene1Opacity = useTransform(smoothProgress, [0, 0.25], [1, 0]);
+  const scene2Opacity = useTransform(smoothProgress, [0.35, 0.5, 0.65], [0, 1, 0]);
+  const scene3Opacity = useTransform(smoothProgress, [0.75, 0.88, 0.96], [0, 1, 0]);
+  const scene4Opacity = useTransform(smoothProgress, [0.97, 1], [0, 1]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,7 +42,7 @@ export default function AuraForgePage() {
         const totalHeight = containerRef.current?.scrollHeight || 0;
         const currentScroll = window.scrollY;
         
-        // Define slide anchor points
+        // Define slide anchor points (Slower, weighted steps)
         const anchors = [0, 0.33 * totalHeight, 0.73 * totalHeight, totalHeight];
         let targetIndex = 0;
 
@@ -107,7 +107,7 @@ export default function AuraForgePage() {
           <div className="w-full max-w-6xl">
             <div className="mb-8 text-center md:text-left">
               <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">RESONANCE</h2>
-              <p className="text-accent/50 font-code tracking-[0.6em] text-[7px] md:text-[9px] mt-2">Heavenly City Infiltration</p>
+              <p className="text-accent/50 font-code tracking-[0.6em] text-[7px] md:text-[9px] mt-2">Manhattan Digital Infiltration</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pointer-events-auto">
               {PROJECTS.map((project, idx) => (
