@@ -40,11 +40,10 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.4; 
+    renderer.toneMappingExposure = 1.5; 
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    // Increased strength to 2.5 and significantly lowered threshold to 0.2 for intense neon glow
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.6, 0.2);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
@@ -60,7 +59,7 @@ export const SceneBackground: React.FC = () => {
       starPositions[i * 3 + 1] = (Math.random() - 0.5) * 10000;
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 10000;
       
-      const mixedColor = new THREE.Color().setHSL(Math.random() * 0.1 + 0.75, 0.9, 0.8);
+      const mixedColor = new THREE.Color().setHSL(0.75 + Math.random() * 0.1, 1.0, 0.8);
       starColors[i * 3] = mixedColor.r;
       starColors[i * 3 + 1] = mixedColor.g;
       starColors[i * 3 + 2] = mixedColor.b;
@@ -70,7 +69,7 @@ export const SceneBackground: React.FC = () => {
     starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
     
     const starMaterial = new THREE.PointsMaterial({ 
-      size: 1.5, 
+      size: 2.0, 
       vertexColors: true, 
       transparent: true, 
       opacity: 0.9, 
@@ -88,7 +87,7 @@ export const SceneBackground: React.FC = () => {
     
     const planetMat = new THREE.MeshStandardMaterial({
       map: texture,
-      metalness: 0.1,
+      metalness: 0.2,
       roughness: 0.9,
       transparent: true
     });
@@ -104,11 +103,11 @@ export const SceneBackground: React.FC = () => {
           float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
           
           if(brightness < 0.35){
-            // محيطات داكنة جدًا بناءً على كودك
-            texColor.rgb = vec3(0.02, 0.02, 0.05);
+            // محيطات داكنة جدًا بناءً على منطقك المحدث
+            texColor.rgb = vec3(0.02, 0.02, 0.06);
           } else {
-            // قارات بنفسجي متوهجة بناءً على كودك المطور
-            texColor.rgb = vec3(0.5 + brightness * 0.4, 0.0, 0.8);
+            // قارات بنفسجي متوهجة بقوة نيون (Ultra Glow)
+            texColor.rgb = vec3(0.6 + brightness * 0.4, 0.0, 1.0);
           }
           
           diffuseColor *= texColor;
@@ -144,8 +143,8 @@ export const SceneBackground: React.FC = () => {
         varying vec3 vNormal;
         void main() {
           float directionalGlow = max(0.2, dot(vNormal, vec3(1.0, 0.5, 1.0)));
-          // Boosted atmosphere glow multiplier from 1.5 to 3.0
-          gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.0 );
+          // Ultra Glow Atmoshpere Multiplier
+          gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.5 );
         }
       `,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
@@ -169,14 +168,13 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // --- CINEMATIC LIGHTING (Bsed on your snippet) ---
-    // ☀️ Sun Light (من ناحية واحدة)
+    // --- CINEMATIC LIGHTING ---
     const sunLight = new THREE.DirectionalLight(0xffffff, 3);
     sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);
 
-    // إضاءة خفيفة جدًا للجنب الضلمة (Subtle Fill)
-    scene.add(new THREE.AmbientLight(0x110022, 0.3)); 
+    const subtleFill = new THREE.AmbientLight(0x220044, 0.4); 
+    scene.add(subtleFill);
 
     const animate = () => {
       requestAnimationFrame(animate);
