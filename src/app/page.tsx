@@ -31,27 +31,30 @@ const LightningBolt = () => {
       let currentY = startY;
       let newPath = `M ${startX} ${startY}`;
       
-      const segments = 4 + Math.floor(Math.random() * 4);
-      for (let i = 0; i < segments; i++) {
-        // Bolts move outward from the text area
-        const moveX = (currentX - 50) * 0.5 + (Math.random() - 0.5) * 10;
-        const moveY = (currentY - 50) * 0.5 + (Math.random() - 0.5) * 10;
-        currentX += moveX;
-        currentY += moveY;
+      // Multi-segment logic for jagged electric look
+      const segments = 8;
+      for (let i = 1; i <= segments; i++) {
+        const targetX = startX + (Math.random() - 0.5) * 15;
+        const targetY = startY + (Math.random() - 0.5) * 15;
+        const jitterX = (Math.random() - 0.5) * 10;
+        const jitterY = (Math.random() - 0.5) * 10;
+        
+        currentX = targetX + jitterX;
+        currentY = targetY + jitterY;
         newPath += ` L ${currentX} ${currentY}`;
       }
       return newPath;
     };
 
     const triggerBolt = () => {
-      if (Math.random() > 0.5) {
+      if (Math.random() > 0.6) {
         setPath(generatePath());
         setIsVisible(true);
-        setTimeout(() => setIsVisible(false), 80 + Math.random() * 120);
+        setTimeout(() => setIsVisible(false), 100 + Math.random() * 150);
       }
     };
     
-    const interval = setInterval(triggerBolt, 400);
+    const interval = setInterval(triggerBolt, 350);
     return () => clearInterval(interval);
   }, []);
 
@@ -73,7 +76,7 @@ const LightningBolt = () => {
         strokeWidth="0.4"
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ filter: "drop-shadow(0 0 8px #C41BFD) drop-shadow(0 0 15px #C41BFD)" }}
+        style={{ filter: "drop-shadow(0 0 10px #C41BFD) drop-shadow(0 0 18px #C41BFD)" }}
       />
     </motion.svg>
   );
@@ -112,18 +115,28 @@ export default function AuraForgePage() {
           className="absolute inset-0 flex flex-col items-center justify-center p-6"
         >
           <div className="text-center relative">
-            {/* Cinematic Lightning originating from text edges */}
             <LightningBolt />
             <LightningBolt />
             <LightningBolt />
             
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                textShadow: [
+                  "0 0 20px #C41BFD, 0 0 40px rgba(196,27,253,0.4)",
+                  "0 0 35px #C41BFD, 0 0 70px rgba(196,27,253,0.6)",
+                  "0 0 20px #C41BFD, 0 0 40px rgba(196,27,253,0.4)"
+                ]
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
               className="relative"
             >
-              {/* Intense Glow 3D Text */}
               <h1 className="text-6xl md:text-[8.5rem] font-black text-white uppercase leading-none tracking-tighter relative z-10 
                 [text-shadow:0_1px_0_#ccc,0_2px_0_#c9c9c9,0_3px_0_#bbb,0_4px_0_#b9b9b9,0_5px_0_#aaa,0_6px_1px_rgba(0,0,0,.1),0_0_5px_rgba(0,0,0,.1),0_1px_3px_rgba(0,0,0,.3),0_3px_5px_rgba(0,0,0,.2),0_5px_10px_rgba(0,0,0,.25),0_10px_10px_rgba(0,0,0,.2),0_20px_20px_rgba(0,0,0,.15),0_0_30px_#C41BFD,0_0_60px_rgba(196,27,253,0.4)]
               ">
@@ -148,19 +161,19 @@ export default function AuraForgePage() {
                 className="flex justify-center space-x-10 mt-12 pointer-events-auto"
             >
                 <a href="https://www.instagram.com/mixaura__?igsh=cGdtdGJoZzRoNXk0" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
-                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-8 h-8" style={{ filter: "drop-shadow(0 0 8px hsl(var(--accent) / 0.5))" }}>
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-8 h-8" style={{ filter: "drop-shadow(0 0 8px #C41BFD)" }}>
                         <title>Instagram</title>
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.07 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.07 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                     </svg>
                 </a>
                 <a href="https://www.facebook.com/share/1DkvUeKDKD/" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
-                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-8 h-8" style={{ filter: "drop-shadow(0 0 8px hsl(var(--accent) / 0.5))" }}>
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-8 h-8" style={{ filter: "drop-shadow(0 0 8px #C41BFD)" }}>
                         <title>Facebook</title>
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
                 </a>
                 <a href="https://wa.me/201020117504" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
-                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-8 h-8" style={{ filter: "drop-shadow(0 0 8px hsl(var(--accent) / 0.5))" }}>
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-8 h-8" style={{ filter: "drop-shadow(0 0 8px #C41BFD)" }}>
                         <title>WhatsApp</title>
                         <path d="M19.05 4.94A12 12 0 0 0 12 0C5.37 0 0 5.37 0 12c0 2.1.54 4.07 1.48 5.74L0 24l6.33-1.65A11.9 11.9 0 0 0 12 24c6.63 0 12-5.37 12-12a11.93 11.93 0 0 0-4.95-9.06zM12 21.76c-1.9 0-3.69-.5-5.23-1.39L4.4 21.2l.85-2.27a9.83 9.83 0 0 1-1.5-5.01c0-5.42 4.39-9.8 9.8-9.8s9.8 4.38 9.8 9.8-4.39 9.8-9.8 9.8zm4.7-6.59c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.62.13-.19.26-.7.88-.86 1.06-.16.18-.32.2-.59.06-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.36-1.61-1.52-1.88-.16-.27-.02-.42.12-.55.12-.12.27-.3.4-.4.07-.06.13-.13.2-.21.12-.13.06-.26-.03-.45s-.62-1.49-.85-2.04c-.23-.55-.46-.48-.62-.49-.15-.01-.32-.01-.49-.01-.17 0-.44.06-.67.33-.23.26-.88.85-1.08 2.06-.2.1.2 1.45 2.1 3.58 1.8 1.9 2.92 2.5 3.3 2.7.38.2.72.17.97.11.25-.06.78-.32.89-.63.11-.3.11-.56.08-.62-.03-.06-.15-.1-.23-.16z"/>
                     </svg>
