@@ -11,7 +11,7 @@ export const SceneBackground: React.FC = () => {
 
   // Cinematic scroll mapping - Smooth transitions
   const cameraZ = useTransform(scrollYProgress, [0, 0.45, 0.7, 1], [15, 6, 1.8, 1.2]);
-  const cameraY = useTransform(scrollYProgress, [0, 0.45, 0.7, 1], [0, 0, -1.5, -2.5]);
+  const cameraY = useTransform(scrollYProgress, [0, 0.45, 0.7, 1], [0.5, 0.5, -1.5, -2.5]);
   const planetOpacity = useTransform(scrollYProgress, [0.45, 0.65], [1, 0]);
   const planetScale = useTransform(scrollYProgress, [0, 0.65], [1.2, 4.0]);
   const cityOpacity = useTransform(scrollYProgress, [0.4, 0.65, 1], [0, 1, 1]);
@@ -37,7 +37,7 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     // --- 1. Starfield ---
-    const starCount = 2000;
+    const starCount = 3000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount; i++) {
@@ -81,7 +81,7 @@ export const SceneBackground: React.FC = () => {
         `
         #ifdef USE_MAP
           vec4 texelColor = texture2D( map, vMapUv );
-          // Mask oceans using red/blue channels
+          // Mask oceans using blue channel relative to red
           float oceanMask = smoothstep(0.0, 0.35, texelColor.b - texelColor.r);
           // Dark grey oceans as requested
           vec3 oceanColor = vec3(0.04, 0.04, 0.05); 
@@ -133,7 +133,7 @@ export const SceneBackground: React.FC = () => {
     planetGroup.add(atmosphere);
     scene.add(planetGroup);
 
-    // --- 3. NYC CINEMATIC MATRIX (Optimized Dense Manhattan) ---
+    // --- 3. NYC CINEMATIC MATRIX ---
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
 
@@ -158,7 +158,7 @@ export const SceneBackground: React.FC = () => {
       cityGroup.add(building);
 
       // Windows
-      const winCount = 12;
+      const winCount = 10;
       const winGeo = new THREE.BufferGeometry();
       const winPos = new Float32Array(winCount * 3);
       const winColors = new Float32Array(winCount * 3);
@@ -186,19 +186,13 @@ export const SceneBackground: React.FC = () => {
       building.add(winPoints);
     };
 
-    // Manhattan Grid
+    // Grid layout
     for (let i = -400; i <= 400; i += 70) {
       for (let j = -200; j <= 500; j += 70) {
         const dist = Math.sqrt(i * i + j * j);
         createNYCBuilding(i, j, dist);
       }
     }
-
-    // Iconic Center Tower
-    const centerTower = new THREE.Mesh(boxGeo, buildingMat);
-    centerTower.scale.set(30, 320, 30);
-    centerTower.position.set(0, 110, 150);
-    cityGroup.add(centerTower);
 
     // --- 4. LIGHTING ---
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
@@ -222,7 +216,10 @@ export const SceneBackground: React.FC = () => {
 
       camera.position.z = z;
       camera.position.y = y;
-      camera.lookAt(0, -cY * 0.08, 0);
+      
+      // Dynamic lookAt logic to center the planet initially then track down to city
+      const lookAtY = (scrollYProgress.get() < 0.45) ? 0 : -(cY * 0.1);
+      camera.lookAt(0, lookAtY, 0);
 
       planetGroup.rotation.y += 0.0003;
       planetGroup.scale.set(pSc, pSc, pSc);
@@ -261,7 +258,7 @@ export const SceneBackground: React.FC = () => {
       starGeometry.dispose();
       starMaterial.dispose();
     };
-  }, [cameraZ, cameraY, planetOpacity, planetScale, cityOpacity, cityY, starOpacity]);
+  }, [cameraZ, cameraY, planetOpacity, planetScale, cityOpacity, cityY, starOpacity, scrollYProgress]);
 
   return <div ref={containerRef} className="fixed inset-0 z-0 pointer-events-none" />;
 };
