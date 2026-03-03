@@ -26,7 +26,9 @@ export const SceneBackground: React.FC = () => {
   const planetScale = useTransform(smoothProgress, [0, 0.75], [1.8, 12]);
   const cityOpacity = useTransform(smoothProgress, [0.6, 0.85], [0, 1]);
   const cityY = useTransform(smoothProgress, [0.65, 0.95], [400, 0]);
-  const starOpacity = useTransform(smoothProgress, [0.3, 0.7], [0.8, 0.1]);
+  
+  // Fades out stars during scene 2 (around 0.25 to 0.65) to make background "blacker"
+  const starOpacity = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 0.65, 1], [0.8, 0.8, 0, 0, 0.1, 0.1]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -117,7 +119,7 @@ export const SceneBackground: React.FC = () => {
       const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
       planetGroup.add(planet);
 
-      // Asymmetric Glow Shader (Sun-facing) - BOOSTED DIRECTIONAL GLOW
+      // Asymmetric Glow Shader (Sun-facing)
       const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
       const atmoMat = new THREE.ShaderMaterial({
         uniforms: { 
@@ -132,7 +134,6 @@ export const SceneBackground: React.FC = () => {
           void main() {
             vNormal = normalize( normalMatrix * normal );
             vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
-            // Rim intensity based on camera view
             vIntensity = pow( 0.65 - dot(vNormal, vec3(0,0,1.0)), 7.0 );
             gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
           }
@@ -144,9 +145,7 @@ export const SceneBackground: React.FC = () => {
           varying float vIntensity;
           varying vec3 vNormal;
           void main() {
-            // Calculate directional bias based on sun direction
             float sunBias = max(0.0, dot(vNormal, sunDirection));
-            // Boosted directional glow on the sunny side
             float directionalFactor = 0.05 + 2.5 * pow(sunBias, 2.0);
             gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalFactor );
           }
