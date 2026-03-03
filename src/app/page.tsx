@@ -9,10 +9,10 @@ import { AICopyTool } from "@/components/ui/AICopyTool";
 import { ContactPanel } from "@/components/ui/ContactPanel";
 
 const PROJECTS = [
-  { title: "Web Design stop_01", category: "UX/UI Resonance", image: "https://picsum.photos/seed/design/800/1200" },
-  { title: "Web Development stop_02", category: "Full-Stack Neural", image: "https://picsum.photos/seed/dev/800/1200" },
-  { title: "Graphic Design stop_03", category: "Visual Influence", image: "https://picsum.photos/seed/graphic/800/1200" },
-  { title: "Media Buying stop_04", category: "Growth Infiltration", image: "https://picsum.photos/seed/ads/800/1200" },
+  { title: "Paid Advertising", category: "Revenue Scaling", image: "https://picsum.photos/seed/ads/800/1200" },
+  { title: "Web Development", category: "Neural Architecture", image: "https://picsum.photos/seed/dev/800/1200" },
+  { title: "Graphic Design", category: "Visual Influence", image: "https://picsum.photos/seed/design/800/1200" },
+  { title: "Media Buying", category: "Growth Infiltration", image: "https://picsum.photos/seed/media/800/1200" },
 ];
 
 export default function AuraForgePage() {
@@ -22,16 +22,17 @@ export default function AuraForgePage() {
     offset: ["start start", "end end"],
   });
 
+  // Faster spring for UI snappiness
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 15,
-    damping: 50,
+    stiffness: 25,
+    damping: 40,
     restDelta: 0.001
   });
 
-  // Scene Transitions
-  const scene1Opacity = useTransform(smoothProgress, [0, 0.25], [1, 0]);
-  const scene2Opacity = useTransform(smoothProgress, [0.28, 0.4, 0.55, 0.65], [0, 1, 1, 0]);
-  const scene3Opacity = useTransform(smoothProgress, [0.68, 0.78, 0.9, 0.95], [0, 1, 1, 0]);
+  // Scene Transitions (Adjusted for better Manhattan visibility)
+  const scene1Opacity = useTransform(smoothProgress, [0, 0.2], [1, 0]);
+  const scene2Opacity = useTransform(smoothProgress, [0.22, 0.35, 0.45, 0.55], [0, 1, 1, 0]);
+  const scene3Opacity = useTransform(smoothProgress, [0.6, 0.72, 0.88, 0.94], [0, 1, 1, 0]);
   const scene4Opacity = useTransform(smoothProgress, [0.96, 1], [0, 1]);
 
   useEffect(() => {
@@ -41,15 +42,16 @@ export default function AuraForgePage() {
         const totalHeight = document.body.scrollHeight;
         const currentScroll = window.scrollY;
         
-        const anchors = [0, 0.45 * totalHeight, 0.8 * totalHeight, totalHeight];
+        // Define slide anchor points based on progress ranges
+        const anchors = [0, 0.35 * totalHeight, 0.75 * totalHeight, totalHeight];
         let targetIndex = 0;
 
         if (e.key === "ArrowDown") {
-          targetIndex = anchors.findIndex(a => a > currentScroll + 300);
+          targetIndex = anchors.findIndex(a => a > currentScroll + 200);
           if (targetIndex === -1) targetIndex = anchors.length - 1;
         } else {
           const reversed = [...anchors].reverse();
-          const found = reversed.findIndex(a => a < currentScroll - 300);
+          const found = reversed.findIndex(a => a < currentScroll - 200);
           targetIndex = found === -1 ? 0 : (anchors.length - 1 - found);
         }
 
@@ -73,7 +75,7 @@ export default function AuraForgePage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-6xl md:text-[8rem] font-black text-white uppercase glow-purple leading-none mb-4"
+              className="text-6xl md:text-[7rem] font-black text-white uppercase glow-purple leading-none mb-4"
             >
               MIX AURA
             </motion.h1>
@@ -87,7 +89,7 @@ export default function AuraForgePage() {
         <motion.div style={{ opacity: scene2Opacity }} className="absolute inset-0 flex items-center justify-center p-6">
           <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 text-center md:text-left">
-              <h2 className="text-4xl md:text-[5rem] font-black uppercase leading-[0.85]">
+              <h2 className="text-4xl md:text-[4.5rem] font-black uppercase leading-[0.85]">
                 DIGITAL <br /> <span className="text-accent">INTELLIGENCE</span>
               </h2>
               <p className="text-[10px] md:text-sm text-white/50 max-w-xs mx-auto md:mx-0 font-medium">
@@ -104,7 +106,7 @@ export default function AuraForgePage() {
         <motion.div style={{ opacity: scene3Opacity }} className="absolute inset-0 flex items-center justify-center p-6">
           <div className="w-full max-w-6xl">
             <div className="mb-8 text-center md:text-left">
-              <h2 className="text-4xl md:text-7xl font-black uppercase tracking-tighter">RESONANCE</h2>
+              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">RESONANCE</h2>
               <p className="text-accent/50 font-code tracking-[0.6em] text-[8px] md:text-[10px] mt-2">Strategic Infiltrations & Successes</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pointer-events-auto">
@@ -119,7 +121,7 @@ export default function AuraForgePage() {
         <motion.div style={{ opacity: scene4Opacity }} className="absolute inset-0 flex items-center justify-center p-6">
           <div className="w-full max-w-3xl pointer-events-auto scale-90">
             <div className="text-center mb-8">
-              <h2 className="text-4xl md:text-8xl font-black uppercase mb-2">COLLAB</h2>
+              <h2 className="text-4xl md:text-7xl font-black uppercase mb-2">COLLAB</h2>
               <p className="text-accent/40 font-code tracking-[0.8em] uppercase text-[8px] md:text-[10px]">Establish Your Global Digital Authority</p>
             </div>
             <ContactPanel />
