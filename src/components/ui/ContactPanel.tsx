@@ -12,60 +12,59 @@ export const ContactPanel: React.FC = () => {
   const [isFocused, setIsFocused] = useState<string | null>(null);
 
   return (
-    <div className="max-w-2xl mx-auto w-full px-4 md:px-0">
-      <div className="relative p-8 md:p-16 rounded-[6rem] border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl transition-all duration-500">
+    <div className="max-w-3xl mx-auto w-full px-6 md:px-0">
+      <div className="relative p-12 md:p-20 rounded-[10rem] border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl transition-all duration-700">
         <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="space-y-10"
+          className="space-y-12"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
-              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-6">Identifier</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-4">
+              <Label className="text-[11px] uppercase tracking-[0.4em] text-accent/50 font-code ml-8">Identifier</Label>
               <Input
                 onFocus={() => setIsFocused("name")}
                 onBlur={() => setIsFocused(null)}
                 placeholder="Name"
-                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 rounded-full px-8 transition-all duration-500"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-16 rounded-full px-10 transition-all duration-500"
               />
             </div>
-            <div className="space-y-3">
-              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-6">Terminal</Label>
+            <div className="space-y-4">
+              <Label className="text-[11px] uppercase tracking-[0.4em] text-accent/50 font-code ml-8">Terminal</Label>
               <Input
                 onFocus={() => setIsFocused("email")}
                 onBlur={() => setIsFocused(null)}
                 placeholder="Email"
-                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 rounded-full px-8 transition-all duration-500"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-16 rounded-full px-10 transition-all duration-500"
               />
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-6">Transmission</Label>
+          <div className="space-y-4">
+            <Label className="text-[11px] uppercase tracking-[0.4em] text-accent/50 font-code ml-8">Transmission</Label>
             <Textarea
               onFocus={() => setIsFocused("message")}
               onBlur={() => setIsFocused(null)}
               placeholder="Your vision..."
-              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[150px] rounded-[3.5rem] p-8 transition-all duration-500"
+              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[180px] rounded-[5rem] p-10 transition-all duration-500 text-lg"
             />
           </div>
 
-          <Button className="w-full bg-accent hover:bg-white text-black h-16 rounded-full text-lg font-black uppercase tracking-widest transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-[0_20px_40px_-12px_rgba(196,27,253,0.3)]">
+          <Button className="w-full bg-accent hover:bg-white text-black h-20 rounded-full text-xl font-black uppercase tracking-[0.2em] transition-all duration-700 hover:scale-[1.02] active:scale-95 shadow-[0_25px_50px_-12px_rgba(196,27,253,0.4)]">
             Initiate Connection
           </Button>
 
-          <div className="flex justify-between items-center pt-6 border-t border-white/5">
-            <div className="flex gap-3">
-              <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-500 ${isFocused ? 'bg-accent animate-pulse' : 'bg-white/10'}`} />
-              <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-              <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+          <div className="flex justify-between items-center pt-10 border-t border-white/5">
+            <div className="flex gap-4">
+              <div className={`w-2 h-2 rounded-full transition-all duration-700 ${isFocused ? 'bg-accent scale-150' : 'bg-white/10'}`} />
+              <div className="w-2 h-2 rounded-full bg-white/10" />
+              <div className="w-2 h-2 rounded-full bg-white/10" />
             </div>
-            <p className="text-[9px] font-code text-white/30 uppercase tracking-[0.2em]">System Status: Ready</p>
+            <p className="text-[10px] font-code text-white/20 uppercase tracking-[0.3em]">Status: Transmission Ready</p>
           </div>
         </motion.div>
 
-        {/* Glossy Overlay */}
-        <div className="absolute inset-0 rounded-[6rem] bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 rounded-[10rem] bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
       </div>
     </div>
   );
