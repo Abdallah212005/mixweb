@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useRef, useEffect } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import React, { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import { SceneBackground } from "@/components/three/SceneBackground";
 import { PortfolioPortal } from "@/components/ui/PortfolioPortal";
 import { AICopyTool } from "@/components/ui/AICopyTool";
@@ -14,6 +14,52 @@ const PROJECTS = [
   { title: "Graphic Design", category: "Visual Influence", image: "https://picsum.photos/seed/graph/800/1200" },
   { title: "Media Buying", category: "Growth Infiltration", image: "https://picsum.photos/seed/media/800/1200" },
 ];
+
+// مكون الصاعقة الكهربائية
+const LightningBolt = () => {
+  const [coords, setCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const triggerBolt = () => {
+      if (Math.random() > 0.7) {
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        setCoords({
+          x1: x,
+          y1: y,
+          x2: x + (Math.random() - 0.5) * 20,
+          y2: y + (Math.random() - 0.5) * 20,
+        });
+        setIsVisible(true);
+        setTimeout(() => setIsVisible(false), 100 + Math.random() * 200);
+      }
+    };
+    const interval = setInterval(triggerBolt, 800);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!isVisible) return null;
+
+  return (
+    <motion.svg
+      className="absolute inset-0 w-full h-full pointer-events-none z-0"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0.5, 1, 0] }}
+      transition={{ duration: 0.2 }}
+    >
+      <line
+        x1={`${coords.x1}%`}
+        y1={`${coords.y1}%`}
+        x2={`${coords.x2}%`}
+        y2={`${coords.y2}%`}
+        stroke="hsl(var(--primary))"
+        strokeWidth="2"
+        style={{ filter: "drop-shadow(0 0 10px #C41BFD)" }}
+      />
+    </motion.svg>
+  );
+};
 
 export default function AuraForgePage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,20 +119,31 @@ export default function AuraForgePage() {
           style={{ opacity: scene1Opacity }} 
           className="absolute inset-0 flex flex-col items-center justify-center p-6"
         >
-          <div className="text-center">
-            <motion.h1 
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2.5, ease: [0.16, 1, 0.3, 1] }}
-              className="text-5xl md:text-[7rem] font-black text-white uppercase glow-purple leading-none mb-4 tracking-tighter"
+          <div className="text-center relative">
+            {/* صواعق كهربائية حول النص */}
+            <LightningBolt />
+            <LightningBolt />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="relative group"
             >
-              MIX AURA
-            </motion.h1>
+              {/* نص 3D بسيط */}
+              <h1 className="text-6xl md:text-[8rem] font-black text-white uppercase leading-none tracking-tighter relative z-10 
+                [text-shadow:0_1px_0_#ccc,0_2px_0_#c9c9c9,0_3px_0_#bbb,0_4px_0_#b9b9b9,0_5px_0_#aaa,0_6px_1px_rgba(0,0,0,.1),0_0_5px_rgba(0,0,0,.1),0_1px_3px_rgba(0,0,0,.3),0_3px_5px_rgba(0,0,0,.2),0_5px_10px_rgba(0,0,0,.25),0_10px_10px_rgba(0,0,0,.2),0_20px_20px_rgba(0,0,0,.15),0_0_30px_rgba(196,27,253,0.4)]
+                animate-pulse
+              ">
+                MIX AURA
+              </h1>
+            </motion.div>
+
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.8 }}
               transition={{ delay: 1, duration: 2 }}
-              className="font-code tracking-[0.8em] text-accent uppercase text-center text-xs md:text-sm mb-8"
+              className="font-code tracking-[0.8em] text-accent uppercase text-center text-xs md:text-sm mb-8 mt-4"
             >
               Start Like a Pro
             </motion.p>
@@ -101,7 +158,7 @@ export default function AuraForgePage() {
                 <a href="https://www.instagram.com/mixaura__?igsh=cGdtdGJoZzRoNXk0" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
                     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-8 h-8" style={{ filter: "drop-shadow(0 0 8px hsl(var(--accent) / 0.5))" }}>
                         <title>Instagram</title>
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.07 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.07 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                     </svg>
                 </a>
                 <a href="https://www.facebook.com/share/1DkvUeKDKD/" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
@@ -202,3 +259,4 @@ export default function AuraForgePage() {
     </main>
   );
 }
+

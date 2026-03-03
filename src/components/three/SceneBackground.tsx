@@ -74,7 +74,7 @@ export const SceneBackground: React.FC = () => {
       metalness: 0.1,
       transparent: true,
       emissive: new THREE.Color("#4400aa"),
-      emissiveIntensity: 0.2 // تقليل الـ Emissive عشان يظهر الليل
+      emissiveIntensity: 0.2
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -100,7 +100,7 @@ export const SceneBackground: React.FC = () => {
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
-    // Atmosphere Glow (Crescent Effect)
+    // Atmosphere Glow
     const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: { 
@@ -124,7 +124,6 @@ export const SceneBackground: React.FC = () => {
         varying float vIntensity;
         varying vec3 vNormal;
         void main() {
-          // هلال يتبع الشمس
           float sunDot = max(0.0, dot(vNormal, sunPosition));
           float atmosphere = vIntensity * uOpacity * (sunDot + 0.1);
           gl_FragColor = vec4( glowColor, atmosphere * 1.5 );
@@ -136,7 +135,7 @@ export const SceneBackground: React.FC = () => {
     planetGroup.add(atmosphere);
     scene.add(planetGroup);
 
-    // City Group (Foreground)
+    // City Group
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
 
@@ -166,9 +165,8 @@ export const SceneBackground: React.FC = () => {
     }
 
     // Lights
-    scene.add(new THREE.AmbientLight(0x050510, 0.1)); // تقليل الضوء المحيطي جداً لإظهار الليل
+    scene.add(new THREE.AmbientLight(0x050510, 0.1)); 
     
-    // الشمس - ضوء جانبي قوي لخلق ليل ونهار
     const sun = new THREE.DirectionalLight(0xffffff, 3.5);
     sun.position.set(20, 10, 20);
     scene.add(sun);
