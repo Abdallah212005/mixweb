@@ -40,7 +40,7 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.4; 
+    renderer.toneMappingExposure = 1.5; 
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
@@ -79,74 +79,78 @@ export const SceneBackground: React.FC = () => {
     scene.add(stars);
 
     const planetGroup = new THREE.Group();
-    // Ultra-smooth sphere for the stone shader
-    const planetGeo = new THREE.SphereGeometry(6.5, 256, 256);
+    const loader = new THREE.TextureLoader();
     
-    const planetMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.5,
-      metalness: 0.2,
-      transparent: true
+    loader.load('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg', (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      const planetMat = new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: 0.9,
+        metalness: 0.2,
+        transparent: true
+      });
+
+      planetMat.onBeforeCompile = (shader) => {
+        shader.uniforms.uOpacity = { value: 1.0 };
+        shader.fragmentShader = `uniform float uOpacity;\n${shader.fragmentShader}`;
+        shader.fragmentShader = shader.fragmentShader.replace(
+          '#include <map_fragment>',
+          `
+          vec4 texColor = texture2D(map, vMapUv);
+          float brightness = (texColor.r + texColor.g + texColor.b)/3.0;
+
+          if(brightness < 0.35){
+            texColor.rgb = vec3(0.02, 0.02, 0.06); // محيطات داكنة عميقة
+          } else {
+            texColor.rgb = vec3(0.6 + brightness*0.4, 0.0, 1.0); // قارات أرجوانية متوهجة
+          }
+
+          diffuseColor *= texColor;
+          diffuseColor.a *= uOpacity;
+          `
+        );
+        planetMat.userData.shader = shader;
+      };
+
+      const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
+      planetGroup.add(planet);
+
+      const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
+      const atmoMat = new THREE.ShaderMaterial({
+        uniforms: { 
+          glowColor: { value: new THREE.Color("#9D00FF") }, 
+          uOpacity: { value: 1.0 }
+        },
+        vertexShader: `
+          varying float vIntensity;
+          varying vec3 vNormal;
+          void main() {
+            vNormal = normalize( normalMatrix * normal );
+            vIntensity = pow( 0.7 - dot(vNormal, vec3(0,0,1.0)), 5.0 );
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 glowColor;
+          uniform float uOpacity;
+          varying float vIntensity;
+          varying vec3 vNormal;
+          void main() {
+            float directionalGlow = max(0.2, dot(vNormal, vec3(1.0, 0.5, 1.0)));
+            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.0 );
+          }
+        `,
+        side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
+      });
+      const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
+      planetGroup.add(atmosphere);
+      scene.add(planetGroup);
+      
+      // Update ref or storage if needed for animation
+      planetGroup.userData.atmoMat = atmoMat;
+      planetGroup.userData.planetMat = planetMat;
     });
-
-    planetMat.onBeforeCompile = (shader) => {
-      shader.uniforms.uOpacity = { value: 1.0 };
-      shader.fragmentShader = `uniform float uOpacity;\n${shader.fragmentShader}`;
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <map_fragment>',
-        `
-        vec3 purple1 = vec3(0.3, 0.0, 0.6);
-        vec3 purple2 = vec3(0.6, 0.0, 1.0);
-        vec3 dark = vec3(0.08, 0.0, 0.15);
-
-        // Procedural Stone Noise logic from Purple Stone Planet
-        float noise = fract(sin(dot(vNormal.xy ,vec2(12.9898,78.233))) * 43758.5453);
-
-        // Smoothly blend shades based on noise and normal Y-axis (poles)
-        vec3 finalColor = mix(purple1, purple2, noise);
-        finalColor = mix(dark, finalColor, abs(vNormal.y));
-        
-        diffuseColor.rgb = finalColor;
-        diffuseColor.a *= uOpacity;
-        `
-      );
-      planetMat.userData.shader = shader;
-    };
-
-    const planet = new THREE.Mesh(planetGeo, planetMat);
-    planetGroup.add(planet);
-
-    // Dynamic Rim Glow Atmosphere
-    const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
-    const atmoMat = new THREE.ShaderMaterial({
-      uniforms: { 
-        glowColor: { value: new THREE.Color("#9D00FF") }, 
-        uOpacity: { value: 1.0 }
-      },
-      vertexShader: `
-        varying float vIntensity;
-        varying vec3 vNormal;
-        void main() {
-          vNormal = normalize( normalMatrix * normal );
-          vIntensity = pow( 0.7 - dot(vNormal, vec3(0,0,1.0)), 5.0 );
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 glowColor;
-        uniform float uOpacity;
-        varying float vIntensity;
-        varying vec3 vNormal;
-        void main() {
-          float directionalGlow = max(0.2, dot(vNormal, vec3(1.0, 0.5, 1.0)));
-          gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.0 );
-        }
-      `,
-      side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
-    });
-    const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
-    planetGroup.add(atmosphere);
-    scene.add(planetGroup);
 
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
@@ -163,9 +167,8 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // --- UPDATED CINEMATIC LIGHTING (FROM PURPLE STONE PLANET) ---
     const sunLight = new THREE.DirectionalLight(0xffffff, 3);
-    sunLight.position.set(400, 150, 200); 
+    sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);
 
     const subtleFill = new THREE.AmbientLight(0x220033, 0.6); 
@@ -178,13 +181,20 @@ export const SceneBackground: React.FC = () => {
       const p = smoothProgress.get();
       camera.lookAt(0, (p < 0.6) ? 0 : -0.25, (p > 0.75) ? 0.5 : 0);
 
-      planetGroup.rotation.y += 0.002;
-      planetGroup.scale.set(planetScale.get(), planetScale.get(), planetScale.get());
-      
-      if (planetMat.userData.shader) {
-        planetMat.userData.shader.uniforms.uOpacity.value = planetOpacity.get();
+      if (planetGroup) {
+        planetGroup.rotation.y += 0.002;
+        planetGroup.scale.set(planetScale.get(), planetScale.get(), planetScale.get());
+        
+        const pMat = planetGroup.userData.planetMat;
+        const aMat = planetGroup.userData.atmoMat;
+        
+        if (pMat && pMat.userData.shader) {
+          pMat.userData.shader.uniforms.uOpacity.value = planetOpacity.get();
+        }
+        if (aMat) {
+          aMat.uniforms.uOpacity.value = planetOpacity.get();
+        }
       }
-      atmoMat.uniforms.uOpacity.value = planetOpacity.get();
       
       cityGroup.position.y = cityY.get();
       buildingMat.opacity = cityOpacity.get();
