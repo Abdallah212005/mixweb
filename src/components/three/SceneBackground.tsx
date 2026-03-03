@@ -33,24 +33,24 @@ export const SceneBackground: React.FC = () => {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#000000");
-    scene.fog = new THREE.FogExp2("#000000", 0.012); // Slightly denser fog to keep it dark
+    scene.fog = new THREE.FogExp2("#000000", 0.012);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 15000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0; // Reduced exposure for darker feel
+    renderer.toneMappingExposure = 1.0;
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    // Reduced bloom strength from 1.2 to 0.6 to prevent background flooding
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.8);
+    // Subtle bloom
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
-    const starCount = 6000; // Slightly fewer stars for cleaner space
+    const starCount = 6000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
@@ -60,7 +60,7 @@ export const SceneBackground: React.FC = () => {
       starPositions[i * 3 + 1] = (Math.random() - 0.5) * 8000;
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 8000;
       
-      const mixedColor = new THREE.Color().setHSL(0.75 + Math.random() * 0.1, 1.0, 0.6); // Slightly dimmer stars
+      const mixedColor = new THREE.Color().setHSL(0.75 + Math.random() * 0.1, 1.0, 0.6);
       starColors[i * 3] = mixedColor.r;
       starColors[i * 3 + 1] = mixedColor.g;
       starColors[i * 3 + 2] = mixedColor.b;
@@ -102,10 +102,8 @@ export const SceneBackground: React.FC = () => {
           float brightness = (texColor.r + texColor.g + texColor.b)/3.0;
 
           if(brightness < 0.4){
-            // Deeper charcoal purple for oceans
             texColor.rgb *= vec3(0.08, 0.06, 0.15);
           } else {
-            // Moody purple mix for continents
             texColor.rgb = mix(texColor.rgb, vec3(0.4, 0.0, 0.7), 0.65);
           }
 
@@ -119,30 +117,37 @@ export const SceneBackground: React.FC = () => {
       const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
       planetGroup.add(planet);
 
-      // Atmosphere Shader with subtle glow
+      // Asymmetric Glow Shader (Sun-facing)
       const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
       const atmoMat = new THREE.ShaderMaterial({
         uniforms: { 
           glowColor: { value: new THREE.Color("#9D00FF") }, 
-          uOpacity: { value: 1.0 }
+          uOpacity: { value: 1.0 },
+          sunDirection: { value: new THREE.Vector3(1.0, 0.25, 0.5).normalize() }
         },
         vertexShader: `
           varying float vIntensity;
           varying vec3 vNormal;
+          varying vec3 vPosition;
           void main() {
             vNormal = normalize( normalMatrix * normal );
-            vIntensity = pow( 0.6 - dot(vNormal, vec3(0,0,1.0)), 6.0 ); // Sharper falloff
+            vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+            // Rim intensity based on camera view
+            vIntensity = pow( 0.65 - dot(vNormal, vec3(0,0,1.0)), 7.0 );
             gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
           }
         `,
         fragmentShader: `
           uniform vec3 glowColor;
           uniform float uOpacity;
+          uniform vec3 sunDirection;
           varying float vIntensity;
           varying vec3 vNormal;
           void main() {
-            float directionalGlow = max(0.1, dot(vNormal, vec3(1.0, 0.5, 1.0)));
-            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 1.2 ); // Reduced glow multiplier
+            // Calculate directional bias based on sun direction
+            float sunBias = max(0.0, dot(vNormal, sunDirection));
+            // Subtle directional glow
+            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * (0.2 + 1.2 * sunBias) );
           }
         `,
         side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
@@ -170,11 +175,11 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
     sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);
 
-    const subtleFill = new THREE.AmbientLight(0x050511, 0.2); 
+    const subtleFill = new THREE.AmbientLight(0x050511, 0.1); 
     scene.add(subtleFill);
 
     const animate = () => {
