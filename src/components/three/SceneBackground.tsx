@@ -44,7 +44,8 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    // Increased strength to 2.5 and significantly lowered threshold to 0.2 for intense neon glow
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.6, 0.2);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -59,7 +60,6 @@ export const SceneBackground: React.FC = () => {
       starPositions[i * 3 + 1] = (Math.random() - 0.5) * 10000;
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 10000;
       
-      // Purple-ish stars as requested in the cinematic snippet
       const mixedColor = new THREE.Color().setHSL(Math.random() * 0.1 + 0.75, 0.9, 0.8);
       starColors[i * 3] = mixedColor.r;
       starColors[i * 3 + 1] = mixedColor.g;
@@ -107,7 +107,7 @@ export const SceneBackground: React.FC = () => {
             // محيطات داكنة جدًا بناءً على كودك
             texColor.rgb = vec3(0.02, 0.02, 0.05);
           } else {
-            // قارات بنفسجي متوهجة بناءً على كودك
+            // قارات بنفسجي متوهجة بناءً على كودك المطور
             texColor.rgb = vec3(0.5 + brightness * 0.4, 0.0, 0.8);
           }
           
@@ -144,7 +144,8 @@ export const SceneBackground: React.FC = () => {
         varying vec3 vNormal;
         void main() {
           float directionalGlow = max(0.2, dot(vNormal, vec3(1.0, 0.5, 1.0)));
-          gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 1.5 );
+          // Boosted atmosphere glow multiplier from 1.5 to 3.0
+          gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.0 );
         }
       `,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
