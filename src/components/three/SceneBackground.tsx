@@ -59,7 +59,8 @@ export const SceneBackground: React.FC = () => {
       starPositions[i * 3 + 1] = (Math.random() - 0.5) * 10000;
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 10000;
       
-      const mixedColor = new THREE.Color().setHSL(Math.random() * 0.1 + 0.65, 0.9, 0.9);
+      // Purple-ish stars as requested in the cinematic snippet
+      const mixedColor = new THREE.Color().setHSL(Math.random() * 0.1 + 0.75, 0.9, 0.8);
       starColors[i * 3] = mixedColor.r;
       starColors[i * 3 + 1] = mixedColor.g;
       starColors[i * 3 + 2] = mixedColor.b;
@@ -103,16 +104,15 @@ export const SceneBackground: React.FC = () => {
           float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
           
           if(brightness < 0.35){
-            // Oceans deep dark
-            texColor.rgb = vec3(0.03, 0.02, 0.06);
+            // محيطات داكنة جدًا بناءً على كودك
+            texColor.rgb = vec3(0.02, 0.02, 0.05);
           } else {
-            // Continents purple
-            texColor.rgb = vec3(0.4 + brightness * 0.5, 0.0, 0.75);
+            // قارات بنفسجي متوهجة بناءً على كودك
+            texColor.rgb = vec3(0.5 + brightness * 0.4, 0.0, 0.8);
           }
           
-          // Multiply diffuse color by texture to respect directional lighting (Day/Night effect)
-          diffuseColor.rgb *= texColor.rgb;
-          diffuseColor.a = uOpacity;
+          diffuseColor *= texColor;
+          diffuseColor.a *= uOpacity;
         #endif
         `
       );
@@ -143,7 +143,6 @@ export const SceneBackground: React.FC = () => {
         varying float vIntensity;
         varying vec3 vNormal;
         void main() {
-          // Subtle directional atmospheric glow
           float directionalGlow = max(0.2, dot(vNormal, vec3(1.0, 0.5, 1.0)));
           gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 1.5 );
         }
@@ -169,18 +168,14 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // --- CINEMATIC LIGHTING ---
-    scene.add(new THREE.AmbientLight(0x111122, 0.5)); 
-    
-    // The "Sun" - White light for bright reflections
-    const sunLight = new THREE.DirectionalLight(0xffffff, 4);
-    sunLight.position.set(100, 50, 100); 
+    // --- CINEMATIC LIGHTING (Bsed on your snippet) ---
+    // ☀️ Sun Light (من ناحية واحدة)
+    const sunLight = new THREE.DirectionalLight(0xffffff, 3);
+    sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);
 
-    // Purple Core Light for Aura
-    const purpleSun = new THREE.PointLight(0x9D00FF, 300, 1000);
-    purpleSun.position.set(80, 40, 80);
-    scene.add(purpleSun);
+    // إضاءة خفيفة جدًا للجنب الضلمة (Subtle Fill)
+    scene.add(new THREE.AmbientLight(0x110022, 0.3)); 
 
     const animate = () => {
       requestAnimationFrame(animate);
