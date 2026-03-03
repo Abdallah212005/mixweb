@@ -51,7 +51,7 @@ export const SceneBackground: React.FC = () => {
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // --- 2. TEXTURED REALISTIC EARTH (Purple Topography) ---
+    // --- 2. TEXTURED REALISTIC EARTH (Shader-based) ---
     const loader = new THREE.TextureLoader();
     const albedo = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
     const bump = loader.load("https://threejs.org/examples/textures/planets/earth_bump_2048.jpg");
@@ -84,10 +84,10 @@ export const SceneBackground: React.FC = () => {
           vec4 texelColor = texture2D( map, vMapUv );
           float oceanMask = smoothstep(0.0, 0.35, texelColor.b - texelColor.r);
           
-          // Dark Grey realistic oceans
+          // المحيطات بالرمادي الغامق الفخم
           vec3 oceanColor = vec3(0.08, 0.08, 0.1); 
           
-          // Purple Land with details
+          // اليابسة بالبنفسجي النيوني مع الحفاظ على تفاصيل القارات
           vec3 purpleTint = vec3(0.55, 0.1, 0.8);
           vec3 landColor = mix(texelColor.rgb, purpleTint, 0.7);
           
@@ -136,7 +136,7 @@ export const SceneBackground: React.FC = () => {
     planetGroup.add(atmosphere);
     scene.add(planetGroup);
 
-    // --- 3. NYC CINEMATIC MATRIX (The Landing Zone) ---
+    // --- 3. NYC CINEMATIC MATRIX (Manhattan Density) ---
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
 
@@ -166,7 +166,7 @@ export const SceneBackground: React.FC = () => {
     bridge.position.set(0, -40, -200);
     cityGroup.add(bridge);
 
-    // Building Generator (Manhattan Density)
+    // Building Generator (Optimized Points for Windows)
     const buildingMat = new THREE.MeshStandardMaterial({ color: 0x050508, roughness: 0.3, transparent: true });
     const boxGeo = new THREE.BoxGeometry(1, 1, 1);
 
@@ -182,7 +182,7 @@ export const SceneBackground: React.FC = () => {
       building.position.set(x, height / 2 - 50, z);
       cityGroup.add(building);
 
-      // Procedural Window Clusters (Orange + Purple mix)
+      // Procedural Window Clusters (Orange + Purple mix as requested)
       const winCount = 30;
       const winGeo = new THREE.BufferGeometry();
       const winPos = new Float32Array(winCount * 3);
@@ -215,7 +215,7 @@ export const SceneBackground: React.FC = () => {
       building.add(winPoints);
     };
 
-    // Populate Manhattan Density
+    // Populate Manhattan Density (Optimized loop)
     for (let i = -500; i <= 500; i += 70) {
       for (let j = -100; j <= 400; j += 70) {
         const dist = Math.sqrt(i * i + j * j);
@@ -256,6 +256,8 @@ export const SceneBackground: React.FC = () => {
 
       camera.position.z = z;
       camera.position.y = y;
+      
+      // Look forward into the city streets as we descend
       camera.lookAt(0, -cY * 0.1, 0);
 
       // Planet Animation
