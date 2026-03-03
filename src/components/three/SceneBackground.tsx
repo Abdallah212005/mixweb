@@ -40,11 +40,11 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.5; 
+    renderer.toneMappingExposure = 1.1; 
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.6, 0.2);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.2);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -81,13 +81,14 @@ export const SceneBackground: React.FC = () => {
     const planetGroup = new THREE.Group();
     const loader = new THREE.TextureLoader();
     
-    loader.load('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg', (texture) => {
+    // Using the realistic earth texture from your snippet
+    loader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
 
       const planetMat = new THREE.MeshStandardMaterial({
         map: texture,
-        roughness: 0.9,
-        metalness: 0.2,
+        roughness: 1.0,
+        metalness: 0.0,
         transparent: true
       });
 
@@ -100,10 +101,12 @@ export const SceneBackground: React.FC = () => {
           vec4 texColor = texture2D(map, vMapUv);
           float brightness = (texColor.r + texColor.g + texColor.b)/3.0;
 
-          if(brightness < 0.35){
-            texColor.rgb = vec3(0.02, 0.02, 0.06); // محيطات داكنة عميقة
+          if(brightness < 0.4){
+            // Realistic deep purple for oceans
+            texColor.rgb *= vec3(0.15, 0.12, 0.25);
           } else {
-            texColor.rgb = vec3(0.6 + brightness*0.4, 0.0, 1.0); // قارات أرجوانية متوهجة
+            // Natural purple mix for continents
+            texColor.rgb = mix(texColor.rgb, vec3(0.5, 0.0, 0.8), 0.6);
           }
 
           diffuseColor *= texColor;
@@ -116,6 +119,7 @@ export const SceneBackground: React.FC = () => {
       const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
       planetGroup.add(planet);
 
+      // Atmosphere Shader for realistic limb glow
       const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
       const atmoMat = new THREE.ShaderMaterial({
         uniforms: { 
@@ -138,7 +142,7 @@ export const SceneBackground: React.FC = () => {
           varying vec3 vNormal;
           void main() {
             float directionalGlow = max(0.2, dot(vNormal, vec3(1.0, 0.5, 1.0)));
-            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.0 );
+            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 2.0 );
           }
         `,
         side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
@@ -147,7 +151,6 @@ export const SceneBackground: React.FC = () => {
       planetGroup.add(atmosphere);
       scene.add(planetGroup);
       
-      // Update ref or storage if needed for animation
       planetGroup.userData.atmoMat = atmoMat;
       planetGroup.userData.planetMat = planetMat;
     });
@@ -167,11 +170,12 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 3);
+    // Realistic Sun position from your snippet
+    const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
     sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);
 
-    const subtleFill = new THREE.AmbientLight(0x220033, 0.6); 
+    const subtleFill = new THREE.AmbientLight(0x111122, 0.3); 
     scene.add(subtleFill);
 
     const animate = () => {
