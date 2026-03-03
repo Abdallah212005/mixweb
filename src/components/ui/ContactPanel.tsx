@@ -12,66 +12,60 @@ export const ContactPanel: React.FC = () => {
   const [isFocused, setIsFocused] = useState<string | null>(null);
 
   return (
-    <div className="max-w-xl mx-auto w-full">
-      <div className="relative p-1 rounded-2xl bg-gradient-to-br from-primary/30 via-accent/20 to-transparent">
-        <div className="bg-[#100E11] rounded-[14px] p-8 md:p-12">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="space-y-8"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-accent/70 font-code">Identifier</Label>
-                <Input
-                  onFocus={() => setIsFocused("name")}
-                  onBlur={() => setIsFocused(null)}
-                  placeholder="Your Name"
-                  className="bg-transparent border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary h-12 transition-all duration-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-widest text-accent/70 font-code">Terminal Access</Label>
-                <Input
-                  onFocus={() => setIsFocused("email")}
-                  onBlur={() => setIsFocused(null)}
-                  placeholder="your@email.com"
-                  className="bg-transparent border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary h-12 transition-all duration-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-widest text-accent/70 font-code">Transmission Data</Label>
-              <Textarea
-                onFocus={() => setIsFocused("message")}
+    <div className="max-w-2xl mx-auto w-full">
+      <div className="relative p-8 md:p-16 rounded-[5rem] border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          className="space-y-10"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-4">Identifier</Label>
+              <Input
+                onFocus={() => setIsFocused("name")}
                 onBlur={() => setIsFocused(null)}
-                placeholder="Describe your vision..."
-                className="bg-transparent border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary min-h-[150px] transition-all duration-500"
+                placeholder="Name"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 rounded-full px-8 transition-all duration-500"
               />
             </div>
-
-            <Button className="w-full bg-primary hover:bg-primary/80 h-14 text-lg font-bold group relative overflow-hidden transition-all duration-500">
-              <span className="relative z-10">INITIATE CONNECTION</span>
-              <motion.div
-                className="absolute inset-0 bg-accent/20"
-                initial={{ x: "-100%" }}
-                whileHover={{ x: "100%" }}
-                transition={{ duration: 0.8 }}
+            <div className="space-y-3">
+              <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-4">Terminal</Label>
+              <Input
+                onFocus={() => setIsFocused("email")}
+                onBlur={() => setIsFocused(null)}
+                placeholder="Email"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-14 rounded-full px-8 transition-all duration-500"
               />
-              <div className="absolute inset-0 bg-primary shadow-[0_0_30px_rgba(196,27,253,0.5)] group-active:scale-95 transition-transform" />
-            </Button>
-
-            <div className="flex justify-between items-center pt-4 border-t border-primary/10">
-              <div className="flex gap-4">
-                <div className={`w-1 h-1 rounded-full ${isFocused ? 'bg-primary animate-ping' : 'bg-primary/30'}`} />
-                <div className="w-1 h-1 rounded-full bg-primary/30" />
-                <div className="w-1 h-1 rounded-full bg-primary/30" />
-              </div>
-              <p className="text-[10px] font-code text-muted-foreground uppercase">System: Awaiting Input</p>
             </div>
-          </motion.div>
-        </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-[10px] uppercase tracking-[0.3em] text-accent/60 font-code ml-4">Transmission</Label>
+            <Textarea
+              onFocus={() => setIsFocused("message")}
+              onBlur={() => setIsFocused(null)}
+              placeholder="Your vision..."
+              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[150px] rounded-[2.5rem] p-8 transition-all duration-500"
+            />
+          </div>
+
+          <Button className="w-full bg-accent hover:bg-white text-black h-16 rounded-full text-lg font-black uppercase tracking-widest transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-[0_20px_40px_-12px_rgba(196,27,253,0.3)]">
+            Initiate Connection
+          </Button>
+
+          <div className="flex justify-between items-center pt-6 border-t border-white/5">
+            <div className="flex gap-3">
+              <div className={`w-1.5 h-1.5 rounded-full ${isFocused ? 'bg-accent animate-pulse' : 'bg-white/10'}`} />
+              <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+              <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+            </div>
+            <p className="text-[9px] font-code text-white/30 uppercase tracking-[0.2em]">System Status: Ready</p>
+          </div>
+        </motion.div>
+
+        {/* Glossy Overlay */}
+        <div className="absolute inset-0 rounded-[5rem] bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
       </div>
     </div>
   );
