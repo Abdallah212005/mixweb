@@ -10,15 +10,15 @@ export const SceneBackground: React.FC = () => {
   const { scrollYProgress } = useScroll();
 
   // Camera and scene transforms based on scroll
-  const cameraZ = useTransform(scrollYProgress, [0, 0.5, 1], [15, 5, -10]);
-  const sceneRotation = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 0.5]);
-  const planetOpacity = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [1, 1, 0.2, 0]);
+  const cameraZ = useTransform(scrollYProgress, [0, 0.5, 1], [15, 6, -12]);
+  const sceneRotation = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 0.4]);
+  const planetOpacity = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [1, 1, 0.3, 0]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#050508");
+    scene.background = new THREE.Color("#020204");
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -27,7 +27,7 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     // --- Starfield ---
-    const starCount = 8000;
+    const starCount = 10000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
@@ -37,79 +37,123 @@ export const SceneBackground: React.FC = () => {
       starPositions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
 
-      const brightness = 0.5 + Math.random() * 0.5;
+      const brightness = 0.4 + Math.random() * 0.6;
       starColors[i * 3] = brightness;
       starColors[i * 3 + 1] = brightness;
-      starColors[i * 3 + 2] = 1; // Slight blue tint
+      starColors[i * 3 + 2] = 1; 
     }
 
     starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
     starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
 
     const starMaterial = new THREE.PointsMaterial({
-      size: 0.7,
+      size: 0.8,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.9,
       sizeAttenuation: true,
     });
 
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
+    // --- Procedural Planet Texture ---
+    const createPlanetTexture = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      // Deep Ocean Base
+      ctx.fillStyle = '#050510';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Procedural Landmasses
+      for (let i = 0; i < 40; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = 50 + Math.random() * 150;
+        
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+        gradient.addColorStop(0, 'rgba(196, 27, 253, 0.8)'); // Purple glow core
+        gradient.addColorStop(0.3, 'rgba(120, 15, 180, 0.4)');
+        gradient.addColorStop(0.7, 'rgba(50, 5, 80, 0.1)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Neural Net Land Detail (Earth-like veins)
+      ctx.strokeStyle = 'rgba(196, 27, 253, 0.2)';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < 100; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+        ctx.stroke();
+      }
+
+      return new THREE.CanvasTexture(canvas);
+    };
+
+    const planetTexture = createPlanetTexture();
+
     // --- The Planet ---
     const planetGroup = new THREE.Group();
     
-    // Main Body
+    // Main Body (Earth with Purple Land)
     const planetGeometry = new THREE.SphereGeometry(5, 64, 64);
     const planetMaterial = new THREE.MeshStandardMaterial({
-      color: "#1a1a2e",
-      roughness: 0.8,
-      metalness: 0.2,
-      emissive: "#0a0a1f",
-      emissiveIntensity: 0.5,
+      map: planetTexture,
+      emissiveMap: planetTexture,
+      emissive: new THREE.Color("#C41BFD"),
+      emissiveIntensity: 0.4,
+      roughness: 0.7,
+      metalness: 0.3,
     });
     const planet = new THREE.Mesh(planetGeometry, planetMaterial);
     planetGroup.add(planet);
 
+    // Cloud Layer
+    const cloudGeometry = new THREE.SphereGeometry(5.1, 64, 64);
+    const cloudMaterial = new THREE.MeshPhongMaterial({
+      color: "#ffffff",
+      transparent: true,
+      opacity: 0.1,
+      blending: THREE.AdditiveBlending,
+    });
+    const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    planetGroup.add(clouds);
+
     // Atmosphere Glow
-    const atmosphereGeometry = new THREE.SphereGeometry(5.2, 64, 64);
+    const atmosphereGeometry = new THREE.SphereGeometry(5.4, 64, 64);
     const atmosphereMaterial = new THREE.MeshPhongMaterial({
       color: "#C41BFD",
       transparent: true,
-      opacity: 0.15,
+      opacity: 0.12,
       side: THREE.BackSide,
       blending: THREE.AdditiveBlending,
     });
     const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
     planetGroup.add(atmosphere);
 
-    // Subtle Night Lights/Glow
-    const wireframePlanet = new THREE.Mesh(
-      new THREE.SphereGeometry(5.05, 32, 32),
-      new THREE.MeshBasicMaterial({
-        color: "#C41BFD",
-        wireframe: true,
-        transparent: true,
-        opacity: 0.05,
-      })
-    );
-    planetGroup.add(wireframePlanet);
-
     scene.add(planetGroup);
-    planetGroup.position.set(0, 0, 0);
 
     // --- Lighting ---
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    sunLight.position.set(10, 10, 10);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    sunLight.position.set(15, 10, 10);
     scene.add(sunLight);
 
-    const purpleGlow = new THREE.PointLight("#C41BFD", 2, 50);
-    purpleGlow.position.set(-10, -5, 5);
-    scene.add(purpleGlow);
+    const purpleFill = new THREE.PointLight("#C41BFD", 1.5, 50);
+    purpleFill.position.set(-10, -5, 5);
+    scene.add(purpleFill);
 
     camera.position.z = 15;
 
@@ -117,16 +161,20 @@ export const SceneBackground: React.FC = () => {
       requestAnimationFrame(animate);
 
       // Constant rotations
-      stars.rotation.y += 0.0001;
-      planetGroup.rotation.y += 0.0005;
-      wireframePlanet.rotation.y -= 0.0002;
+      stars.rotation.y += 0.00008;
+      planetGroup.rotation.y += 0.0004;
+      clouds.rotation.y += 0.00015; // Clouds move slower
+      clouds.rotation.x += 0.00005;
 
       // Update from scroll
       camera.position.z = cameraZ.get();
       scene.rotation.y = sceneRotation.get();
-      planetGroup.scale.setScalar(planetOpacity.get());
-      planetMaterial.opacity = planetOpacity.get();
-      atmosphereMaterial.opacity = planetOpacity.get() * 0.15;
+      
+      const opacity = planetOpacity.get();
+      planetGroup.scale.setScalar(opacity);
+      planetMaterial.opacity = opacity;
+      cloudMaterial.opacity = opacity * 0.1;
+      atmosphereMaterial.opacity = opacity * 0.12;
 
       renderer.render(scene, camera);
     };
@@ -145,6 +193,7 @@ export const SceneBackground: React.FC = () => {
       window.removeEventListener("resize", handleResize);
       containerRef.current?.removeChild(renderer.domElement);
       renderer.dispose();
+      planetTexture?.dispose();
     };
   }, [cameraZ, sceneRotation, planetOpacity]);
 
