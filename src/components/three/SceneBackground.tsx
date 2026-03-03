@@ -69,33 +69,42 @@ export const SceneBackground: React.FC = () => {
       transparent: true
     });
 
-    // ✨ CUSTOM SHADER LOGIC - As requested for realistic Purple Land / Dark Ocean
+    // CUSTOM SHADER - Injected for Realistic Purple Land / Dark Ocean
     planetMat.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace(
+      shader.uniforms.planetOpacity = { value: 1.0 };
+      planetMat.userData.shader = shader; // Reference for animation loop
+
+      shader.fragmentShader = `
+        uniform float planetOpacity;
+        ${shader.fragmentShader}
+      `.replace(
         '#include <map_fragment>',
         `
-        vec4 texelColor = texture2D( map, vUv );
-        // Define ocean by color intensity (higher blue/low red)
-        float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
-        
-        // Deep realistic grey/black ocean
-        vec3 oceanColor = vec3(0.01, 0.01, 0.03); 
-        
-        // Purple tint for land with high detail retention
-        vec3 purpleTint = vec3(0.6, 0.1, 0.9);
-        vec3 landColor = mix(texelColor.rgb, purpleTint, 0.7);
-        
-        vec3 finalColor = mix(landColor, oceanColor, oceanMask);
-        diffuseColor = vec4(finalColor, planetOpacity);
+        #ifdef USE_MAP
+          vec4 texelColor = texture2D( map, vMapUv );
+          // Define ocean by color intensity
+          float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
+          
+          // Deep realistic grey/black ocean
+          vec3 oceanColor = vec3(0.01, 0.01, 0.03); 
+          
+          // Purple tint for land
+          vec3 purpleTint = vec3(0.6, 0.1, 0.9);
+          vec3 landColor = mix(texelColor.rgb, purpleTint, 0.7);
+          
+          vec3 finalColor = mix(landColor, oceanColor, oceanMask);
+          diffuseColor = vec4(finalColor, planetOpacity);
+        #else
+          diffuseColor = vec4(diffuse, planetOpacity);
+        #endif
         `
       );
-      shader.uniforms.planetOpacity = { value: 1.0 };
     };
 
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
-    // Cinematic Atmosphere (Fresnel)
+    // Cinematic Atmosphere (Fresnel Glow)
     const atmoGeo = new THREE.SphereGeometry(4.7, 128, 128);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: {
@@ -158,7 +167,7 @@ export const SceneBackground: React.FC = () => {
     }
     scene.add(cityGroup);
 
-    // ☀️ SUN LIGHTING (As per prompt)
+    // ☀️ SUN LIGHTING
     const sun = new THREE.DirectionalLight(0xffffff, 4);
     sun.position.set(10, 5, 10);
     scene.add(sun);
@@ -195,24 +204,6 @@ export const SceneBackground: React.FC = () => {
       starMaterial.opacity = starOpacity.get();
 
       renderer.render(scene, camera);
-    };
-
-    // Store shader reference
-    planetMat.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <map_fragment>',
-        `
-        vec4 texelColor = texture2D( map, vUv );
-        float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
-        vec3 oceanColor = vec3(0.01, 0.01, 0.03); 
-        vec3 purpleTint = vec3(0.6, 0.1, 0.9);
-        vec3 landColor = mix(texelColor.rgb, purpleTint, 0.7);
-        vec3 finalColor = mix(landColor, oceanColor, oceanMask);
-        diffuseColor = vec4(finalColor, 1.0);
-        `
-      );
-      planetMat.userData.shader = shader;
-      shader.uniforms.planetOpacity = { value: 1.0 };
     };
 
     animate();
