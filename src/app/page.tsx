@@ -24,16 +24,16 @@ export default function AuraForgePage() {
 
   // Snappy but smooth progress for UI elements
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 40,
-    damping: 30,
+    stiffness: 30, // Even smoother
+    damping: 35,
     restDelta: 0.001
   });
 
-  // Scene Opacity Transitions (Synced with background stages)
-  const scene1Opacity = useTransform(smoothProgress, [0, 0.15], [1, 0]);
-  const scene2Opacity = useTransform(smoothProgress, [0.2, 0.35, 0.45], [0, 1, 0]);
-  const scene3Opacity = useTransform(smoothProgress, [0.55, 0.75, 0.88], [0, 1, 0]);
-  const scene4Opacity = useTransform(smoothProgress, [0.94, 1], [0, 1]);
+  // Sync with background stages
+  const scene1Opacity = useTransform(smoothProgress, [0, 0.2], [1, 0]);
+  const scene2Opacity = useTransform(smoothProgress, [0.3, 0.45, 0.6], [0, 1, 0]);
+  const scene3Opacity = useTransform(smoothProgress, [0.7, 0.85, 0.94], [0, 1, 0]);
+  const scene4Opacity = useTransform(smoothProgress, [0.96, 1], [0, 1]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,16 +42,16 @@ export default function AuraForgePage() {
         const totalHeight = containerRef.current?.scrollHeight || 0;
         const currentScroll = window.scrollY;
         
-        // Define slide anchor points (Identity, Strategist, Resonance/City, Collab)
+        // Define slide anchor points
         const anchors = [0, 0.33 * totalHeight, 0.73 * totalHeight, totalHeight];
         let targetIndex = 0;
 
         if (e.key === "ArrowDown") {
-          targetIndex = anchors.findIndex(a => a > currentScroll + 200);
+          targetIndex = anchors.findIndex(a => a > currentScroll + 300);
           if (targetIndex === -1) targetIndex = anchors.length - 1;
         } else {
           const reversed = [...anchors].reverse();
-          const found = reversed.findIndex(a => a < currentScroll - 200);
+          const found = reversed.findIndex(a => a < currentScroll - 300);
           targetIndex = found === -1 ? 0 : (anchors.length - 1 - found);
         }
 
@@ -74,8 +74,8 @@ export default function AuraForgePage() {
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-5xl md:text-[6rem] font-black text-white uppercase glow-purple leading-none mb-4"
+              transition={{ duration: 2.5, ease: [0.16, 1, 0.3, 1] }}
+              className="text-5xl md:text-[6.5rem] font-black text-white uppercase glow-purple leading-none mb-4"
             >
               MIX AURA
             </motion.h1>
@@ -92,7 +92,7 @@ export default function AuraForgePage() {
               <h2 className="text-3xl md:text-[4rem] font-black uppercase leading-[0.85]">
                 DIGITAL <br /> <span className="text-accent">INTELLIGENCE</span>
               </h2>
-              <p className="text-[9px] md:text-xs text-white/50 max-w-xs mx-auto md:mx-0 font-medium">
+              <p className="text-[9px] md:text-xs text-white/50 max-w-xs mx-auto md:mx-0 font-medium leading-relaxed">
                 Designing neural architecture that scales brands beyond conventional limits. Absolute authority, absolute resonance.
               </p>
             </div>
@@ -102,7 +102,7 @@ export default function AuraForgePage() {
           </div>
         </motion.div>
 
-        {/* SCENE 3: RESONANCE (MANHATTAN CINEMATIC) */}
+        {/* SCENE 3: RESONANCE (MANHATTAN GLIDE) */}
         <motion.div style={{ opacity: scene3Opacity }} className="absolute inset-0 flex items-center justify-center p-6">
           <div className="w-full max-w-6xl">
             <div className="mb-8 text-center md:text-left">
@@ -133,7 +133,7 @@ export default function AuraForgePage() {
       <div className="fixed top-12 left-12 z-50 pointer-events-none hidden md:block">
         <div className="flex items-center gap-3">
           <div className="w-1 h-1 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#C41BFD]" />
-          <p className="text-[7px] font-code text-white/30 uppercase tracking-[0.5em]">AUTH_SYNC: {Math.round(smoothProgress.get() * 100)}%</p>
+          <p className="text-[7px] font-code text-white/30 uppercase tracking-[0.5em]">SYNC_ACTIVE: {Math.round(smoothProgress.get() * 100)}%</p>
         </div>
       </div>
 
@@ -162,4 +162,3 @@ export default function AuraForgePage() {
     </main>
   );
 }
-
