@@ -9,10 +9,10 @@ import { AICopyTool } from "@/components/ui/AICopyTool";
 import { ContactPanel } from "@/components/ui/ContactPanel";
 
 const PROJECTS = [
-  { title: "Celestial OS", category: "Core Infrastructure", image: "https://picsum.photos/seed/space1/800/1200" },
-  { title: "StarMap Data", category: "Intelligence", image: "https://picsum.photos/seed/space2/800/1200" },
-  { title: "Nebula Flow", category: "Cloud Ecosystems", image: "https://picsum.photos/seed/space3/800/1200" },
-  { title: "Void Security", category: "Encryption", image: "https://picsum.photos/seed/space4/800/1200" },
+  { title: "Vanguard Strategy", category: "Global Growth", image: "https://picsum.photos/seed/agency1/800/1200" },
+  { title: "Lumina Brand", category: "Identity Design", image: "https://picsum.photos/seed/agency2/800/1200" },
+  { title: "Nexus Social", category: "Content Ecosystem", image: "https://picsum.photos/seed/agency3/800/1200" },
+  { title: "Aura Commerce", category: "Digital Sales", image: "https://picsum.photos/seed/agency4/800/1200" },
 ];
 
 export default function AuraForgePage() {
@@ -46,7 +46,7 @@ export default function AuraForgePage() {
       <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
         <div className="h-full w-full flex items-center justify-center p-6">
           
-          {/* SCENE 1: THE ORIGIN */}
+          {/* SCENE 1: THE AGENCY IDENTITY */}
           <motion.div 
             style={{ opacity: scene1Opacity, scale: scene1Scale }}
             className="text-center max-w-full absolute px-6"
@@ -57,7 +57,7 @@ export default function AuraForgePage() {
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
               className="mb-8"
             >
-              <h1 className="text-8xl md:text-[15rem] font-black tracking-tighter text-white uppercase leading-[0.75]">
+              <h1 className="text-7xl md:text-[12rem] font-black tracking-tighter text-white uppercase leading-[0.75]">
                 MIX <br /> AURA
               </h1>
             </motion.div>
@@ -65,64 +65,66 @@ export default function AuraForgePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 1.5 }}
-              className="text-[10px] md:text-xs font-code tracking-[2em] text-accent uppercase ml-8"
+              className="text-[9px] md:text-xs font-code tracking-[1.5em] md:tracking-[2em] text-accent uppercase ml-4 md:ml-8"
             >
-              Digital Architects
+              Full-Spectrum Influence
             </motion.p>
           </motion.div>
 
-          {/* SCENE 2: INTELLIGENCE */}
+          {/* SCENE 2: INTELLIGENCE - MARKETING TOOL */}
           <motion.div 
             style={{ opacity: scene2Opacity, y: scene2Y }}
-            className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-16 pointer-events-auto items-center absolute px-6"
+            className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 pointer-events-auto items-center absolute px-6"
           >
-            <div className="space-y-10 order-2 lg:order-1 text-center lg:text-left">
-              <h2 className="text-6xl md:text-9xl font-black tracking-tighter leading-[0.8] uppercase">
-                EARTH <br />
+            <div className="space-y-6 md:space-y-10 order-2 lg:order-1 text-center lg:text-left">
+              <h2 className="text-5xl md:text-9xl font-black tracking-tighter leading-[0.8] uppercase">
+                STRATEGIC <br />
                 <span className="text-accent">RESONANCE</span>
               </h2>
-              <p className="text-xl text-white/60 max-w-md leading-relaxed font-medium mx-auto lg:mx-0">
-                Synchronizing planetary intelligence with bioluminescent digital infrastructure.
+              <p className="text-lg md:text-xl text-white/60 max-w-md leading-relaxed font-medium mx-auto lg:mx-0">
+                Leveraging neural-marketing intelligence to synchronize your brand with global digital demand.
               </p>
               <div className="flex gap-6 items-center justify-center lg:justify-start">
-                <div className="h-px w-32 bg-white/20" />
-                <p className="text-[11px] font-code uppercase tracking-[0.4em] text-accent/60">Node sync: live</p>
+                <div className="h-px w-20 md:w-32 bg-white/20" />
+                <p className="text-[10px] md:text-[11px] font-code uppercase tracking-[0.4em] text-accent/60">Intelligence: Active</p>
               </div>
             </div>
             <div className="w-full order-1 lg:order-2 flex justify-center">
-              <AICopyTool />
+              <div className="w-full max-w-md md:max-w-lg">
+                <AICopyTool />
+              </div>
             </div>
           </motion.div>
 
-          {/* SCENE 3: PORTALS */}
+          {/* SCENE 3: PORTFOLIO PORTALS */}
           <motion.div 
             style={{ opacity: scene3Opacity, scale: scene3Scale }}
-            className="w-full max-w-7xl pointer-events-auto flex flex-col justify-center absolute inset-x-0 mx-auto px-6"
+            className="w-full max-w-7xl pointer-events-auto flex flex-col justify-center absolute inset-x-0 mx-auto px-6 overflow-y-auto md:overflow-hidden max-h-screen py-20"
           >
-            <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="text-center md:text-left">
-                <h2 className="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8]">Portals</h2>
-                <p className="text-accent/50 font-code uppercase tracking-[0.6em] text-[11px] mt-6">Selected Explorations</p>
+                <h2 className="text-5xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8]">Success</h2>
+                <p className="text-accent/50 font-code uppercase tracking-[0.4em] md:tracking-[0.6em] text-[10px] md:text-[11px] mt-4 md:mt-6">Case Studies in Influence</p>
               </div>
               <div className="hidden lg:block text-[11px] font-code text-white/20 uppercase tracking-[0.4em]">
-                Sector: Earth Orbit / 04
+                Sector: Global Markets / 01
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 pb-10">
               {PROJECTS.map((project, idx) => (
                 <PortfolioPortal key={idx} project={project} index={idx} />
               ))}
             </div>
           </motion.div>
 
-          {/* SCENE 4: COMMAND */}
+          {/* SCENE 4: COMMAND / CONTACT */}
           <motion.div 
             style={{ opacity: scene4Opacity }}
             className="w-full max-w-5xl pointer-events-auto absolute px-6"
           >
-            <div className="text-center mb-16">
-              <h2 className="text-7xl md:text-[12rem] font-black tracking-tighter mb-6 uppercase leading-none">IGNITE</h2>
-              <p className="text-accent/40 font-code tracking-[0.8em] uppercase text-xs">Establish the transmission</p>
+            <div className="text-center mb-10 md:mb-16">
+              <h2 className="text-6xl md:text-[12rem] font-black tracking-tighter mb-4 md:mb-6 uppercase leading-none">COLLAB</h2>
+              <p className="text-accent/40 font-code tracking-[0.6em] md:tracking-[0.8em] uppercase text-[10px] md:text-xs">Engineer Your Aura</p>
             </div>
             <ContactPanel />
           </motion.div>
@@ -131,25 +133,25 @@ export default function AuraForgePage() {
       </div>
 
       {/* HUD ELEMENTS */}
-      <div className="fixed top-12 left-12 z-50 pointer-events-none hidden md:block">
-        <div className="space-y-6">
+      <div className="fixed top-8 left-8 md:top-12 md:left-12 z-50 pointer-events-none hidden sm:block">
+        <div className="space-y-4 md:space-y-6">
           <div className="flex items-center gap-4">
-            <div className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_10px_#C41BFD]" />
-            <p className="text-[11px] font-code text-white uppercase tracking-[0.3em]">Neural Link: Active</p>
+            <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_10px_#C41BFD]" />
+            <p className="text-[10px] md:text-[11px] font-code text-white uppercase tracking-[0.3em]">Agency Sync: High</p>
           </div>
-          <div className="h-px w-20 bg-white/10" />
-          <p className="text-[10px] font-code text-white/30 uppercase tracking-[0.5em]">Orbit: Sol-3</p>
+          <div className="h-px w-16 md:w-20 bg-white/10" />
+          <p className="text-[9px] md:text-[10px] font-code text-white/30 uppercase tracking-[0.5em]">Orbiting Sol-3</p>
         </div>
       </div>
 
-      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
-        <div className="h-32 w-[1px] bg-white/10 relative overflow-hidden">
+      <div className="fixed bottom-8 left-1/2 md:bottom-12 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
+        <div className="h-24 md:h-32 w-[1px] bg-white/10 relative overflow-hidden">
           <motion.div 
             style={{ height: useTransform(smoothProgress, [0, 1], ["0%", "100%"]) }}
             className="w-full bg-accent shadow-[0_0_20px_#C41BFD]"
           />
         </div>
-        <p className="text-[10px] font-code text-white/40 mt-8 uppercase tracking-[0.6em] animate-bounce">Scroll</p>
+        <p className="text-[9px] md:text-[10px] font-code text-white/40 mt-6 md:mt-8 uppercase tracking-[0.6em] animate-bounce">Explore</p>
       </div>
     </main>
   );
