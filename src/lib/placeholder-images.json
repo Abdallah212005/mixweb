@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "web-design",
+      "description": "High-end UI/UX design interface",
+      "imageUrl": "https://images.unsplash.com/photo-1587440871875-191322ee64b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx1aSUyMGRlc2lnbnxlbnwwfHx8fDE3NzI1MjU0Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ui design"
+    },
+    {
+      "id": "web-dev",
+      "description": "Modern software development and coding",
+      "imageUrl": "https://images.unsplash.com/photo-1742072594003-abf6ca86e154?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb2RpbmclMjBzY3JlZW58ZW58MHx8fHwxNzcyNDYwMDU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coding screen"
+    },
+    {
+      "id": "graphic-design",
+      "description": "Creative graphic design and branding",
+      "imageUrl": "https://images.unsplash.com/photo-1739204334686-277b2df097ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhYnN0cmFjdCUyMGdyYXBoaWN8ZW58MHx8fHwxNzcyNTIwNDM0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract graphic"
+    },
+    {
+      "id": "media-buying",
+      "description": "Digital marketing and analytics dashboard",
+      "imageUrl": "https://images.unsplash.com/photo-1719381565370-86f9d7a9fc34?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxhZHZlcnRpc2luZyUyMGFuYWx5dGljc3xlbnwwfHx8fDE3NzI1NjYwMDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "advertising analytics"
+    }
+  ]
 }

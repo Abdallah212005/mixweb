@@ -117,7 +117,7 @@ export const SceneBackground: React.FC = () => {
       const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
       planetGroup.add(planet);
 
-      // Asymmetric Glow Shader (Sun-facing)
+      // Asymmetric Glow Shader (Sun-facing) - BOOSTED DIRECTIONAL GLOW
       const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
       const atmoMat = new THREE.ShaderMaterial({
         uniforms: { 
@@ -146,8 +146,9 @@ export const SceneBackground: React.FC = () => {
           void main() {
             // Calculate directional bias based on sun direction
             float sunBias = max(0.0, dot(vNormal, sunDirection));
-            // Subtle directional glow
-            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * (0.2 + 1.2 * sunBias) );
+            // Boosted directional glow on the sunny side
+            float directionalFactor = 0.05 + 2.5 * pow(sunBias, 2.0);
+            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalFactor );
           }
         `,
         side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
