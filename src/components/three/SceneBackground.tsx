@@ -9,9 +9,16 @@ export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
 
-  const cameraZ = useTransform(scrollYProgress, [0, 0.5, 1], [15, 8, -5]);
-  const sceneRotation = useTransform(scrollYProgress, [0, 1], [0, Math.PI * 0.4]);
-  const planetOpacity = useTransform(scrollYProgress, [0, 0.4, 0.7, 1], [1, 1, 0.6, 0.2]);
+  // Scroll mapping for the transition
+  // 0.0 -> 0.3: Space/Planet focus
+  // 0.3 -> 0.5: Zooming into Planet (Transition)
+  // 0.5 -> 1.0: City focus
+  const cameraZ = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [15, 6, 2, 1]);
+  const planetOpacity = useTransform(scrollYProgress, [0, 0.3, 0.5], [1, 1, 0]);
+  const planetScale = useTransform(scrollYProgress, [0, 0.5], [1, 3]);
+  const cityOpacity = useTransform(scrollYProgress, [0.35, 0.55, 1], [0, 1, 1]);
+  const cityY = useTransform(scrollYProgress, [0.3, 0.6], [50, 0]);
+  const starOpacity = useTransform(scrollYProgress, [0, 0.5], [0.6, 0.1]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -25,157 +32,164 @@ export const SceneBackground: React.FC = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
-    // --- High-Density Starfield ---
-    const starCount = 8000;
+    // --- 1. Starfield ---
+    const starCount = 6000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
-
     for (let i = 0; i < starCount; i++) {
-      starPositions[i * 3] = (Math.random() - 0.5) * 2000;
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
-      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
-
-      const brightness = 0.5 + Math.random() * 0.5;
-      starColors[i * 3] = brightness * 0.9;
-      starColors[i * 3 + 1] = brightness * 0.9;
-      starColors[i * 3 + 2] = brightness;
+      starPositions[i * 3] = (Math.random() - 0.5) * 1500;
+      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 1500;
+      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 1500;
     }
-
     starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
-
-    const starMaterial = new THREE.PointsMaterial({
-      size: 0.8,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.6,
-      sizeAttenuation: true,
-    });
-
+    const starMaterial = new THREE.PointsMaterial({ size: 0.7, color: 0xffffff, transparent: true });
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // --- Earth-Like Map Generator (Bioluminescent Land / Dark Oceans) ---
+    // --- 2. Earth-Like Planet ---
     const createEarthTexture = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = 4096;
-      canvas.height = 2048;
+      canvas.width = 2048;
+      canvas.height = 1024;
       const ctx = canvas.getContext('2d');
       if (!ctx) return null;
-
-      // 1. Deep Dark Oceans
       ctx.fillStyle = '#010103';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. Continents (Roughly based on Earth)
       const drawLand = (x: number, y: number, w: number, h: number, complexity: number) => {
         ctx.fillStyle = '#C41BFD';
-        ctx.shadowBlur = 40;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = '#C41BFD';
-        
         for(let i = 0; i < complexity; i++) {
           const rx = x + (Math.random() - 0.5) * w;
           const ry = y + (Math.random() - 0.5) * h;
-          const rw = Math.random() * (w / 3.5);
-          const rh = Math.random() * (h / 3.5);
-          
           ctx.beginPath();
-          ctx.ellipse(rx % canvas.width, ry % canvas.height, rw, rh, Math.random() * Math.PI, 0, Math.PI * 2);
+          ctx.ellipse(rx % canvas.width, ry % canvas.height, Math.random() * (w/4), Math.random() * (h/4), Math.random() * Math.PI, 0, Math.PI * 2);
           ctx.fill();
         }
       };
-
-      // Realistic Continent Clusters
-      drawLand(canvas.width * 0.22, canvas.height * 0.35, 450, 300, 100); // N. America
-      drawLand(canvas.width * 0.28, canvas.height * 0.65, 300, 450, 70);  // S. America
-      drawLand(canvas.width * 0.55, canvas.height * 0.3, 850, 400, 150); // Eurasia
-      drawLand(canvas.width * 0.5, canvas.height * 0.6, 500, 400, 90);  // Africa
-      drawLand(canvas.width * 0.82, canvas.height * 0.7, 280, 220, 50);  // Australia
-
-      // 3. Neural City Lights (Fine detail)
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-      ctx.lineWidth = 1;
-      ctx.globalCompositeOperation = 'screen';
-      for(let i = 0; i < 500; i++) {
-        ctx.beginPath();
-        const startX = Math.random() * canvas.width;
-        const startY = Math.random() * canvas.height;
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(startX + (Math.random() - 0.5) * 30, startY + (Math.random() - 0.5) * 30);
-        ctx.stroke();
-      }
-
+      // Realistic-ish clusters
+      drawLand(canvas.width * 0.2, canvas.height * 0.4, 400, 300, 60);  // Americas
+      drawLand(canvas.width * 0.6, canvas.height * 0.3, 700, 400, 80);  // Eurasia
+      drawLand(canvas.width * 0.5, canvas.height * 0.6, 300, 350, 40);  // Africa
       return new THREE.CanvasTexture(canvas);
     };
 
     const planetTexture = createEarthTexture();
-
-    // --- The Planet ---
     const planetGroup = new THREE.Group();
-    
-    const planetGeometry = new THREE.SphereGeometry(5, 128, 128);
-    const planetMaterial = new THREE.MeshStandardMaterial({
+    const planetGeo = new THREE.SphereGeometry(5, 64, 64);
+    const planetMat = new THREE.MeshStandardMaterial({
       map: planetTexture,
       emissiveMap: planetTexture,
       emissive: new THREE.Color("#C41BFD"),
-      emissiveIntensity: 0.7,
-      roughness: 0.8,
-      metalness: 0.2,
+      emissiveIntensity: 0.6,
       transparent: true,
     });
-    const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+    const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
-    // Subtle Cloud Layer
-    const cloudGeometry = new THREE.SphereGeometry(5.08, 64, 64);
-    const cloudMaterial = new THREE.MeshPhongMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.15,
-      blending: THREE.AdditiveBlending,
-    });
-    const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-    planetGroup.add(clouds);
-
-    // Atmospheric Glow (Fresnel Effect Simulation)
-    const atmosphereGeometry = new THREE.SphereGeometry(5.4, 64, 64);
-    const atmosphereMaterial = new THREE.MeshPhongMaterial({
+    const atmosphereGeo = new THREE.SphereGeometry(5.2, 64, 64);
+    const atmosphereMat = new THREE.MeshPhongMaterial({
       color: "#C41BFD",
       transparent: true,
-      opacity: 0.08,
+      opacity: 0.1,
       side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.AdditiveBlending
     });
-    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
     planetGroup.add(atmosphere);
-
     scene.add(planetGroup);
 
+    // --- 3. Realistic Dark City ---
+    const cityGroup = new THREE.Group();
+    const buildingCount = 400;
+    const buildingGeometry = new THREE.BoxGeometry(1, 1, 1);
+    
+    // Create detailed buildings with purple lights
+    for (let i = 0; i < buildingCount; i++) {
+      const h = 2 + Math.random() * 8;
+      const w = 0.5 + Math.random() * 1.5;
+      const d = 0.5 + Math.random() * 1.5;
+      
+      const building = new THREE.Mesh(
+        buildingGeometry,
+        new THREE.MeshStandardMaterial({ 
+          color: "#0a0a0c", 
+          roughness: 0.2, 
+          metalness: 0.8,
+          transparent: true
+        })
+      );
+      
+      building.scale.set(w, h, d);
+      building.position.set(
+        (Math.random() - 0.5) * 60,
+        h / 2 - 10, // Sunk into ground initially
+        (Math.random() - 0.5) * 60
+      );
+      
+      // Add neon window "lights"
+      const windowCount = 5 + Math.floor(Math.random() * 10);
+      for(let j = 0; j < windowCount; j++) {
+        const winSize = 0.05 + Math.random() * 0.1;
+        const win = new THREE.Mesh(
+          new THREE.BoxGeometry(winSize, winSize, winSize),
+          new THREE.MeshBasicMaterial({ color: "#C41BFD" })
+        );
+        // Position randomly on building face
+        const face = Math.floor(Math.random() * 4);
+        const wy = (Math.random() - 0.5) * (h * 0.8);
+        if (face === 0) win.position.set(w/2 + 0.01, wy, (Math.random()-0.5)*d);
+        else if (face === 1) win.position.set(-w/2 - 0.01, wy, (Math.random()-0.5)*d);
+        else if (face === 2) win.position.set((Math.random()-0.5)*w, wy, d/2 + 0.01);
+        else win.position.set((Math.random()-0.5)*w, wy, -d/2 - 0.01);
+        
+        building.add(win);
+      }
+      
+      cityGroup.add(building);
+    }
+
+    // City Ground Grid
+    const grid = new THREE.GridHelper(200, 100, "#C41BFD", "#111111");
+    grid.position.y = -10;
+    grid.material.transparent = true;
+    grid.material.opacity = 0.2;
+    cityGroup.add(grid);
+
+    scene.add(cityGroup);
+
     // Lighting
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    keyLight.position.set(15, 10, 10);
-    scene.add(keyLight);
-
-    const purpleFill = new THREE.PointLight("#C41BFD", 1.2, 80);
-    purpleFill.position.set(-15, -10, 5);
-    scene.add(purpleFill);
-
-    camera.position.z = 15;
+    const sun = new THREE.DirectionalLight(0xffffff, 1);
+    sun.position.set(10, 10, 10);
+    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0x222222));
 
     const animate = () => {
       requestAnimationFrame(animate);
 
-      planetGroup.rotation.y += 0.0004;
-      clouds.rotation.y += 0.0006;
-      stars.rotation.y += 0.00003;
+      // Scroll logic
+      const z = cameraZ.get();
+      const pOp = planetOpacity.get();
+      const pSc = planetScale.get();
+      const cOp = cityOpacity.get();
+      const cY = cityY.get();
 
-      camera.position.z = cameraZ.get();
-      scene.rotation.y = sceneRotation.get();
-      
-      const opacityValue = planetOpacity.get();
-      planetMaterial.opacity = opacityValue;
-      atmosphereMaterial.opacity = opacityValue * 0.1;
+      camera.position.z = z;
+      camera.lookAt(0, 0, 0);
+
+      planetGroup.rotation.y += 0.001;
+      planetGroup.scale.set(pSc, pSc, pSc);
+      planetMat.opacity = pOp;
+      atmosphereMat.opacity = pOp * 0.1;
+
+      cityGroup.position.y = cY;
+      cityGroup.children.forEach((child) => {
+        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+          child.material.opacity = cOp;
+        }
+      });
+      starMaterial.opacity = starOpacity.get();
 
       renderer.render(scene, camera);
     };
@@ -187,7 +201,6 @@ export const SceneBackground: React.FC = () => {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
-
     window.addEventListener("resize", handleResize);
 
     return () => {
@@ -195,7 +208,7 @@ export const SceneBackground: React.FC = () => {
       containerRef.current?.removeChild(renderer.domElement);
       renderer.dispose();
     };
-  }, [cameraZ, sceneRotation, planetOpacity]);
+  }, [cameraZ, planetOpacity, planetScale, cityOpacity, cityY, starOpacity]);
 
   return <div ref={containerRef} className="fixed inset-0 z-0 pointer-events-none" />;
 };
