@@ -69,7 +69,7 @@ export const SceneBackground: React.FC = () => {
       transparent: true
     });
 
-    // CUSTOM SHADER - Injected for Realistic Purple Land / Dark Ocean
+    // CUSTOM SHADER - Injected for Realistic Purple Land / Dark Grey Ocean
     planetMat.onBeforeCompile = (shader) => {
       shader.uniforms.planetOpacity = { value: 1.0 };
       planetMat.userData.shader = shader; // Reference for animation loop
@@ -82,11 +82,11 @@ export const SceneBackground: React.FC = () => {
         `
         #ifdef USE_MAP
           vec4 texelColor = texture2D( map, vMapUv );
-          // Define ocean by color intensity
+          // Define ocean by color intensity from original map
           float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
           
-          // Deep realistic grey/black ocean
-          vec3 oceanColor = vec3(0.01, 0.01, 0.03); 
+          // Realistic dark grey ocean as requested
+          vec3 oceanColor = vec3(0.08, 0.08, 0.1); 
           
           // Purple tint for land
           vec3 purpleTint = vec3(0.6, 0.1, 0.9);
