@@ -9,12 +9,13 @@ export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
 
-  // Cinematic scroll mapping - perfectly continuous
-  const cameraZ = useTransform(scrollYProgress, [0, 0.4, 0.7, 1], [18, 8, 3, 1.5]);
-  const planetOpacity = useTransform(scrollYProgress, [0, 0.5, 0.6], [1, 1, 0]);
-  const planetScale = useTransform(scrollYProgress, [0, 0.6], [1, 4.5]);
-  const cityOpacity = useTransform(scrollYProgress, [0.4, 0.6, 1], [0, 1, 1]);
-  const cityY = useTransform(scrollYProgress, [0.4, 0.9], [60, 0]);
+  // Cinematic scroll mapping - Space to City
+  const cameraZ = useTransform(scrollYProgress, [0, 0.4, 0.7, 1], [15, 6, 2.5, 1.2]);
+  const cameraY = useTransform(scrollYProgress, [0.4, 1], [0, -1.5]);
+  const planetOpacity = useTransform(scrollYProgress, [0.4, 0.6], [1, 0]);
+  const planetScale = useTransform(scrollYProgress, [0, 0.6], [1.2, 3.5]);
+  const cityOpacity = useTransform(scrollYProgress, [0.45, 0.65], [0, 1]);
+  const cityY = useTransform(scrollYProgress, [0.4, 0.9], [50, 0]);
   const starOpacity = useTransform(scrollYProgress, [0, 0.5], [0.8, 0.1]);
 
   useEffect(() => {
@@ -22,119 +23,101 @@ export const SceneBackground: React.FC = () => {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#020205");
-    scene.fog = new THREE.FogExp2("#020205", 0.012);
+    scene.fog = new THREE.FogExp2("#020205", 0.015);
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2500);
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    // Realistic Lighting Setup
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    
     containerRef.current.appendChild(renderer.domElement);
 
-    // --- 1. Realistic Starfield ---
-    const starCount = 4000;
+    // --- 1. Starfield (Deep Space) ---
+    const starCount = 3000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount; i++) {
-      starPositions[i * 3] = (Math.random() - 0.5) * 2000;
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
-      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
+      starPositions[i * 3] = (Math.random() - 0.5) * 1500;
+      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 1500;
+      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 1500;
     }
     starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    const starMaterial = new THREE.PointsMaterial({ size: 1.1, color: "#C41BFD", transparent: true, blending: THREE.AdditiveBlending });
+    const starMaterial = new THREE.PointsMaterial({ size: 1.2, color: "#C41BFD", transparent: true, blending: THREE.AdditiveBlending });
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // --- 2. HIGH-FIDELITY EARTH TOPOGRAPHY ---
-    const createEarthTexture = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 4096;
-      canvas.height = 2048;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
+    // --- 2. HIGH-FIDELITY REALISTIC EARTH ---
+    const loader = new THREE.TextureLoader();
+    const albedo = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
+    const bump = loader.load("https://threejs.org/examples/textures/planets/earth_bump_2048.jpg");
+    const roughness = loader.load("https://threejs.org/examples/textures/planets/earth_specular_2048.jpg");
 
-      // Deep Space Oceans
-      ctx.fillStyle = '#010103';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const planetGroup = new THREE.Group();
+    const planetGeo = new THREE.SphereGeometry(4.5, 128, 128);
+    
+    const planetMat = new THREE.MeshStandardMaterial({
+      map: albedo,
+      bumpMap: bump,
+      bumpScale: 0.15,
+      roughnessMap: roughness,
+      roughness: 0.8,
+      metalness: 0.1,
+      transparent: true
+    });
 
-      const drawContinent = (points: number[][], intensity: number) => {
-        ctx.beginPath();
-        points.forEach(([x, y], i) => {
-          const px = x * canvas.width;
-          const py = y * canvas.height;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        });
-        ctx.closePath();
-
-        // Layered Glow for Realism
-        ctx.shadowBlur = 40;
-        ctx.shadowColor = "rgba(196, 27, 253, 0.8)";
-        ctx.fillStyle = `rgba(196, 27, 253, ${intensity})`;
-        ctx.fill();
+    // ✨ CUSTOM SHADER LOGIC - As requested for realistic Purple Land / Dark Ocean
+    planetMat.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `
+        vec4 texelColor = texture2D( map, vUv );
+        // Define ocean by color intensity (higher blue/low red)
+        float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
         
-        // Neural Grid Detail
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        // Topographic Texture
-        for(let i=0; i<15; i++) {
-          ctx.fillStyle = "rgba(255,255,255,0.02)";
-          ctx.beginPath();
-          ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*200, 0, Math.PI*2);
-          ctx.fill();
-        }
-      };
-
-      // Accurateish Continental Paths
-      const nAmerica = [[0.12, 0.18], [0.38, 0.22], [0.35, 0.42], [0.25, 0.48], [0.15, 0.35]];
-      const sAmerica = [[0.28, 0.52], [0.38, 0.55], [0.32, 0.88], [0.25, 0.75]];
-      const africa = [[0.46, 0.45], [0.58, 0.48], [0.55, 0.82], [0.48, 0.85], [0.42, 0.65]];
-      const eurasia = [[0.48, 0.12], [0.88, 0.15], [0.92, 0.38], [0.75, 0.55], [0.52, 0.48]];
-      const australia = [[0.78, 0.65], [0.88, 0.72], [0.85, 0.88], [0.75, 0.82]];
-
-      [nAmerica, sAmerica, africa, eurasia, australia].forEach(c => drawContinent(c, 0.9));
-
-      return new THREE.CanvasTexture(canvas);
+        // Deep realistic grey/black ocean
+        vec3 oceanColor = vec3(0.01, 0.01, 0.03); 
+        
+        // Purple tint for land with high detail retention
+        vec3 purpleTint = vec3(0.6, 0.1, 0.9);
+        vec3 landColor = mix(texelColor.rgb, purpleTint, 0.7);
+        
+        vec3 finalColor = mix(landColor, oceanColor, oceanMask);
+        diffuseColor = vec4(finalColor, planetOpacity);
+        `
+      );
+      shader.uniforms.planetOpacity = { value: 1.0 };
     };
 
-    const planetTexture = createEarthTexture();
-    const planetGroup = new THREE.Group();
-    const planetGeo = new THREE.SphereGeometry(5, 128, 128); // Higher segment count for smoothness
-    const planetMat = new THREE.MeshStandardMaterial({
-      map: planetTexture,
-      emissive: new THREE.Color("#C41BFD"),
-      emissiveIntensity: 0.6,
-      transparent: true,
-      roughness: 0.8,
-      metalness: 0.2
-    });
     const planet = new THREE.Mesh(planetGeo, planetMat);
-    planet.rotation.y = -Math.PI / 3.5; 
     planetGroup.add(planet);
 
-    // Fresnel Atmospheric Atmospheric Scattering
-    const atmoGeo = new THREE.SphereGeometry(5.25, 128, 128);
+    // Cinematic Atmosphere (Fresnel)
+    const atmoGeo = new THREE.SphereGeometry(4.7, 128, 128);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: {
         glowColor: { value: new THREE.Color("#C41BFD") },
-        viewVector: { value: camera.position }
+        viewVector: { value: camera.position },
+        opacity: { value: 1.0 }
       },
       vertexShader: `
         varying float intensity;
         void main() {
           vec3 vNormal = normalize( normalMatrix * normal );
           vec3 vNormel = normalize( normalMatrix * vec3(0,0,1) );
-          intensity = pow( 0.6 - dot(vNormal, vNormel), 4.5 );
+          intensity = pow( 0.65 - dot(vNormal, vNormel), 5.0 );
           gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
         }
       `,
       fragmentShader: `
         uniform vec3 glowColor;
+        uniform float opacity;
         varying float intensity;
         void main() {
-          gl_FragColor = vec4( glowColor, intensity );
+          gl_FragColor = vec4( glowColor, intensity * opacity );
         }
       `,
       side: THREE.BackSide,
@@ -145,65 +128,91 @@ export const SceneBackground: React.FC = () => {
     planetGroup.add(atmosphere);
     scene.add(planetGroup);
 
-    // --- 3. REALISTIC URBAN MATRIX ---
+    // --- 3. CINEMATIC URBAN MATRIX ---
     const cityGroup = new THREE.Group();
-    const buildingCount = 450;
+    const buildingCount = 400;
     const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-    const buildingMat = new THREE.MeshStandardMaterial({ color: "#050508", transparent: true, roughness: 0.4 });
+    const buildingMat = new THREE.MeshStandardMaterial({ color: "#050508", transparent: true, roughness: 0.3 });
 
     for (let i = 0; i < buildingCount; i++) {
-      const h = 8 + Math.random() * 25;
-      const w = 3 + Math.random() * 5;
-      const d = 3 + Math.random() * 5;
+      const h = 10 + Math.random() * 30;
+      const w = 4 + Math.random() * 6;
+      const d = 4 + Math.random() * 6;
       const building = new THREE.Mesh(boxGeo, buildingMat);
       building.scale.set(w, h, d);
-      building.position.set((Math.random() - 0.5) * 400, h / 2 - 40, (Math.random() - 0.5) * 400);
+      building.position.set((Math.random() - 0.5) * 500, h / 2 - 50, (Math.random() - 0.5) * 500);
       cityGroup.add(building);
 
-      // Realistic Window Clusters
-      const winCount = 20;
+      // Neon Purple Window Clusters
+      const winCount = 25;
       const winGeo = new THREE.BufferGeometry();
       const winPos = new Float32Array(winCount * 3);
       for(let j = 0; j < winCount; j++) {
-        winPos[j*3] = (Math.random() - 0.5) * (w + 0.15);
+        winPos[j*3] = (Math.random() - 0.5) * (w + 0.2);
         winPos[j*3+1] = (Math.random() - 0.5) * h;
-        winPos[j*3+2] = (Math.random() - 0.5) > 0 ? (d/2 + 0.15) : (-d/2 - 0.15);
+        winPos[j*3+2] = (Math.random() - 0.5) > 0 ? (d/2 + 0.1) : (-d/2 - 0.1);
       }
       winGeo.setAttribute('position', new THREE.BufferAttribute(winPos, 3));
-      const winPoints = new THREE.Points(winGeo, new THREE.PointsMaterial({ color: "#C41BFD", size: 0.25, transparent: true, opacity: 0.8 }));
+      const winPoints = new THREE.Points(winGeo, new THREE.PointsMaterial({ color: "#C41BFD", size: 0.25, transparent: true, opacity: 0.7 }));
       building.add(winPoints);
     }
     scene.add(cityGroup);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x151525, 2.5);
-    scene.add(ambientLight);
-    const pointLight = new THREE.PointLight("#C41BFD", 100, 1000);
-    pointLight.position.set(0, 100, 0);
-    scene.add(pointLight);
+    // ☀️ SUN LIGHTING (As per prompt)
+    const sun = new THREE.DirectionalLight(0xffffff, 4);
+    sun.position.set(10, 5, 10);
+    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0x151525, 1.2));
 
     const animate = () => {
       requestAnimationFrame(animate);
 
       const z = cameraZ.get();
+      const y = cameraY.get();
       const pOp = planetOpacity.get();
       const pSc = planetScale.get();
       const cOp = cityOpacity.get();
       const cY = cityY.get();
 
       camera.position.z = z;
-      camera.lookAt(0, -cY * 0.15, 0);
+      camera.position.y = y;
+      camera.lookAt(0, -cY * 0.1, 0);
 
-      planetGroup.rotation.y += 0.0003;
+      // Planet Animation
+      planetGroup.rotation.y += 0.0004;
       planetGroup.scale.set(pSc, pSc, pSc);
-      planetMat.opacity = pOp;
+      
+      // Update shader opacity uniform
+      if (planetMat.userData.shader) {
+        planetMat.userData.shader.uniforms.planetOpacity.value = pOp;
+      }
+      atmoMat.uniforms.opacity.value = pOp;
       atmoMat.uniforms.viewVector.value = camera.position;
 
+      // City Animation
       cityGroup.position.y = cY;
       buildingMat.opacity = cOp;
       starMaterial.opacity = starOpacity.get();
 
       renderer.render(scene, camera);
+    };
+
+    // Store shader reference
+    planetMat.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `
+        vec4 texelColor = texture2D( map, vUv );
+        float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
+        vec3 oceanColor = vec3(0.01, 0.01, 0.03); 
+        vec3 purpleTint = vec3(0.6, 0.1, 0.9);
+        vec3 landColor = mix(texelColor.rgb, purpleTint, 0.7);
+        vec3 finalColor = mix(landColor, oceanColor, oceanMask);
+        diffuseColor = vec4(finalColor, 1.0);
+        `
+      );
+      planetMat.userData.shader = shader;
+      shader.uniforms.planetOpacity = { value: 1.0 };
     };
 
     animate();
@@ -228,7 +237,7 @@ export const SceneBackground: React.FC = () => {
       starGeometry.dispose();
       starMaterial.dispose();
     };
-  }, [cameraZ, planetOpacity, planetScale, cityOpacity, cityY, starOpacity]);
+  }, [cameraZ, cameraY, planetOpacity, planetScale, cityOpacity, cityY, starOpacity]);
 
   return <div ref={containerRef} className="fixed inset-0 z-0 pointer-events-none" />;
 };
