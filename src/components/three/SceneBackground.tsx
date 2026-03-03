@@ -7,8 +7,6 @@ import { useScroll, useTransform } from "framer-motion";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,6 +43,7 @@ export const SceneBackground: React.FC = () => {
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
+    // Stars
     const starCount = 4000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
@@ -58,6 +57,7 @@ export const SceneBackground: React.FC = () => {
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
+    // Planet
     const loader = new THREE.TextureLoader();
     const albedo = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
     const bump = loader.load("https://threejs.org/examples/textures/planets/earth_bump_2048.jpg");
@@ -72,7 +72,7 @@ export const SceneBackground: React.FC = () => {
       roughness: 0.4,
       metalness: 0.8,
       emissive: new THREE.Color("#4400aa"),
-      emissiveIntensity: 0.5
+      emissiveIntensity: 0.8
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -98,6 +98,7 @@ export const SceneBackground: React.FC = () => {
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
+    // Atmosphere
     const atmoGeo = new THREE.SphereGeometry(6.75, 64, 64);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: { glowColor: { value: new THREE.Color("#9D00FF") }, uOpacity: { value: 1.0 } },
@@ -109,34 +110,7 @@ export const SceneBackground: React.FC = () => {
     planetGroup.add(atmosphere);
     scene.add(planetGroup);
 
-    const ringGroup = new THREE.Group();
-    planetGroup.add(ringGroup);
-
-    const fontLoader = new FontLoader();
-    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', (font) => {
-      const symbols = ["{", "}", "<", ">", "/", "#", "Ps", "Ai", "Ae", "Pr"];
-      for (let i = 0; i < 40; i++) {
-        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-        const textGeo = new TextGeometry(symbol, {
-          font: font,
-          size: 0.5,
-          height: 0.1,
-        });
-        const textMat = new THREE.MeshStandardMaterial({
-          color: symbol.length > 1 ? 0xffffff : 0xC41BFD,
-          emissive: 0xC41BFD,
-          emissiveIntensity: 3.0,
-          transparent: true
-        });
-        const textMesh = new THREE.Mesh(textGeo, textMat);
-        const angle = (i / 40) * Math.PI * 2;
-        const radius = 8 + Math.random() * 2;
-        textMesh.position.set(Math.cos(angle) * radius, (Math.random() - 0.5) * 4, Math.sin(angle) * radius);
-        textMesh.lookAt(0, 0, 0);
-        ringGroup.add(textMesh);
-      }
-    });
-
+    // City Group
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
 
@@ -191,6 +165,7 @@ export const SceneBackground: React.FC = () => {
     ground.position.y = -120.5;
     cityGroup.add(ground);
 
+    // Lights
     scene.add(new THREE.AmbientLight(0x0a0a15, 1.0));
     const purpleWash = new THREE.DirectionalLight(0x9D00FF, 3.0);
     purpleWash.position.set(300, 700, 200);
@@ -207,7 +182,6 @@ export const SceneBackground: React.FC = () => {
       camera.lookAt(0, (p < 0.6) ? 0 : -0.2, (p > 0.7) ? 0.4 : 0);
 
       planetGroup.rotation.y += 0.001;
-      ringGroup.rotation.y += 0.005;
       planetGroup.scale.set(planetScale.get(), planetScale.get(), planetScale.get());
       
       if (planetMat.userData.shader) {
