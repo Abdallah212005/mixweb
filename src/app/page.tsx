@@ -8,34 +8,39 @@ import { PortfolioPortal } from "@/components/ui/PortfolioPortal";
 import { AICopyTool } from "@/components/ui/AICopyTool";
 import { ContactPanel } from "@/components/ui/ContactPanel";
 
-const PROJECTS = [
-  { title: "Web Design", category: "Digital Architecture", image: "https://picsum.photos/seed/design/800/1200" },
-  { title: "Web Development", category: "Neural Coding", image: "https://picsum.photos/seed/dev/800/1200" },
-  { title: "Graphic Design", category: "Visual Influence", image: "https://picsum.photos/seed/graph/800/1200" },
-  { title: "Media Buying", category: "Growth Infiltration", image: "https://picsum.photos/seed/media/800/1200" },
-];
-
-// مكون الصاعقة الكهربائية
+// Realistic Jagged Lightning Bolt component
 const LightningBolt = () => {
-  const [coords, setCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
+  const [path, setPath] = useState("");
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const generatePath = () => {
+      // Start near the center where the text is
+      const startX = 50 + (Math.random() - 0.5) * 20;
+      const startY = 50 + (Math.random() - 0.5) * 5;
+      
+      let currentX = startX;
+      let currentY = startY;
+      let newPath = `M ${startX} ${startY}`;
+      
+      const segments = 5 + Math.floor(Math.random() * 5);
+      for (let i = 0; i < segments; i++) {
+        currentX += (Math.random() - 0.5) * 15;
+        currentY += (Math.random() - 0.5) * 15;
+        newPath += ` L ${currentX} ${currentY}`;
+      }
+      return newPath;
+    };
+
     const triggerBolt = () => {
-      if (Math.random() > 0.7) {
-        const x = Math.random() * 100;
-        const y = Math.random() * 100;
-        setCoords({
-          x1: x,
-          y1: y,
-          x2: x + (Math.random() - 0.5) * 20,
-          y2: y + (Math.random() - 0.5) * 20,
-        });
+      if (Math.random() > 0.6) {
+        setPath(generatePath());
         setIsVisible(true);
-        setTimeout(() => setIsVisible(false), 100 + Math.random() * 200);
+        setTimeout(() => setIsVisible(false), 50 + Math.random() * 150);
       }
     };
-    const interval = setInterval(triggerBolt, 800);
+    
+    const interval = setInterval(triggerBolt, 600);
     return () => clearInterval(interval);
   }, []);
 
@@ -43,19 +48,21 @@ const LightningBolt = () => {
 
   return (
     <motion.svg
-      className="absolute inset-0 w-full h-full pointer-events-none z-0"
+      className="absolute inset-0 w-full h-full pointer-events-none z-20"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
       initial={{ opacity: 0 }}
       animate={{ opacity: [0, 1, 0.5, 1, 0] }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.15 }}
     >
-      <line
-        x1={`${coords.x1}%`}
-        y1={`${coords.y1}%`}
-        x2={`${coords.x2}%`}
-        y2={`${coords.y2}%`}
+      <path
+        d={path}
+        fill="none"
         stroke="hsl(var(--primary))"
-        strokeWidth="2"
-        style={{ filter: "drop-shadow(0 0 10px #C41BFD)" }}
+        strokeWidth="0.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ filter: "drop-shadow(0 0 5px #C41BFD) drop-shadow(0 0 10px #C41BFD)" }}
       />
     </motion.svg>
   );
@@ -82,32 +89,6 @@ export default function AuraForgePage() {
   const scene2Y = useTransform(smoothProgress, [0.25, 0.35, 0.55, 0.65], [100, 0, 0, -100]);
   const scene3Y = useTransform(smoothProgress, [0.65, 0.75, 0.88, 0.95], [100, 0, 0, -100]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        const totalHeight = containerRef.current?.scrollHeight || 0;
-        const currentScroll = window.scrollY;
-        
-        const anchors = [0, 0.4 * totalHeight, 0.8 * totalHeight, totalHeight];
-        let targetIndex = 0;
-
-        if (e.key === "ArrowDown") {
-          targetIndex = anchors.findIndex(a => a > currentScroll + 50);
-          if (targetIndex === -1) targetIndex = anchors.length - 1;
-        } else {
-          const reversed = [...anchors].reverse();
-          const found = reversed.findIndex(a => a < currentScroll - 50);
-          targetIndex = found === -1 ? 0 : (anchors.length - 1 - found);
-        }
-
-        window.scrollTo({ top: anchors[targetIndex], behavior: "smooth" });
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
   return (
     <main ref={containerRef} className="relative bg-[#020205] min-h-[600vh] w-full selection:bg-accent selection:text-black">
       <SceneBackground />
@@ -120,20 +101,20 @@ export default function AuraForgePage() {
           className="absolute inset-0 flex flex-col items-center justify-center p-6"
         >
           <div className="text-center relative">
-            {/* صواعق كهربائية حول النص */}
+            {/* Cinematic Lightning originating from text area */}
+            <LightningBolt />
             <LightningBolt />
             <LightningBolt />
             
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
-              className="relative group"
+              className="relative"
             >
-              {/* نص 3D بسيط */}
+              {/* Refined 3D Text without pulse */}
               <h1 className="text-6xl md:text-[8rem] font-black text-white uppercase leading-none tracking-tighter relative z-10 
-                [text-shadow:0_1px_0_#ccc,0_2px_0_#c9c9c9,0_3px_0_#bbb,0_4px_0_#b9b9b9,0_5px_0_#aaa,0_6px_1px_rgba(0,0,0,.1),0_0_5px_rgba(0,0,0,.1),0_1px_3px_rgba(0,0,0,.3),0_3px_5px_rgba(0,0,0,.2),0_5px_10px_rgba(0,0,0,.25),0_10px_10px_rgba(0,0,0,.2),0_20px_20px_rgba(0,0,0,.15),0_0_30px_rgba(196,27,253,0.4)]
-                animate-pulse
+                [text-shadow:0_1px_0_#ccc,0_2px_0_#c9c9c9,0_3px_0_#bbb,0_4px_0_#b9b9b9,0_5px_0_#aaa,0_6px_1px_rgba(0,0,0,.1),0_0_5px_rgba(0,0,0,.1),0_1px_3px_rgba(0,0,0,.3),0_3px_5px_rgba(0,0,0,.2),0_5px_10px_rgba(0,0,0,.25),0_10px_10px_rgba(0,0,0,.2),0_20px_20px_rgba(0,0,0,.15),0_0_40px_rgba(196,27,253,0.3)]
               ">
                 MIX AURA
               </h1>
@@ -143,12 +124,12 @@ export default function AuraForgePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.8 }}
               transition={{ delay: 1, duration: 2 }}
-              className="font-code tracking-[0.8em] text-accent uppercase text-center text-xs md:text-sm mb-8 mt-4"
+              className="font-code tracking-[0.8em] text-accent uppercase text-center text-[10px] md:text-sm mb-8 mt-4 glow-purple"
             >
               Start Like a Pro
             </motion.p>
             
-            {/* SOCIAL DOCK */}
+            {/* SOCIAL DOCK - Under the Planet area visually */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -240,23 +221,13 @@ export default function AuraForgePage() {
           </div>
         </div>
       </div>
-
-      <div className="fixed bottom-12 right-12 z-50 pointer-events-none hidden md:flex flex-col items-end gap-4">
-        <p className="text-[6px] font-code text-white/20 uppercase tracking-[0.8em] mb-2">Scroll to Navigate</p>
-        <div className="flex flex-col gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <div 
-              key={i} 
-              className={`w-1 transition-all duration-700 rounded-full ${
-                smoothProgress.get() > i * 0.25 - 0.1 && smoothProgress.get() < (i + 1) * 0.25 
-                ? 'bg-accent h-12 shadow-[0_0_15px_#C41BFD]' 
-                : 'bg-white/5 h-6'
-              }`} 
-            />
-          ))}
-        </div>
-      </div>
     </main>
   );
 }
 
+const PROJECTS = [
+  { title: "Web Design", category: "Digital Architecture", image: "https://picsum.photos/seed/design/800/1200" },
+  { title: "Web Development", category: "Neural Coding", image: "https://picsum.photos/seed/dev/800/1200" },
+  { title: "Graphic Design", category: "Visual Influence", image: "https://picsum.photos/seed/graph/800/1200" },
+  { title: "Media Buying", category: "Growth Infiltration", image: "https://picsum.photos/seed/media/800/1200" },
+];
