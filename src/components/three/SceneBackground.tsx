@@ -40,7 +40,7 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.5; 
+    renderer.toneMappingExposure = 1.4; 
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
@@ -78,17 +78,14 @@ export const SceneBackground: React.FC = () => {
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
-    texture.colorSpace = THREE.SRGBColorSpace;
-
     const planetGroup = new THREE.Group();
-    const planetGeo = new THREE.SphereGeometry(6.5, 128, 128);
+    // Ultra-smooth sphere for the stone shader
+    const planetGeo = new THREE.SphereGeometry(6.5, 256, 256);
     
     const planetMat = new THREE.MeshStandardMaterial({
-      map: texture,
+      color: 0xffffff,
+      roughness: 0.5,
       metalness: 0.2,
-      roughness: 0.9,
       transparent: true
     });
 
@@ -98,21 +95,19 @@ export const SceneBackground: React.FC = () => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <map_fragment>',
         `
-        #ifdef USE_MAP
-          vec4 texColor = texture2D( map, vMapUv );
-          float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
-          
-          if(brightness < 0.35){
-            // محيطات داكنة جدًا بناءً على منطقك المحدث
-            texColor.rgb = vec3(0.02, 0.02, 0.06);
-          } else {
-            // قارات بنفسجي متوهجة بقوة نيون (Ultra Glow)
-            texColor.rgb = vec3(0.6 + brightness * 0.4, 0.0, 1.0);
-          }
-          
-          diffuseColor *= texColor;
-          diffuseColor.a *= uOpacity;
-        #endif
+        vec3 purple1 = vec3(0.3, 0.0, 0.6);
+        vec3 purple2 = vec3(0.6, 0.0, 1.0);
+        vec3 dark = vec3(0.08, 0.0, 0.15);
+
+        // Procedural Stone Noise logic from Purple Stone Planet
+        float noise = fract(sin(dot(vNormal.xy ,vec2(12.9898,78.233))) * 43758.5453);
+
+        // Smoothly blend shades based on noise and normal Y-axis (poles)
+        vec3 finalColor = mix(purple1, purple2, noise);
+        finalColor = mix(dark, finalColor, abs(vNormal.y));
+        
+        diffuseColor.rgb = finalColor;
+        diffuseColor.a *= uOpacity;
         `
       );
       planetMat.userData.shader = shader;
@@ -121,6 +116,7 @@ export const SceneBackground: React.FC = () => {
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
+    // Dynamic Rim Glow Atmosphere
     const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: { 
@@ -143,8 +139,7 @@ export const SceneBackground: React.FC = () => {
         varying vec3 vNormal;
         void main() {
           float directionalGlow = max(0.2, dot(vNormal, vec3(1.0, 0.5, 1.0)));
-          // Ultra Glow Atmoshpere Multiplier
-          gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.5 );
+          gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalGlow * 3.0 );
         }
       `,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
@@ -168,12 +163,12 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // --- CINEMATIC LIGHTING ---
+    // --- UPDATED CINEMATIC LIGHTING (FROM PURPLE STONE PLANET) ---
     const sunLight = new THREE.DirectionalLight(0xffffff, 3);
-    sunLight.position.set(400, 100, 200); 
+    sunLight.position.set(400, 150, 200); 
     scene.add(sunLight);
 
-    const subtleFill = new THREE.AmbientLight(0x220044, 0.4); 
+    const subtleFill = new THREE.AmbientLight(0x220033, 0.6); 
     scene.add(subtleFill);
 
     const animate = () => {
