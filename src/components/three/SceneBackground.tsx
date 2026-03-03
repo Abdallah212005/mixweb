@@ -14,8 +14,8 @@ export const SceneBackground: React.FC = () => {
 
   // Smooth out the scroll progress for a cinematic "weighted" feel
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 25, // Lower stiffness for slower, more cinematic reaction
-    damping: 40,   // High damping to prevent oscillations
+    stiffness: 25, 
+    damping: 40,
     restDelta: 0.001
   });
 
@@ -28,7 +28,7 @@ export const SceneBackground: React.FC = () => {
   const planetScale = useTransform(smoothProgress, [0, 0.75], [1.8, 12]);
   const cityOpacity = useTransform(smoothProgress, [0.6, 0.85], [0, 1]);
   const cityY = useTransform(smoothProgress, [0.65, 0.95], [400, 0]);
-  const starOpacity = useTransform(smoothProgress, [0.3, 0.7], [1, 0]);
+  const starOpacity = useTransform(smoothProgress, [0.3, 0.7], [1, 0.2]); // Keeping some stars visible
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -92,13 +92,13 @@ export const SceneBackground: React.FC = () => {
     const planetMat = new THREE.MeshStandardMaterial({
       map: albedo,
       bumpMap: bump,
-      bumpScale: 1.2, // Enhanced bump for high detail
+      bumpScale: 1.2,
       roughnessMap: roughness,
       roughness: 0.85,
       metalness: 0.4,
       transparent: true,
-      emissive: new THREE.Color("#220055"),
-      emissiveIntensity: 0.15
+      emissive: new THREE.Color("#110033"), // Reduced emissive to keep oceans dark
+      emissiveIntensity: 0.1
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -109,13 +109,16 @@ export const SceneBackground: React.FC = () => {
         `
         #ifdef USE_MAP
           vec4 texelColor = texture2D( map, vMapUv );
-          // Separate water from land using blue vs red channel diff
-          float oceanMask = smoothstep(0.0, 0.35, texelColor.b - texelColor.r);
-          // Dark charcoal ocean
-          vec3 oceanColor = vec3(0.05, 0.05, 0.08);
-          // Neon Purple Land with detail retention
-          vec3 purpleTint = vec3(0.5, 0.05, 0.9);
-          vec3 landColor = mix(texelColor.rgb * 1.8, purpleTint, 0.7);
+          // Sharp ocean mask detection (blue channel dominance)
+          float oceanMask = smoothstep(0.02, 0.4, texelColor.b - texelColor.r);
+          
+          // DEEP CHARCOAL OCEAN - Darker for realism
+          vec3 oceanColor = vec3(0.005, 0.005, 0.012); 
+          
+          // NEON PURPLE LAND
+          vec3 purpleTint = vec3(0.55, 0.05, 1.0);
+          vec3 landColor = mix(texelColor.rgb * 2.0, purpleTint, 0.8);
+          
           vec3 finalColor = mix(landColor, oceanColor, oceanMask);
           diffuseColor = vec4(finalColor, uOpacity);
         #endif
@@ -131,7 +134,7 @@ export const SceneBackground: React.FC = () => {
     const atmoGeo = new THREE.SphereGeometry(6.75, 128, 128);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: { 
-        glowColor: { value: new THREE.Color("#7700ff") }, 
+        glowColor: { value: new THREE.Color("#8800ff") }, 
         uOpacity: { value: 1.0 },
         sunPosition: { value: new THREE.Vector3(50, 20, 50).normalize() }
       },
@@ -153,7 +156,7 @@ export const SceneBackground: React.FC = () => {
         void main() {
           float sunDot = max(0.0, dot(vNormal, sunPosition));
           float atmosphere = vIntensity * uOpacity * (sunDot + 0.1);
-          gl_FragColor = vec4( glowColor, atmosphere * 2.0 );
+          gl_FragColor = vec4( glowColor, atmosphere * 2.5 );
         }
       `,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
@@ -178,14 +181,14 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // ☀️ Cinematic Lighting (Dramatic Day/Night Division)
-    scene.add(new THREE.AmbientLight(0x050510, 0.05)); // Very low ambient for deep shadows
+    // ☀️ Cinematic Lighting
+    scene.add(new THREE.AmbientLight(0x050510, 0.02)); 
     const sun = new THREE.DirectionalLight(0xffffff, 5.0);
-    sun.position.set(50, 20, 50); // Side lighting for clear terminator line
+    sun.position.set(50, 20, 50); 
     scene.add(sun);
 
-    const purpleAccent = new THREE.PointLight(0x7700ff, 2.0, 100);
-    purpleAccent.position.set(-40, 20, -40); // Soft purple fill for dark side
+    const purpleAccent = new THREE.PointLight(0x7700ff, 1.5, 100);
+    purpleAccent.position.set(-40, 20, -40); 
     scene.add(purpleAccent);
 
     const animate = () => {
