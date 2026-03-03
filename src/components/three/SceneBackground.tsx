@@ -41,8 +41,8 @@ export const SceneBackground: React.FC = () => {
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
       const brightness = 0.5 + Math.random() * 0.5;
       starColors[i * 3] = brightness;
-      starColors[i * 3 + 1] = brightness * 0.9;
-      starColors[i * 3 + 2] = brightness * 1.2; // Slight blue tint
+      starColors[i * 3 + 1] = brightness * 0.8;
+      starColors[i * 3 + 2] = brightness * 1.3; // Slight blue tint
     }
     starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
     starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
@@ -62,10 +62,10 @@ export const SceneBackground: React.FC = () => {
       ctx.fillStyle = '#010103';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Procedural Continental Detail
+      // Procedural Continental Detail (Recognizable Earth Topography)
       const drawLand = (path: number[][], color: string) => {
         ctx.fillStyle = color;
-        ctx.shadowBlur = 60;
+        ctx.shadowBlur = 40;
         ctx.shadowColor = color;
         ctx.beginPath();
         path.forEach(([x, y], i) => {
@@ -77,9 +77,9 @@ export const SceneBackground: React.FC = () => {
 
         // Add Neural Network Grid on Land
         ctx.shadowBlur = 0;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-        ctx.lineWidth = 0.5;
-        for (let i = 0; i < 50; i++) {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.lineWidth = 0.8;
+        for (let i = 0; i < 60; i++) {
           const start = path[Math.floor(Math.random() * path.length)];
           const end = path[Math.floor(Math.random() * path.length)];
           ctx.beginPath();
@@ -90,16 +90,16 @@ export const SceneBackground: React.FC = () => {
 
         // Add bioluminescent "Digital Nodes" (City Lights)
         ctx.fillStyle = "#ffffff";
-        for (let i = 0; i < 150; i++) {
-          const rx = path[0][0] + (Math.random() - 0.5) * 0.3;
-          const ry = path[0][1] + (Math.random() - 0.5) * 0.3;
+        for (let i = 0; i < 200; i++) {
+          const rx = path[0][0] + (Math.random() - 0.5) * 0.4;
+          const ry = path[0][1] + (Math.random() - 0.5) * 0.4;
           ctx.beginPath();
-          ctx.arc(rx * canvas.width, ry * canvas.height, 1.5, 0, Math.PI * 2);
+          ctx.arc(rx * canvas.width, ry * canvas.height, 1.2, 0, Math.PI * 2);
           ctx.fill();
         }
       };
 
-      // Realistic Continental Polygons (Simplified)
+      // Realistic Continental Polygons (Simplified Earth Representation)
       const americas = [[0.1, 0.15], [0.35, 0.2], [0.4, 0.45], [0.3, 0.85], [0.15, 0.5], [0.08, 0.25]];
       const eurasia = [[0.45, 0.1], [0.85, 0.15], [0.95, 0.4], [0.75, 0.5], [0.55, 0.45], [0.48, 0.2]];
       const africa = [[0.42, 0.35], [0.6, 0.4], [0.58, 0.8], [0.48, 0.75], [0.4, 0.5]];
@@ -117,20 +117,20 @@ export const SceneBackground: React.FC = () => {
       map: planetTexture,
       emissiveMap: planetTexture,
       emissive: new THREE.Color("#C41BFD"),
-      emissiveIntensity: 0.9,
+      emissiveIntensity: 1.2,
       transparent: true,
-      roughness: 0.2,
-      metalness: 0.1
+      roughness: 0.1,
+      metalness: 0.2
     });
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
     // Fresnel Atmospheric Glow
-    const atmosphereGeo = new THREE.SphereGeometry(5.2, 128, 128);
+    const atmosphereGeo = new THREE.SphereGeometry(5.25, 128, 128);
     const atmosphereMat = new THREE.MeshPhongMaterial({
       color: "#C41BFD",
       transparent: true,
-      opacity: 0.2,
+      opacity: 0.15,
       side: THREE.BackSide,
       blending: THREE.AdditiveBlending
     });
@@ -138,11 +138,11 @@ export const SceneBackground: React.FC = () => {
     planetGroup.add(atmosphere);
 
     // Subtle Rotating Cloud Layer
-    const cloudGeo = new THREE.SphereGeometry(5.1, 128, 128);
+    const cloudGeo = new THREE.SphereGeometry(5.15, 128, 128);
     const cloudMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       transparent: true,
-      opacity: 0.05,
+      opacity: 0.08,
       blending: THREE.AdditiveBlending
     });
     const clouds = new THREE.Mesh(cloudGeo, cloudMat);
@@ -152,13 +152,13 @@ export const SceneBackground: React.FC = () => {
 
     // --- 3. High-Fidelity Urban Grid ---
     const cityGroup = new THREE.Group();
-    const buildingCount = 600;
+    const buildingCount = 800;
     const buildingGeometry = new THREE.BoxGeometry(1, 1, 1);
     
     for (let i = 0; i < buildingCount; i++) {
-      const h = 2 + Math.random() * 15;
-      const w = 0.5 + Math.random() * 2;
-      const d = 0.5 + Math.random() * 2;
+      const h = 2 + Math.random() * 18;
+      const w = 0.5 + Math.random() * 2.5;
+      const d = 0.5 + Math.random() * 2.5;
       
       const building = new THREE.Mesh(
         buildingGeometry,
@@ -172,17 +172,17 @@ export const SceneBackground: React.FC = () => {
       
       building.scale.set(w, h, d);
       building.position.set(
-        (Math.random() - 0.5) * 120,
+        (Math.random() - 0.5) * 150,
         h / 2 - 12,
-        (Math.random() - 0.5) * 120
+        (Math.random() - 0.5) * 150
       );
       
       // Neon Command Windows
-      const windowRows = Math.floor(h * 3);
+      const windowRows = Math.floor(h * 4);
       for(let r = 0; r < windowRows; r++) {
-        if (Math.random() > 0.4) continue;
+        if (Math.random() > 0.45) continue;
         const win = new THREE.Mesh(
-          new THREE.BoxGeometry(0.06, 0.06, 0.06),
+          new THREE.BoxGeometry(0.08, 0.08, 0.08),
           new THREE.MeshBasicMaterial({ color: "#C41BFD" })
         );
         const face = Math.floor(Math.random() * 4);
@@ -197,20 +197,20 @@ export const SceneBackground: React.FC = () => {
     }
 
     // Volumetric Grid Base
-    const grid = new THREE.GridHelper(400, 200, "#C41BFD", "#0a0a0c");
+    const grid = new THREE.GridHelper(500, 250, "#C41BFD", "#0a0a0c");
     grid.position.y = -12;
     grid.material.transparent = true;
-    grid.material.opacity = 0.05;
+    grid.material.opacity = 0.08;
     cityGroup.add(grid);
 
     scene.add(cityGroup);
 
     // Cinematic Lighting
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    keyLight.position.set(20, 30, 20);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    keyLight.position.set(30, 40, 30);
     scene.add(keyLight);
     
-    const fillLight = new THREE.AmbientLight(0x0a0a0f, 0.8);
+    const fillLight = new THREE.AmbientLight(0x0a0a0f, 1.0);
     scene.add(fillLight);
 
     const animate = () => {
@@ -223,17 +223,17 @@ export const SceneBackground: React.FC = () => {
       const cY = cityY.get();
 
       camera.position.z = z;
-      camera.lookAt(0, -cY * 0.15, 0);
+      camera.lookAt(0, -cY * 0.1, 0);
 
       // Planet Rotation
-      planetGroup.rotation.y += 0.0006;
-      clouds.rotation.y += 0.0002;
+      planetGroup.rotation.y += 0.0008;
+      clouds.rotation.y += 0.0003;
       planetGroup.scale.set(pSc, pSc, pSc);
       planetMat.opacity = pOp;
-      atmosphereMat.opacity = pOp * 0.2;
-      cloudMat.opacity = pOp * 0.05;
+      atmosphereMat.opacity = pOp * 0.15;
+      cloudMat.opacity = pOp * 0.08;
 
-      // City Hover
+      // City Elements
       cityGroup.position.y = cY;
       cityGroup.children.forEach((child) => {
         if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {

@@ -35,9 +35,9 @@ export const AICopyTool: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full max-w-lg mx-auto p-10 md:p-16 rounded-[6rem] md:rounded-[10rem] border border-white/10 bg-black/60 backdrop-blur-3xl shadow-2xl overflow-hidden min-h-[550px] md:min-h-[800px] flex flex-col transition-all duration-700">
-      <div className="mb-8 md:mb-12 text-center">
-        <h3 className="inline-flex items-center gap-4 md:gap-5 text-3xl md:text-5xl font-black tracking-tighter uppercase mb-2">
+    <div className="relative w-full max-w-lg p-10 md:p-14 rounded-[5rem] md:rounded-[8rem] border border-white/10 bg-black/60 backdrop-blur-3xl shadow-2xl overflow-hidden min-h-[550px] md:min-h-[750px] flex flex-col transition-all duration-700">
+      <div className="mb-8 md:mb-10 text-center">
+        <h3 className="inline-flex items-center gap-4 text-3xl md:text-5xl font-black tracking-tighter uppercase mb-2">
           <Sparkles className="w-6 md:w-10 h-6 md:h-10 text-accent animate-pulse" />
           Strategist
         </h3>
@@ -46,12 +46,12 @@ export const AICopyTool: React.FC = () => {
         </p>
       </div>
 
-      <div className="flex gap-3 md:gap-4 mb-8 md:mb-14">
+      <div className="flex gap-3 mb-8 md:mb-12">
         <Input
           placeholder="Market trends..."
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
-          className="bg-white/5 border-white/10 focus:border-accent/50 h-14 md:h-20 rounded-full px-8 md:px-12 transition-all duration-500 text-sm md:text-base placeholder:opacity-30"
+          className="bg-white/5 border-white/10 focus:border-accent/50 h-14 md:h-20 rounded-full px-8 md:px-10 transition-all duration-500 text-sm md:text-base placeholder:opacity-30"
           onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
         />
         <Button 
@@ -63,7 +63,7 @@ export const AICopyTool: React.FC = () => {
         </Button>
       </div>
 
-      <div className="space-y-6 md:space-y-8 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+      <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
         <AnimatePresence mode="popLayout">
           {suggestions.map((suggestion, idx) => (
             <motion.div
@@ -72,12 +72,12 @@ export const AICopyTool: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
-              className="group relative p-8 md:p-12 rounded-[3.5rem] md:rounded-[5rem] bg-white/5 border border-white/5 hover:border-accent/30 transition-all duration-500"
+              className="group relative p-8 md:p-10 rounded-[3rem] md:rounded-[4rem] bg-white/5 border border-white/5 hover:border-accent/30 transition-all duration-500"
             >
               <p className="text-xs md:text-lg leading-relaxed pr-8 font-medium">{suggestion}</p>
               <button
                 onClick={() => copyToClipboard(suggestion, idx)}
-                className="absolute top-8 md:top-12 right-8 md:right-12 text-white/30 hover:text-accent transition-colors"
+                className="absolute top-8 md:top-10 right-8 md:right-10 text-white/30 hover:text-accent transition-colors"
               >
                 {copiedIndex === idx ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
               </button>

@@ -29,32 +29,32 @@ export default function AuraForgePage() {
   });
 
   // Scene Transitions
-  const scene1Opacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 1, 0]);
-  const scene1Scale = useTransform(smoothProgress, [0, 0.3], [1, 0.8]);
+  const scene1Opacity = useTransform(smoothProgress, [0, 0.15, 0.25], [1, 1, 0]);
+  const scene1Scale = useTransform(smoothProgress, [0, 0.25], [1, 0.8]);
   
   // Transition into City / Intelligence
-  const scene2Opacity = useTransform(smoothProgress, [0.35, 0.45, 0.6, 0.7], [0, 1, 1, 0]);
-  const scene2Y = useTransform(smoothProgress, [0.35, 0.45], [100, 0]);
+  const scene2Opacity = useTransform(smoothProgress, [0.3, 0.4, 0.6, 0.7], [0, 1, 1, 0]);
+  const scene2Y = useTransform(smoothProgress, [0.3, 0.4], [100, 0]);
 
   // Portfolio inside City
-  const scene3Opacity = useTransform(smoothProgress, [0.7, 0.8, 0.9, 0.95], [0, 1, 1, 0]);
-  const scene3Scale = useTransform(smoothProgress, [0.7, 0.8], [0.95, 1]);
+  const scene3Opacity = useTransform(smoothProgress, [0.75, 0.85, 0.92, 0.95], [0, 1, 1, 0]);
+  const scene3Scale = useTransform(smoothProgress, [0.75, 0.85], [0.95, 1]);
 
   // Final Contact
-  const scene4Opacity = useTransform(smoothProgress, [0.95, 0.98], [0, 1]);
+  const scene4Opacity = useTransform(smoothProgress, [0.96, 0.99], [0, 1]);
 
   return (
-    <main ref={containerRef} className="relative bg-[#050508] min-h-[500vh] w-full selection:bg-accent selection:text-black">
+    <main ref={containerRef} className="relative bg-[#050508] min-h-[600vh] w-full selection:bg-accent selection:text-black">
       <SceneBackground />
 
       <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
-        <div className="h-full w-full flex items-center justify-center p-6">
-          
-          {/* SCENE 1: THE AGENCY IDENTITY (SPACE) */}
-          <motion.div 
-            style={{ opacity: scene1Opacity, scale: scene1Scale }}
-            className="text-center max-w-full absolute px-6"
-          >
+        
+        {/* SCENE 1: THE AGENCY IDENTITY (SPACE) */}
+        <motion.div 
+          style={{ opacity: scene1Opacity, scale: scene1Scale }}
+          className="absolute inset-0 flex items-center justify-center p-6"
+        >
+          <div className="text-center">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -73,13 +73,15 @@ export default function AuraForgePage() {
             >
               Full-Spectrum Influence
             </motion.p>
-          </motion.div>
+          </div>
+        </motion.div>
 
-          {/* SCENE 2: CITY ENTRY - INTELLIGENCE */}
-          <motion.div 
-            style={{ opacity: scene2Opacity, y: scene2Y }}
-            className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 pointer-events-auto items-center absolute px-6"
-          >
+        {/* SCENE 2: CITY ENTRY - INTELLIGENCE */}
+        <motion.div 
+          style={{ opacity: scene2Opacity, y: scene2Y }}
+          className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
+        >
+          <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="space-y-6 md:space-y-10 order-2 lg:order-1 text-center lg:text-left">
               <h2 className="text-5xl md:text-9xl font-black tracking-tighter leading-[0.8] uppercase">
                 URBAN <br />
@@ -93,18 +95,18 @@ export default function AuraForgePage() {
                 <p className="text-[10px] md:text-[11px] font-code uppercase tracking-[0.4em] text-accent/60">Atmospheric Entry: Complete</p>
               </div>
             </div>
-            <div className="w-full order-1 lg:order-2 flex justify-center">
-              <div className="w-full max-w-md md:max-w-lg">
-                <AICopyTool />
-              </div>
+            <div className="w-full order-1 lg:order-2 flex justify-center lg:justify-end">
+              <AICopyTool />
             </div>
-          </motion.div>
+          </div>
+        </motion.div>
 
-          {/* SCENE 3: PORTFOLIO CAPSULES (INSIDE CITY) */}
-          <motion.div 
-            style={{ opacity: scene3Opacity, scale: scene3Scale }}
-            className="w-full max-w-7xl pointer-events-auto flex flex-col justify-center absolute inset-x-0 mx-auto px-6 overflow-y-auto md:overflow-hidden max-h-screen py-20"
-          >
+        {/* SCENE 3: PORTFOLIO CAPSULES (INSIDE CITY) */}
+        <motion.div 
+          style={{ opacity: scene3Opacity, scale: scene3Scale }}
+          className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
+        >
+          <div className="w-full max-w-7xl h-full flex flex-col justify-center">
             <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="text-center md:text-left">
                 <h2 className="text-5xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8]">Impact</h2>
@@ -114,26 +116,27 @@ export default function AuraForgePage() {
                 City Grid: Active / Sector 07
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 pb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-h-[60vh] md:max-h-none overflow-y-auto md:overflow-visible custom-scrollbar px-2">
               {PROJECTS.map((project, idx) => (
                 <PortfolioPortal key={idx} project={project} index={idx} />
               ))}
             </div>
-          </motion.div>
+          </div>
+        </motion.div>
 
-          {/* SCENE 4: FINAL COMMAND */}
-          <motion.div 
-            style={{ opacity: scene4Opacity }}
-            className="w-full max-w-5xl pointer-events-auto absolute px-6"
-          >
+        {/* SCENE 4: FINAL COMMAND */}
+        <motion.div 
+          style={{ opacity: scene4Opacity }}
+          className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
+        >
+          <div className="w-full max-w-5xl">
             <div className="text-center mb-10 md:mb-16">
               <h2 className="text-6xl md:text-[12rem] font-black tracking-tighter mb-4 md:mb-6 uppercase leading-none">COLLAB</h2>
               <p className="text-accent/40 font-code tracking-[0.6em] md:tracking-[0.8em] uppercase text-[10px] md:text-xs">Engineer Your Aura</p>
             </div>
             <ContactPanel />
-          </motion.div>
-
-        </div>
+          </div>
+        </motion.div>
       </div>
 
       {/* HUD ELEMENTS */}
