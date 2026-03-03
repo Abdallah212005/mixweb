@@ -18,7 +18,7 @@ export const SceneBackground: React.FC = () => {
   const cameraX = useTransform(scrollYProgress, [0.7, 0.85, 1], [0, 1.8, 0]); 
   
   const planetOpacity = useTransform(scrollYProgress, [0.55, 0.8], [1, 0]);
-  const planetScale = useTransform(scrollYProgress, [0, 0.75], [1.2, 8.5]); // Larger Earth
+  const planetScale = useTransform(scrollYProgress, [0, 0.75], [1.8, 11.5]); // Increased scale for more impact
   const cityOpacity = useTransform(scrollYProgress, [0.65, 0.85], [0, 1]);
   const cityY = useTransform(scrollYProgress, [0.65, 0.95], [400, 0]);
   const starOpacity = useTransform(scrollYProgress, [0.3, 0.7], [0.8, 0]);
