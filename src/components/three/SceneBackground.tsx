@@ -68,13 +68,13 @@ export const SceneBackground: React.FC = () => {
     const planetMat = new THREE.MeshStandardMaterial({
       map: albedo,
       bumpMap: bump,
-      bumpScale: 0.8, // زيادة التضاريس
+      bumpScale: 0.8, 
       roughnessMap: roughness,
       roughness: 0.9,
       metalness: 0.1,
       transparent: true,
       emissive: new THREE.Color("#4400aa"),
-      emissiveIntensity: 1.5
+      emissiveIntensity: 0.2 // تقليل الـ Emissive عشان يظهر الليل
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -166,7 +166,7 @@ export const SceneBackground: React.FC = () => {
     }
 
     // Lights
-    scene.add(new THREE.AmbientLight(0x050510, 0.4)); // ضوء محيطي ضعيف جداً لليل
+    scene.add(new THREE.AmbientLight(0x050510, 0.1)); // تقليل الضوء المحيطي جداً لإظهار الليل
     
     // الشمس - ضوء جانبي قوي لخلق ليل ونهار
     const sun = new THREE.DirectionalLight(0xffffff, 3.5);
