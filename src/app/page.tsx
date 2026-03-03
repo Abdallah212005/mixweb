@@ -28,13 +28,11 @@ export default function AuraForgePage() {
     restDelta: 0.001
   });
 
-  // Precise Scene Opacity Mapping for Clean Transitions
   const scene1Opacity = useTransform(smoothProgress, [0, 0.15, 0.25], [1, 1, 0]);
   const scene2Opacity = useTransform(smoothProgress, [0.25, 0.35, 0.55, 0.65], [0, 1, 1, 0]);
   const scene3Opacity = useTransform(smoothProgress, [0.65, 0.75, 0.88, 0.95], [0, 1, 1, 0]);
   const scene4Opacity = useTransform(smoothProgress, [0.95, 0.98], [0, 1]);
 
-  // UI Scale/Y Transforms for "Floating" Effect
   const scene2Y = useTransform(smoothProgress, [0.25, 0.35, 0.55, 0.65], [100, 0, 0, -100]);
   const scene3Y = useTransform(smoothProgress, [0.65, 0.75, 0.88, 0.95], [100, 0, 0, -100]);
 
@@ -45,7 +43,6 @@ export default function AuraForgePage() {
         const totalHeight = containerRef.current?.scrollHeight || 0;
         const currentScroll = window.scrollY;
         
-        // Logical Anchors matching the Scroll Progress Ranges
         const anchors = [0, 0.4 * totalHeight, 0.8 * totalHeight, totalHeight];
         let targetIndex = 0;
 
@@ -89,10 +86,35 @@ export default function AuraForgePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               transition={{ delay: 1, duration: 2 }}
-              className="text-[6px] md:text-[8px] font-code tracking-[2.5em] text-accent uppercase"
+              className="font-code tracking-[1em] text-accent uppercase text-center text-sm"
             >
-              Digital Influence Engineers
+              Start Like a Pro
             </motion.p>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.5, duration: 1 }}
+                className="flex justify-center space-x-8 mt-8 pointer-events-auto"
+            >
+                <a href="https://www.instagram.com/mixaura__?igsh=cGdtdGJoZzRoNXk0" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-7 h-7" style={{ filter: "drop-shadow(0 0 8px hsl(var(--accent)))" }}>
+                        <title>Instagram</title>
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.07 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                </a>
+                <a href="https://www.facebook.com/share/1DkvUeKDKD/" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-7 h-7" style={{ filter: "drop-shadow(0 0 8px hsl(var(--accent)))" }}>
+                        <title>Facebook</title>
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                </a>
+                <a href="https://wa.me/201020117504" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-white transition-colors duration-300">
+                    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-7 h-7" style={{ filter: "drop-shadow(0 0 8px hsl(var(--accent)))" }}>
+                        <title>WhatsApp</title>
+                        <path d="M19.05 4.94A12 12 0 0 0 12 0C5.37 0 0 5.37 0 12c0 2.1.54 4.07 1.48 5.74L0 24l6.33-1.65A11.9 11.9 0 0 0 12 24c6.63 0 12-5.37 12-12a11.93 11.93 0 0 0-4.95-9.06zM12 21.76c-1.9 0-3.69-.5-5.23-1.39L4.4 21.2l.85-2.27a9.83 9.83 0 0 1-1.5-5.01c0-5.42 4.39-9.8 9.8-9.8s9.8 4.38 9.8 9.8-4.39 9.8-9.8 9.8zm4.7-6.59c-.27-.13-1.6-.79-1.85-.88-.25-.09-.43-.13-.62.13-.19.26-.7.88-.86 1.06-.16.18-.32.2-.59.06-.27-.13-1.14-.42-2.18-1.34-.81-.72-1.36-1.61-1.52-1.88-.16-.27-.02-.42.12-.55.12-.12.27-.3.4-.4.07-.06.13-.13.2-.21.12-.13.06-.26-.03-.45s-.62-1.49-.85-2.04c-.23-.55-.46-.48-.62-.49-.15-.01-.32-.01-.49-.01-.17 0-.44.06-.67.33-.23.26-.88.85-1.08 2.06-.2.1.2 1.45 2.1 3.58 1.8 1.9 2.92 2.5 3.3 2.7.38.2.72.17.97.11.25-.06.78-.32.89-.63.11-.3.11-.56.08-.62-.03-.06-.15-.1-.23-.16z"/>
+                    </svg>
+                </a>
+            </motion.div>
           </div>
         </motion.div>
 

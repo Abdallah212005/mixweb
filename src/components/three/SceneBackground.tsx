@@ -7,12 +7,13 @@ import { useScroll, useTransform } from "framer-motion";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
 
-  // Cinematic Camera Path - Fine-tuned for the deep dark aesthetic
   const cameraZ = useTransform(scrollYProgress, [0, 0.35, 0.65, 0.85, 1], [35, 12, 5, 2.2, 1.8]);
   const cameraY = useTransform(scrollYProgress, [0, 0.35, 0.65, 0.85, 1], [8, 3, 1.2, 0.3, 0.2]);
   const cameraX = useTransform(scrollYProgress, [0.7, 0.85, 1], [0, 1.2, 0]); 
@@ -38,14 +39,12 @@ export const SceneBackground: React.FC = () => {
     renderer.toneMappingExposure = 1.3;
     containerRef.current.appendChild(renderer.domElement);
 
-    // POST PROCESSING
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.2);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.15);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
-    // 1. STARFIELD
     const starCount = 4000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
@@ -59,7 +58,6 @@ export const SceneBackground: React.FC = () => {
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // 2. TEXTURED PLANET
     const loader = new THREE.TextureLoader();
     const albedo = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
     const bump = loader.load("https://threejs.org/examples/textures/planets/earth_bump_2048.jpg");
@@ -71,8 +69,10 @@ export const SceneBackground: React.FC = () => {
       bumpMap: bump,
       bumpScale: 0.15,
       transparent: true,
-      roughness: 0.7,
-      metalness: 0.2
+      roughness: 0.4,
+      metalness: 0.8,
+      emissive: new THREE.Color("#4400aa"),
+      emissiveIntensity: 0.5
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -84,11 +84,11 @@ export const SceneBackground: React.FC = () => {
         #ifdef USE_MAP
           vec4 texelColor = texture2D( map, vMapUv );
           float oceanMask = smoothstep(0.0, 0.35, texelColor.b - texelColor.r);
-          vec3 oceanColor = vec3(0.05, 0.05, 0.07); 
-          vec3 purpleTint = vec3(0.7, 0.2, 1.0); 
-          vec3 landColor = mix(texelColor.rgb, purpleTint, 0.8);
+          vec3 oceanColor = vec3(0.02, 0.01, 0.05); 
+          vec3 purpleTint = vec3(0.8, 0.1, 1.0); 
+          vec3 landColor = mix(texelColor.rgb * 3.0, purpleTint, 0.8);
           vec3 finalColor = mix(landColor, oceanColor, oceanMask);
-          diffuseColor = vec4(finalColor * 1.5, uOpacity); 
+          diffuseColor = vec4(finalColor * 2.0, uOpacity); 
         #endif
         `
       );
@@ -98,19 +98,45 @@ export const SceneBackground: React.FC = () => {
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
-    // Atmosphere Glow
     const atmoGeo = new THREE.SphereGeometry(6.75, 64, 64);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: { glowColor: { value: new THREE.Color("#9D00FF") }, uOpacity: { value: 1.0 } },
-      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.6 - dot(vNormal, vec3(0,0,1)), 4.5 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
-      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 1.6 ); }`,
+      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.7 - dot(vNormal, vec3(0,0,1)), 4.0 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
+      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 2.5 ); }`,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
     });
     const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
     planetGroup.add(atmosphere);
     scene.add(planetGroup);
 
-    // 3. MANHATTAN (Entry into city)
+    const ringGroup = new THREE.Group();
+    planetGroup.add(ringGroup);
+
+    const fontLoader = new FontLoader();
+    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+      const symbols = ["{", "}", "<", ">", "/", "#", "Ps", "Ai", "Ae", "Pr"];
+      for (let i = 0; i < 40; i++) {
+        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        const textGeo = new TextGeometry(symbol, {
+          font: font,
+          size: 0.5,
+          height: 0.1,
+        });
+        const textMat = new THREE.MeshStandardMaterial({
+          color: symbol.length > 1 ? 0xffffff : 0xC41BFD,
+          emissive: 0xC41BFD,
+          emissiveIntensity: 3.0,
+          transparent: true
+        });
+        const textMesh = new THREE.Mesh(textGeo, textMat);
+        const angle = (i / 40) * Math.PI * 2;
+        const radius = 8 + Math.random() * 2;
+        textMesh.position.set(Math.cos(angle) * radius, (Math.random() - 0.5) * 4, Math.sin(angle) * radius);
+        textMesh.lookAt(0, 0, 0);
+        ringGroup.add(textMesh);
+      }
+    });
+
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
 
@@ -130,7 +156,6 @@ export const SceneBackground: React.FC = () => {
       b.position.set(x, height / 2 - 120, z);
       cityGroup.add(b);
 
-      // Windows
       if (height > 120) {
         const rows = Math.min(Math.floor(height / 15), 12);
         for (let i = 0; i < rows; i++) {
@@ -158,7 +183,6 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // GROUND
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(5000, 5000),
       new THREE.MeshStandardMaterial({ color: 0x010103, transparent: true })
@@ -167,7 +191,6 @@ export const SceneBackground: React.FC = () => {
     ground.position.y = -120.5;
     cityGroup.add(ground);
 
-    // LIGHTING
     scene.add(new THREE.AmbientLight(0x0a0a15, 1.0));
     const purpleWash = new THREE.DirectionalLight(0x9D00FF, 3.0);
     purpleWash.position.set(300, 700, 200);
@@ -183,7 +206,8 @@ export const SceneBackground: React.FC = () => {
       camera.position.set(cameraX.get(), cameraY.get(), cameraZ.get());
       camera.lookAt(0, (p < 0.6) ? 0 : -0.2, (p > 0.7) ? 0.4 : 0);
 
-      planetGroup.rotation.y += 0.0006;
+      planetGroup.rotation.y += 0.001;
+      ringGroup.rotation.y += 0.005;
       planetGroup.scale.set(planetScale.get(), planetScale.get(), planetScale.get());
       
       if (planetMat.userData.shader) {
