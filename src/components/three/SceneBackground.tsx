@@ -14,12 +14,12 @@ export const SceneBackground: React.FC = () => {
 
   // Smooth out the scroll progress for a cinematic "weighted" feel
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 25, 
+    stiffness: 15, // Extra smooth for cinematic feel
     damping: 40,
     restDelta: 0.001
   });
 
-  // Cinematic Camera Path Transforms using smoothProgress
+  // Cinematic Camera Path Transforms
   const cameraZ = useTransform(smoothProgress, [0, 0.35, 0.65, 0.85, 1], [40, 15, 6, 2.5, 2.0]);
   const cameraY = useTransform(smoothProgress, [0, 0.35, 0.65, 0.85, 1], [10, 4, 1.5, 0.5, 0.3]);
   const cameraX = useTransform(smoothProgress, [0.7, 0.85, 1], [0, 1.5, 0]); 
@@ -28,30 +28,30 @@ export const SceneBackground: React.FC = () => {
   const planetScale = useTransform(smoothProgress, [0, 0.75], [1.8, 12]);
   const cityOpacity = useTransform(smoothProgress, [0.6, 0.85], [0, 1]);
   const cityY = useTransform(smoothProgress, [0.65, 0.95], [400, 0]);
-  const starOpacity = useTransform(smoothProgress, [0.3, 0.7], [1, 0.2]); // Keeping some stars visible
+  const starOpacity = useTransform(smoothProgress, [0.3, 0.7], [1, 0.2]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#010103");
-    scene.fog = new THREE.FogExp2("#010105", 0.008);
+    scene.background = new THREE.Color("#000000");
+    scene.fog = new THREE.FogExp2("#000000", 0.008);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 15000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3; 
+    renderer.toneMappingExposure = 1.2; 
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.85);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
-    // ✨ Vast Starfield - 8000 Stars
+    // ✨ 8000 Stars
     const starCount = 8000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
@@ -72,7 +72,7 @@ export const SceneBackground: React.FC = () => {
     starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
     
     const starMaterial = new THREE.PointsMaterial({ 
-      size: 1.8, 
+      size: 1.5, 
       vertexColors: true, 
       transparent: true, 
       opacity: 0.9, 
@@ -81,24 +81,19 @@ export const SceneBackground: React.FC = () => {
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // 🌍 Advanced Planet (Secret Shader with Sharp Details)
+    // 🌍 MixAura Planet with User's Secret Shader Logic
     const loader = new THREE.TextureLoader();
-    const albedo = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
-    const bump = loader.load("https://threejs.org/examples/textures/planets/earth_bump_2048.jpg");
-    const roughness = loader.load("https://threejs.org/examples/textures/planets/earth_specular_2048.jpg");
+    const texture = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
+    texture.colorSpace = THREE.SRGBColorSpace;
 
     const planetGroup = new THREE.Group();
-    const planetGeo = new THREE.SphereGeometry(6.5, 256, 256);
+    const planetGeo = new THREE.SphereGeometry(6.5, 128, 128);
+    
     const planetMat = new THREE.MeshStandardMaterial({
-      map: albedo,
-      bumpMap: bump,
-      bumpScale: 1.2,
-      roughnessMap: roughness,
-      roughness: 0.85,
-      metalness: 0.4,
-      transparent: true,
-      emissive: new THREE.Color("#110033"), // Reduced emissive to keep oceans dark
-      emissiveIntensity: 0.1
+      map: texture,
+      metalness: 0.2,
+      roughness: 0.8,
+      transparent: true
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -108,19 +103,20 @@ export const SceneBackground: React.FC = () => {
         '#include <map_fragment>',
         `
         #ifdef USE_MAP
-          vec4 texelColor = texture2D( map, vMapUv );
-          // Sharp ocean mask detection (blue channel dominance)
-          float oceanMask = smoothstep(0.02, 0.4, texelColor.b - texelColor.r);
+          vec4 texColor = texture2D( map, vMapUv );
           
-          // DEEP CHARCOAL OCEAN - Darker for realism
-          vec3 oceanColor = vec3(0.005, 0.005, 0.012); 
+          // User's secret brightness logic
+          float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
           
-          // NEON PURPLE LAND
-          vec3 purpleTint = vec3(0.55, 0.05, 1.0);
-          vec3 landColor = mix(texelColor.rgb * 2.0, purpleTint, 0.8);
+          if(brightness < 0.35){
+            // Oceans deep dark purple
+            texColor.rgb = vec3(0.03, 0.02, 0.06);
+          } else {
+            // Continents purple based on brightness
+            texColor.rgb = vec3(0.4 + brightness * 0.5, 0.0, 0.7);
+          }
           
-          vec3 finalColor = mix(landColor, oceanColor, oceanMask);
-          diffuseColor = vec4(finalColor, uOpacity);
+          diffuseColor = vec4(texColor.rgb, uOpacity);
         #endif
         `
       );
@@ -130,33 +126,27 @@ export const SceneBackground: React.FC = () => {
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
-    // Atmospheric Glow (Crescent Effect)
-    const atmoGeo = new THREE.SphereGeometry(6.75, 128, 128);
+    // Matching Atmospheric Glow
+    const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: { 
-        glowColor: { value: new THREE.Color("#8800ff") }, 
-        uOpacity: { value: 1.0 },
-        sunPosition: { value: new THREE.Vector3(50, 20, 50).normalize() }
+        glowColor: { value: new THREE.Color("#9D00FF") }, 
+        uOpacity: { value: 1.0 }
       },
       vertexShader: `
         varying float vIntensity;
-        varying vec3 vNormal;
         void main() {
-          vNormal = normalize( normalMatrix * normal );
-          vIntensity = pow( 0.7 - dot(vNormal, vec3(0,0,1)), 5.0 );
+          vec3 vNormal = normalize( normalMatrix * normal );
+          vIntensity = pow( 0.6 - dot(vNormal, vec3(0,0,1.0)), 6.0 );
           gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
         }
       `,
       fragmentShader: `
         uniform vec3 glowColor;
         uniform float uOpacity;
-        uniform vec3 sunPosition;
         varying float vIntensity;
-        varying vec3 vNormal;
         void main() {
-          float sunDot = max(0.0, dot(vNormal, sunPosition));
-          float atmosphere = vIntensity * uOpacity * (sunDot + 0.1);
-          gl_FragColor = vec4( glowColor, atmosphere * 2.5 );
+          gl_FragColor = vec4( glowColor, vIntensity * uOpacity );
         }
       `,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
@@ -168,7 +158,7 @@ export const SceneBackground: React.FC = () => {
     // City Structures
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
-    const buildingMat = new THREE.MeshStandardMaterial({ color: 0x06060c, metalness: 0.95, roughness: 0.05, transparent: true });
+    const buildingMat = new THREE.MeshStandardMaterial({ color: 0x05050a, metalness: 0.9, roughness: 0.1, transparent: true });
     const boxGeo = new THREE.BoxGeometry(1, 1, 1);
     for (let i = -1500; i <= 1500; i += 250) {
       for (let j = -1500; j <= 1500; j += 250) {
@@ -181,15 +171,12 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // ☀️ Cinematic Lighting
-    scene.add(new THREE.AmbientLight(0x050510, 0.02)); 
-    const sun = new THREE.DirectionalLight(0xffffff, 5.0);
-    sun.position.set(50, 20, 50); 
-    scene.add(sun);
-
-    const purpleAccent = new THREE.PointLight(0x7700ff, 1.5, 100);
-    purpleAccent.position.set(-40, 20, -40); 
-    scene.add(purpleAccent);
+    // ☀️ User-Inspired Lighting
+    scene.add(new THREE.AmbientLight(0x222244, 1.2)); 
+    
+    const purpleLight = new THREE.DirectionalLight(0x9D00FF, 2);
+    purpleLight.position.set(50, 20, 50); 
+    scene.add(purpleLight);
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -198,7 +185,7 @@ export const SceneBackground: React.FC = () => {
       const p = smoothProgress.get();
       camera.lookAt(0, (p < 0.6) ? 0 : -0.25, (p > 0.75) ? 0.5 : 0);
 
-      planetGroup.rotation.y += 0.001;
+      planetGroup.rotation.y += 0.002;
       planetGroup.scale.set(planetScale.get(), planetScale.get(), planetScale.get());
       
       if (planetMat.userData.shader) {
