@@ -12,59 +12,59 @@ export const ContactPanel: React.FC = () => {
   const [isFocused, setIsFocused] = useState<string | null>(null);
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-4">
-      <div className="relative p-10 md:p-16 rounded-[6rem] md:rounded-[10rem] border border-white/10 bg-black/60 backdrop-blur-3xl shadow-2xl transition-all duration-700">
+    <div className="max-w-6xl mx-auto w-full px-4 pb-20">
+      <div className="relative p-12 md:p-24 rounded-[8rem] md:rounded-[12rem] border border-white/10 bg-black/70 backdrop-blur-3xl shadow-2xl transition-all duration-700">
         <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          className="space-y-10"
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          className="space-y-12"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
-              <Label className="text-[10px] md:text-[12px] uppercase tracking-[0.5em] text-accent/50 font-code ml-8">Brand Identity</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-4">
+              <Label className="text-[11px] md:text-[13px] uppercase tracking-[0.6em] text-accent/50 font-code ml-12">Entity Identity</Label>
               <Input
                 onFocus={() => setIsFocused("name")}
                 onBlur={() => setIsFocused(null)}
-                placeholder="Company Name"
-                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-16 md:h-20 rounded-full px-10 transition-all duration-500 text-sm md:text-lg"
+                placeholder="Partner Name"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-20 md:h-28 rounded-full px-12 md:px-16 transition-all duration-500 text-sm md:text-2xl font-medium"
               />
             </div>
-            <div className="space-y-3">
-              <Label className="text-[10px] md:text-[12px] uppercase tracking-[0.5em] text-accent/50 font-code ml-8">Direct Link</Label>
+            <div className="space-y-4">
+              <Label className="text-[11px] md:text-[13px] uppercase tracking-[0.6em] text-accent/50 font-code ml-12">Neural Link</Label>
               <Input
                 onFocus={() => setIsFocused("email")}
                 onBlur={() => setIsFocused(null)}
-                placeholder="Contact Email"
-                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-16 md:h-20 rounded-full px-10 transition-all duration-500 text-sm md:text-lg"
+                placeholder="Secure Email"
+                className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 h-20 md:h-28 rounded-full px-12 md:px-16 transition-all duration-500 text-sm md:text-2xl font-medium"
               />
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-[10px] md:text-[12px] uppercase tracking-[0.5em] text-accent/50 font-code ml-8">Objective</Label>
+          <div className="space-y-4">
+            <Label className="text-[11px] md:text-[13px] uppercase tracking-[0.6em] text-accent/50 font-code ml-12">Expansion Objective</Label>
             <Textarea
               onFocus={() => setIsFocused("message")}
               onBlur={() => setIsFocused(null)}
-              placeholder="Brief your expansion objectives..."
-              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[160px] md:min-h-[220px] rounded-[3rem] md:rounded-[6rem] p-10 md:p-12 transition-all duration-500 text-sm md:text-xl resize-none"
+              placeholder="Detail your digital infiltration goals..."
+              className="bg-white/5 border-white/10 focus:border-accent focus:ring-0 min-h-[200px] md:min-h-[350px] rounded-[5rem] md:rounded-[8rem] p-12 md:p-20 transition-all duration-700 text-sm md:text-2xl resize-none font-medium leading-relaxed"
             />
           </div>
 
-          <Button className="w-full bg-accent hover:bg-white text-black h-20 md:h-28 rounded-full text-lg md:text-2xl font-black uppercase tracking-[0.2em] transition-all duration-700 hover:scale-[1.01] active:scale-95 shadow-[0_25px_50px_-15px_rgba(196,27,253,0.4)]">
+          <Button className="w-full bg-accent hover:bg-white text-black h-24 md:h-36 rounded-full text-xl md:text-4xl font-black uppercase tracking-[0.3em] transition-all duration-1000 hover:scale-[1.01] active:scale-95 shadow-[0_30px_60px_-15px_rgba(196,27,253,0.5)]">
             Establish Authority
           </Button>
 
-          <div className="flex justify-between items-center pt-8 border-t border-white/5">
-            <div className="flex gap-4">
-              <div className={`w-2 md:w-3 h-2 md:h-3 rounded-full transition-all duration-700 ${isFocused ? 'bg-accent scale-150 shadow-[0_0_15px_#C41BFD]' : 'bg-white/10'}`} />
-              <div className="w-2 md:w-3 h-2 md:h-3 rounded-full bg-white/10" />
-              <div className="w-2 md:w-3 h-2 md:h-3 rounded-full bg-white/10" />
+          <div className="flex justify-between items-center pt-12 border-t border-white/5">
+            <div className="flex gap-6">
+              <div className={`w-3 md:w-4 h-3 md:h-4 rounded-full transition-all duration-1000 ${isFocused ? 'bg-accent scale-150 shadow-[0_0_20px_#C41BFD]' : 'bg-white/10'}`} />
+              <div className="w-3 md:w-4 h-3 md:h-4 rounded-full bg-white/10" />
+              <div className="w-3 md:w-4 h-3 md:h-4 rounded-full bg-white/10" />
             </div>
-            <p className="text-[9px] md:text-[11px] font-code text-white/20 uppercase tracking-[0.4em]">Encrypted Transmission Ready</p>
+            <p className="text-[10px] md:text-[12px] font-code text-white/30 uppercase tracking-[0.6em]">Secure Transmission Port: Active</p>
           </div>
         </motion.div>
 
-        <div className="absolute inset-0 rounded-[6rem] md:rounded-[10rem] bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 rounded-[8rem] md:rounded-[12rem] bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
       </div>
     </div>
   );

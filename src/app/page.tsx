@@ -23,33 +23,31 @@ export default function AuraForgePage() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
+    stiffness: 80,
+    damping: 25,
     restDelta: 0.001
   });
 
-  // Scene Transitions
+  // Scene Transitions - Refined for stability
   const scene1Opacity = useTransform(smoothProgress, [0, 0.15, 0.25], [1, 1, 0]);
-  const scene1Scale = useTransform(smoothProgress, [0, 0.25], [1, 0.8]);
+  const scene1Scale = useTransform(smoothProgress, [0, 0.25], [1, 0.9]);
   
-  // Transition into City / Intelligence
   const scene2Opacity = useTransform(smoothProgress, [0.3, 0.4, 0.6, 0.7], [0, 1, 1, 0]);
-  const scene2Y = useTransform(smoothProgress, [0.3, 0.4], [100, 0]);
+  const scene2Y = useTransform(smoothProgress, [0.3, 0.4], [50, 0]);
 
-  // Portfolio inside City
   const scene3Opacity = useTransform(smoothProgress, [0.75, 0.85, 0.92, 0.95], [0, 1, 1, 0]);
-  const scene3Scale = useTransform(smoothProgress, [0.75, 0.85], [0.95, 1]);
+  const scene3Scale = useTransform(smoothProgress, [0.75, 0.85], [0.98, 1]);
 
-  // Final Contact
   const scene4Opacity = useTransform(smoothProgress, [0.96, 0.99], [0, 1]);
 
   return (
-    <main ref={containerRef} className="relative bg-[#050508] min-h-[600vh] w-full selection:bg-accent selection:text-black">
+    <main ref={containerRef} className="relative bg-[#020205] min-h-[600vh] w-full selection:bg-accent selection:text-black">
       <SceneBackground />
 
+      {/* FIXED SCENE ENGINE */}
       <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
         
-        {/* SCENE 1: THE AGENCY IDENTITY (SPACE) */}
+        {/* SCENE 1: IDENTITY */}
         <motion.div 
           style={{ opacity: scene1Opacity, scale: scene1Scale }}
           className="absolute inset-0 flex items-center justify-center p-6"
@@ -61,7 +59,7 @@ export default function AuraForgePage() {
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
               className="mb-8"
             >
-              <h1 className="text-7xl md:text-[12rem] font-black tracking-tighter text-white uppercase leading-[0.75]">
+              <h1 className="text-7xl md:text-[14rem] font-black tracking-tighter text-white uppercase leading-[0.7] glow-purple">
                 MIX <br /> AURA
               </h1>
             </motion.div>
@@ -69,30 +67,30 @@ export default function AuraForgePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 1.5 }}
-              className="text-[9px] md:text-xs font-code tracking-[1.5em] md:tracking-[2em] text-accent uppercase ml-4 md:ml-8"
+              className="text-[9px] md:text-xs font-code tracking-[2em] text-accent uppercase"
             >
-              Full-Spectrum Influence
+              Architects of Digital Resonance
             </motion.p>
           </div>
         </motion.div>
 
-        {/* SCENE 2: CITY ENTRY - INTELLIGENCE */}
+        {/* SCENE 2: STRATEGIST (CITY ENTRY) */}
         <motion.div 
           style={{ opacity: scene2Opacity, y: scene2Y }}
           className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
         >
-          <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div className="space-y-6 md:space-y-10 order-2 lg:order-1 text-center lg:text-left">
-              <h2 className="text-5xl md:text-9xl font-black tracking-tighter leading-[0.8] uppercase">
+          <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+            <div className="space-y-6 md:space-y-12 order-2 lg:order-1 text-center lg:text-left">
+              <h2 className="text-5xl md:text-[10rem] font-black tracking-tighter leading-[0.8] uppercase">
                 URBAN <br />
-                <span className="text-accent">SYRIUS</span>
+                <span className="text-accent">MATRIX</span>
               </h2>
-              <p className="text-lg md:text-xl text-white/60 max-w-md leading-relaxed font-medium mx-auto lg:mx-0">
-                Infiltrating markets with bioluminescent logic. We don't just find an audience; we engineer the environment.
+              <p className="text-lg md:text-2xl text-white/60 max-w-lg leading-relaxed font-medium mx-auto lg:mx-0">
+                Infiltrating markets with bioluminescent logic. We engineer the environment where your brand lives.
               </p>
               <div className="flex gap-6 items-center justify-center lg:justify-start">
-                <div className="h-px w-20 md:w-32 bg-white/20" />
-                <p className="text-[10px] md:text-[11px] font-code uppercase tracking-[0.4em] text-accent/60">Atmospheric Entry: Complete</p>
+                <div className="h-px w-24 md:w-40 bg-white/20" />
+                <p className="text-[10px] md:text-[11px] font-code uppercase tracking-[0.4em] text-accent/60">Node Connection: Established</p>
               </div>
             </div>
             <div className="w-full order-1 lg:order-2 flex justify-center lg:justify-end">
@@ -101,22 +99,22 @@ export default function AuraForgePage() {
           </div>
         </motion.div>
 
-        {/* SCENE 3: PORTFOLIO CAPSULES (INSIDE CITY) */}
+        {/* SCENE 3: PORTFOLIO CAPSULES */}
         <motion.div 
           style={{ opacity: scene3Opacity, scale: scene3Scale }}
           className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
         >
           <div className="w-full max-w-7xl h-full flex flex-col justify-center">
-            <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="mb-12 md:mb-20 flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="text-center md:text-left">
-                <h2 className="text-5xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8]">Impact</h2>
-                <p className="text-accent/50 font-code uppercase tracking-[0.4em] md:tracking-[0.6em] text-[10px] md:text-[11px] mt-4 md:mt-6">Case Studies in Influence</p>
+                <h2 className="text-6xl md:text-[10rem] font-black tracking-tighter uppercase leading-[0.8]">RESONANCE</h2>
+                <p className="text-accent/50 font-code uppercase tracking-[0.6em] text-[10px] md:text-xs mt-6">Global Influence Case Studies</p>
               </div>
               <div className="hidden lg:block text-[11px] font-code text-white/20 uppercase tracking-[0.4em]">
-                City Grid: Active / Sector 07
+                City Grid Sector 07 / Active
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-h-[60vh] md:max-h-none overflow-y-auto md:overflow-visible custom-scrollbar px-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 max-h-[70vh] md:max-h-none overflow-y-auto md:overflow-visible px-4 custom-scrollbar">
               {PROJECTS.map((project, idx) => (
                 <PortfolioPortal key={idx} project={project} index={idx} />
               ))}
@@ -124,15 +122,15 @@ export default function AuraForgePage() {
           </div>
         </motion.div>
 
-        {/* SCENE 4: FINAL COMMAND */}
+        {/* SCENE 4: FINAL COLLAB */}
         <motion.div 
           style={{ opacity: scene4Opacity }}
-          className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
+          className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto overflow-y-auto"
         >
-          <div className="w-full max-w-5xl">
-            <div className="text-center mb-10 md:mb-16">
-              <h2 className="text-6xl md:text-[12rem] font-black tracking-tighter mb-4 md:mb-6 uppercase leading-none">COLLAB</h2>
-              <p className="text-accent/40 font-code tracking-[0.6em] md:tracking-[0.8em] uppercase text-[10px] md:text-xs">Engineer Your Aura</p>
+          <div className="w-full max-w-5xl my-auto">
+            <div className="text-center mb-12 md:mb-24">
+              <h2 className="text-7xl md:text-[14rem] font-black tracking-tighter mb-4 md:mb-8 uppercase leading-none">COLLAB</h2>
+              <p className="text-accent/40 font-code tracking-[0.8em] uppercase text-[10px] md:text-sm">Establish Your Neural Footprint</p>
             </div>
             <ContactPanel />
           </div>
@@ -140,25 +138,26 @@ export default function AuraForgePage() {
       </div>
 
       {/* HUD ELEMENTS */}
-      <div className="fixed top-8 left-8 md:top-12 md:left-12 z-50 pointer-events-none hidden sm:block">
-        <div className="space-y-4 md:space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_10px_#C41BFD]" />
-            <p className="text-[10px] md:text-[11px] font-code text-white uppercase tracking-[0.3em]">Neural Link: Active</p>
+      <div className="fixed top-8 left-8 md:top-16 md:left-16 z-50 pointer-events-none hidden sm:block">
+        <div className="space-y-6 md:space-y-8">
+          <div className="flex items-center gap-6">
+            <div className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_15px_#C41BFD]" />
+            <p className="text-[10px] md:text-xs font-code text-white uppercase tracking-[0.4em]">Aura Link: Online</p>
           </div>
-          <div className="h-px w-16 md:w-20 bg-white/10" />
-          <p className="text-[9px] md:text-[10px] font-code text-white/30 uppercase tracking-[0.5em]">Descent Mode</p>
+          <div className="h-px w-24 md:w-32 bg-white/10" />
+          <p className="text-[9px] md:text-[10px] font-code text-white/30 uppercase tracking-[0.6em]">Orbital Position: 04</p>
         </div>
       </div>
 
-      <div className="fixed bottom-8 left-1/2 md:bottom-12 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
-        <div className="h-24 md:h-32 w-[1px] bg-white/10 relative overflow-hidden">
+      {/* SCROLL INDICATOR */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
+        <div className="h-28 md:h-40 w-[1px] bg-white/10 relative overflow-hidden">
           <motion.div 
             style={{ height: useTransform(smoothProgress, [0, 1], ["0%", "100%"]) }}
             className="w-full bg-accent shadow-[0_0_20px_#C41BFD]"
           />
         </div>
-        <p className="text-[9px] md:text-[10px] font-code text-white/40 mt-6 md:mt-8 uppercase tracking-[0.6em] animate-bounce">Scroll to Infiltrate</p>
+        <p className="text-[10px] md:text-xs font-code text-white/40 mt-8 uppercase tracking-[0.8em] animate-bounce">Scroll to Descent</p>
       </div>
     </main>
   );
