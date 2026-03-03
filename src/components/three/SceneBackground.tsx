@@ -38,8 +38,8 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    // Increased bloom strength slightly for a better aura
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.5, 0.8);
+    // Bloom Pass سينمائي هادئ
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.8, 0.4, 0.85);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -54,28 +54,31 @@ export const SceneBackground: React.FC = () => {
       starPositions[i * 3 + 2] = (Math.random() - 0.5) * 5000;
     }
     starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    const starMaterial = new THREE.PointsMaterial({ size: 1.0, color: "#5533AA", transparent: true, blending: THREE.AdditiveBlending });
+    const starMaterial = new THREE.PointsMaterial({ size: 1.0, color: "#5533AA", transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
-    // Planet
+    // Planet Textures (The Secret Mix)
     const loader = new THREE.TextureLoader();
     const albedo = loader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
     const bump = loader.load("https://threejs.org/examples/textures/planets/earth_bump_2048.jpg");
+    const roughness = loader.load("https://threejs.org/examples/textures/planets/earth_specular_2048.jpg");
 
     const planetGroup = new THREE.Group();
-    const planetGeo = new THREE.SphereGeometry(6.5, 128, 128);
+    const planetGeo = new THREE.SphereGeometry(6.5, 256, 256);
     const planetMat = new THREE.MeshStandardMaterial({
       map: albedo,
       bumpMap: bump,
-      bumpScale: 0.5, // Increased for more noticeable terrain
+      bumpScale: 0.5,
+      roughnessMap: roughness,
+      roughness: 0.8,
+      metalness: 0.2,
       transparent: true,
-      roughness: 0.4,
-      metalness: 0.9,
-      emissive: new THREE.Color("#220055"), 
-      emissiveIntensity: 1.2 // Increased glow as requested
+      emissive: new THREE.Color("#4400aa"),
+      emissiveIntensity: 1.5 // توهج داخلي خفيف
     });
 
+    // ✨ تطبيق الـ Shader المخصص لفصل المياه عن اليابسة مع الحفاظ على الملامح
     planetMat.onBeforeCompile = (shader) => {
       shader.uniforms.uOpacity = { value: 1.0 };
       shader.fragmentShader = `uniform float uOpacity;\n${shader.fragmentShader}`;
@@ -84,12 +87,20 @@ export const SceneBackground: React.FC = () => {
         `
         #ifdef USE_MAP
           vec4 texelColor = texture2D( map, vMapUv );
-          float oceanMask = smoothstep(0.0, 0.4, texelColor.b - texelColor.r);
-          vec3 oceanColor = vec3(0.005, 0.002, 0.015); 
-          vec3 purpleTint = vec3(0.5, 0.1, 0.8); 
-          vec3 landColor = mix(texelColor.rgb * 2.0, purpleTint, 0.4);
+
+          // فصل المياه عن اليابسة (Mask)
+          float oceanMask = smoothstep(0.0, 0.35, texelColor.b - texelColor.r);
+
+          // مياه رمادي داكن طبيعي
+          vec3 oceanColor = vec3(0.02, 0.02, 0.04);
+
+          // تحويل اليابسة لبنفسجي مع الحفاظ على التفاصيل (Tint)
+          vec3 purpleTint = vec3(0.55, 0.1, 0.8);
+          vec3 landColor = mix(texelColor.rgb * 1.5, purpleTint, 0.6);
+
           vec3 finalColor = mix(landColor, oceanColor, oceanMask);
-          diffuseColor = vec4(finalColor, uOpacity); 
+
+          diffuseColor = vec4(finalColor, uOpacity);
         #endif
         `
       );
@@ -99,12 +110,12 @@ export const SceneBackground: React.FC = () => {
     const planet = new THREE.Mesh(planetGeo, planetMat);
     planetGroup.add(planet);
 
-    // Atmosphere
-    const atmoGeo = new THREE.SphereGeometry(6.75, 64, 64);
+    // Atmosphere (Aura)
+    const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
     const atmoMat = new THREE.ShaderMaterial({
       uniforms: { glowColor: { value: new THREE.Color("#6600ff") }, uOpacity: { value: 1.0 } },
-      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.65 - dot(vNormal, vec3(0,0,1)), 6.0 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
-      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 1.5 ); }`,
+      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.7 - dot(vNormal, vec3(0,0,1)), 6.0 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
+      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 1.2 ); }`,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
     });
     const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
@@ -166,10 +177,14 @@ export const SceneBackground: React.FC = () => {
     ground.position.y = -120.5;
     cityGroup.add(ground);
 
-    // Lights
-    scene.add(new THREE.AmbientLight(0x101025, 1.0));
-    const purpleWash = new THREE.DirectionalLight(0x6600ff, 2.0);
-    purpleWash.position.set(300, 700, 200);
+    // Lights (The Sun & Ambient)
+    scene.add(new THREE.AmbientLight(0x111122, 0.8));
+    const sun = new THREE.DirectionalLight(0xffffff, 2.5);
+    sun.position.set(20, 10, 20);
+    scene.add(sun);
+
+    const purpleWash = new THREE.DirectionalLight(0x6600ff, 1.5);
+    purpleWash.position.set(-30, 20, -20);
     scene.add(purpleWash);
 
     const animate = () => {
