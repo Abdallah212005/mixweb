@@ -34,11 +34,12 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 1.0; // Adjusted for less overall brightness
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.15);
+    // Reduced bloom strength from 1.2 to 0.6 for a subtle look
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -69,10 +70,10 @@ export const SceneBackground: React.FC = () => {
       bumpMap: bump,
       bumpScale: 0.15,
       transparent: true,
-      roughness: 0.4,
+      roughness: 0.6,
       metalness: 0.8,
-      emissive: new THREE.Color("#4400aa"),
-      emissiveIntensity: 0.8
+      emissive: new THREE.Color("#220055"), // Darker emissive for less glow
+      emissiveIntensity: 0.4 // Reduced intensity
     });
 
     planetMat.onBeforeCompile = (shader) => {
@@ -84,11 +85,11 @@ export const SceneBackground: React.FC = () => {
         #ifdef USE_MAP
           vec4 texelColor = texture2D( map, vMapUv );
           float oceanMask = smoothstep(0.0, 0.35, texelColor.b - texelColor.r);
-          vec3 oceanColor = vec3(0.02, 0.01, 0.05); 
-          vec3 purpleTint = vec3(0.8, 0.1, 1.0); 
-          vec3 landColor = mix(texelColor.rgb * 3.0, purpleTint, 0.8);
+          vec3 oceanColor = vec3(0.01, 0.005, 0.02); 
+          vec3 purpleTint = vec3(0.4, 0.1, 0.6); 
+          vec3 landColor = mix(texelColor.rgb * 1.5, purpleTint, 0.5);
           vec3 finalColor = mix(landColor, oceanColor, oceanMask);
-          diffuseColor = vec4(finalColor * 2.0, uOpacity); 
+          diffuseColor = vec4(finalColor, uOpacity); 
         #endif
         `
       );
@@ -101,9 +102,9 @@ export const SceneBackground: React.FC = () => {
     // Atmosphere
     const atmoGeo = new THREE.SphereGeometry(6.75, 64, 64);
     const atmoMat = new THREE.ShaderMaterial({
-      uniforms: { glowColor: { value: new THREE.Color("#9D00FF") }, uOpacity: { value: 1.0 } },
-      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.7 - dot(vNormal, vec3(0,0,1)), 4.0 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
-      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 2.5 ); }`,
+      uniforms: { glowColor: { value: new THREE.Color("#4400aa") }, uOpacity: { value: 1.0 } },
+      vertexShader: `varying float intensity; void main() { vec3 vNormal = normalize( normalMatrix * normal ); intensity = pow( 0.7 - dot(vNormal, vec3(0,0,1)), 6.0 ); gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
+      fragmentShader: `uniform vec3 glowColor; uniform float uOpacity; varying float intensity; void main() { gl_FragColor = vec4( glowColor, intensity * uOpacity * 1.2 ); }`,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
     });
     const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
@@ -137,9 +138,9 @@ export const SceneBackground: React.FC = () => {
             const win = new THREE.Mesh(
               new THREE.PlaneGeometry(3, 4),
               new THREE.MeshBasicMaterial({
-                color: Math.random() > 0.8 ? 0xffbb66 : 0xC41BFD,
+                color: Math.random() > 0.8 ? 0xffbb66 : 0x881BFD,
                 transparent: true,
-                opacity: 0.7
+                opacity: 0.5
               })
             );
             win.position.set(x - width / 2 + (Math.random() * width), i * 15 - 120 + 30, z + depth / 2 + 0.1);
@@ -166,14 +167,10 @@ export const SceneBackground: React.FC = () => {
     cityGroup.add(ground);
 
     // Lights
-    scene.add(new THREE.AmbientLight(0x0a0a15, 1.0));
-    const purpleWash = new THREE.DirectionalLight(0x9D00FF, 3.0);
+    scene.add(new THREE.AmbientLight(0x0a0a15, 0.8));
+    const purpleWash = new THREE.DirectionalLight(0x4400aa, 1.5);
     purpleWash.position.set(300, 700, 200);
     scene.add(purpleWash);
-
-    const spotLight = new THREE.PointLight(0xC41BFD, 2.0, 1500);
-    spotLight.position.set(0, 500, 500);
-    scene.add(spotLight);
 
     const animate = () => {
       requestAnimationFrame(animate);
