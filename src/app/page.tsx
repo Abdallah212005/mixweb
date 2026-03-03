@@ -23,16 +23,16 @@ export default function AuraForgePage() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 40,
-    damping: 30,
+    stiffness: 30, // Even smoother for "Heavy Cinematic" feel
+    damping: 25,
     restDelta: 0.001
   });
 
-  // UI Scene Opacity Sync
-  const scene1Opacity = useTransform(smoothProgress, [0, 0.3], [1, 0]);
-  const scene2Opacity = useTransform(smoothProgress, [0.35, 0.5, 0.65], [0, 1, 0]);
-  const scene3Opacity = useTransform(smoothProgress, [0.75, 0.88, 0.96], [0, 1, 0]);
-  const scene4Opacity = useTransform(smoothProgress, [0.97, 1], [0, 1]);
+  // Balanced Opacity Sync - More focused
+  const scene1Opacity = useTransform(smoothProgress, [0, 0.25], [1, 0]);
+  const scene2Opacity = useTransform(smoothProgress, [0.3, 0.45, 0.6], [0, 1, 0]);
+  const scene3Opacity = useTransform(smoothProgress, [0.7, 0.85, 0.95], [0, 1, 0]);
+  const scene4Opacity = useTransform(smoothProgress, [0.96, 1], [0, 1]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -41,16 +41,16 @@ export default function AuraForgePage() {
         const totalHeight = containerRef.current?.scrollHeight || 0;
         const currentScroll = window.scrollY;
         
-        // Balanced anchors for 4 scenes
-        const anchors = [0, 0.33 * totalHeight, 0.78 * totalHeight, totalHeight];
+        // Accurate slide anchors
+        const anchors = [0, 0.38 * totalHeight, 0.82 * totalHeight, totalHeight];
         let targetIndex = 0;
 
         if (e.key === "ArrowDown") {
-          targetIndex = anchors.findIndex(a => a > currentScroll + 500);
+          targetIndex = anchors.findIndex(a => a > currentScroll + 300);
           if (targetIndex === -1) targetIndex = anchors.length - 1;
         } else {
           const reversed = [...anchors].reverse();
-          const found = reversed.findIndex(a => a < currentScroll - 500);
+          const found = reversed.findIndex(a => a < currentScroll - 300);
           targetIndex = found === -1 ? 0 : (anchors.length - 1 - found);
         }
 
@@ -73,12 +73,12 @@ export default function AuraForgePage() {
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 2.5, ease: [0.16, 1, 0.3, 1] }}
-              className="text-4xl md:text-[5.5rem] font-black text-white uppercase glow-purple leading-none mb-4"
+              transition={{ duration: 3, ease: [0.16, 1, 0.3, 1] }}
+              className="text-5xl md:text-[6rem] font-black text-white uppercase glow-purple leading-none mb-4"
             >
               MIX AURA
             </motion.h1>
-            <p className="text-[6px] md:text-[8px] font-code tracking-[2em] text-accent uppercase">
+            <p className="text-[6px] md:text-[8px] font-code tracking-[2em] text-accent uppercase opacity-50">
               Digital Influence Engineers
             </p>
           </div>
@@ -86,27 +86,27 @@ export default function AuraForgePage() {
 
         {/* SCENE 2: STRATEGIST */}
         <motion.div style={{ opacity: scene2Opacity }} className="absolute inset-0 flex items-center justify-center p-6">
-          <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-4 text-center md:text-left">
-              <h2 className="text-3xl md:text-[3.5rem] font-black uppercase leading-[0.85]">
+          <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6 text-center md:text-left">
+              <h2 className="text-4xl md:text-[5rem] font-black uppercase leading-[0.85]">
                 DIGITAL <br /> <span className="text-accent">INTELLIGENCE</span>
               </h2>
-              <p className="text-[8px] md:text-[10px] text-white/50 max-w-xs mx-auto md:mx-0 font-medium leading-relaxed">
+              <p className="text-[9px] md:text-[11px] text-white/40 max-w-xs mx-auto md:mx-0 font-medium leading-relaxed">
                 Neural architecture scaling brands beyond conventional limits. Absolute authority.
               </p>
             </div>
-            <div className="w-full pointer-events-auto flex justify-center scale-75 md:scale-90">
+            <div className="w-full pointer-events-auto flex justify-center scale-90">
               <AICopyTool />
             </div>
           </div>
         </motion.div>
 
-        {/* SCENE 3: MANHATTAN GLIDE */}
+        {/* SCENE 3: RESONANCE (Manhattan Glide) */}
         <motion.div style={{ opacity: scene3Opacity }} className="absolute inset-0 flex items-center justify-center p-6">
           <div className="w-full max-w-6xl">
-            <div className="mb-6 text-center md:text-left">
-              <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">RESONANCE</h2>
-              <p className="text-accent/50 font-code tracking-[0.6em] text-[6px] md:text-[8px] mt-2">NYC Digital Infiltration</p>
+            <div className="mb-10 text-center md:text-left">
+              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">RESONANCE</h2>
+              <p className="text-accent/50 font-code tracking-[0.6em] text-[7px] md:text-[9px] mt-2 uppercase">Infiltrating Global Markets</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pointer-events-auto">
               {PROJECTS.map((project, idx) => (
@@ -118,10 +118,10 @@ export default function AuraForgePage() {
 
         {/* SCENE 4: COLLAB */}
         <motion.div style={{ opacity: scene4Opacity }} className="absolute inset-0 flex items-center justify-center p-6">
-          <div className="w-full max-w-2xl pointer-events-auto scale-75 md:scale-85">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl md:text-5xl font-black uppercase mb-2">COLLAB</h2>
-              <p className="text-accent/40 font-code tracking-[0.8em] uppercase text-[6px] md:text-[8px]">Establish Your Global Command</p>
+          <div className="w-full max-w-3xl pointer-events-auto scale-90">
+            <div className="text-center mb-10">
+              <h2 className="text-4xl md:text-6xl font-black uppercase mb-3">COLLAB</h2>
+              <p className="text-accent/40 font-code tracking-[0.8em] uppercase text-[7px] md:text-[9px]">Establish Your Global Command</p>
             </div>
             <ContactPanel />
           </div>
@@ -131,8 +131,8 @@ export default function AuraForgePage() {
       {/* HUD & NAVIGATION */}
       <div className="fixed top-8 left-8 z-50 pointer-events-none hidden md:block">
         <div className="flex items-center gap-3">
-          <div className="w-1 h-1 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#C41BFD]" />
-          <p className="text-[6px] font-code text-white/30 uppercase tracking-[0.5em]">SYNC_ACTIVE: {Math.round(smoothProgress.get() * 100)}%</p>
+          <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#C41BFD]" />
+          <p className="text-[6px] font-code text-white/30 uppercase tracking-[0.5em]">SYSTEM_SYNC: {Math.round(smoothProgress.get() * 100)}%</p>
         </div>
       </div>
 
@@ -142,8 +142,8 @@ export default function AuraForgePage() {
           {[0, 1, 2, 3].map((i) => (
             <div 
               key={i} 
-              className={`w-0.5 transition-all duration-700 ${
-                smoothProgress.get() > i * 0.25 - 0.1 && smoothProgress.get() < (i + 1) * 0.25 ? 'bg-accent h-6' : 'bg-white/10 h-3'
+              className={`w-0.5 transition-all duration-1000 ${
+                smoothProgress.get() > i * 0.25 - 0.1 && smoothProgress.get() < (i + 1) * 0.25 ? 'bg-accent h-8 shadow-[0_0_10px_#C41BFD]' : 'bg-white/5 h-4'
               }`} 
             />
           ))}

@@ -35,29 +35,29 @@ export const AICopyTool: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full max-w-md aspect-[4/5] min-h-[450px] p-6 md:p-10 rounded-[5rem] md:rounded-[7rem] border border-white/10 bg-black/70 backdrop-blur-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-700">
-      <div className="mb-6 md:mb-8 text-center shrink-0">
-        <h3 className="inline-flex items-center gap-2 text-lg md:text-2xl font-black tracking-tighter uppercase mb-1">
+    <div className="relative w-full max-w-sm aspect-[4/5] p-8 rounded-[4rem] border border-white/10 bg-black/40 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-700">
+      <div className="mb-6 text-center shrink-0">
+        <h3 className="inline-flex items-center gap-2 text-xl font-black tracking-tighter uppercase mb-1">
           <Sparkles className="w-4 h-4 text-accent" />
           STRATEGIST
         </h3>
-        <p className="text-[7px] md:text-[8px] font-code text-accent/40 uppercase tracking-[0.4em]">
+        <p className="text-[7px] font-code text-accent/40 uppercase tracking-[0.4em]">
           Marketing Intelligence
         </p>
       </div>
 
-      <div className="flex gap-2 mb-6 md:mb-8 shrink-0">
+      <div className="flex gap-2 mb-6 shrink-0">
         <Input
           placeholder="Growth Keywords..."
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
-          className="bg-white/5 border-white/10 focus:border-accent/50 h-12 md:h-14 rounded-full px-6 text-[10px] md:text-xs placeholder:opacity-20"
+          className="bg-white/5 border-white/10 focus:border-accent/50 h-12 rounded-full px-6 text-[10px] placeholder:opacity-20"
           onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
         />
         <Button 
           onClick={handleGenerate} 
           disabled={isLoading || !keywords.trim()}
-          className="bg-accent hover:bg-white text-black font-black h-12 w-12 md:h-14 md:w-14 shrink-0 rounded-full transition-all active:scale-90"
+          className="bg-accent hover:bg-white text-black font-black h-12 w-12 shrink-0 rounded-full transition-all active:scale-90"
         >
           {isLoading ? <Loader2 className="animate-spin w-4 h-4" /> : "RUN"}
         </Button>
@@ -70,9 +70,9 @@ export const AICopyTool: React.FC = () => {
               key={idx}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="group relative p-5 md:p-6 rounded-[2.5rem] md:rounded-[3.5rem] bg-white/5 border border-white/5 hover:border-accent/30 transition-all"
+              className="group relative p-5 rounded-[2.5rem] bg-white/5 border border-white/5 hover:border-accent/30 transition-all"
             >
-              <p className="text-[9px] md:text-[11px] leading-relaxed pr-8">{suggestion}</p>
+              <p className="text-[10px] leading-relaxed pr-8 opacity-80">{suggestion}</p>
               <button
                 onClick={() => copyToClipboard(suggestion, idx)}
                 className="absolute top-5 right-5 text-white/20 hover:text-accent"
@@ -93,4 +93,3 @@ export const AICopyTool: React.FC = () => {
     </div>
   );
 };
-
