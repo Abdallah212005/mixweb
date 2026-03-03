@@ -23,29 +23,28 @@ export default function AuraForgePage() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 60,
-    damping: 20,
+    stiffness: 40, // More relaxed for performance
+    damping: 30,
     restDelta: 0.001
   });
 
-  // Seamless Scene Transitions - Gaps closed to prevent "stopping"
+  // Seamless Scene Transitions
   const scene1Opacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 1, 0]);
   const scene1Scale = useTransform(smoothProgress, [0, 0.3], [1, 0.8]);
   
   const scene2Opacity = useTransform(smoothProgress, [0.25, 0.35, 0.65, 0.75], [0, 1, 1, 0]);
-  const scene2Y = useTransform(smoothProgress, [0.25, 0.4], [100, 0]);
+  const scene2Y = useTransform(smoothProgress, [0.25, 0.4], [50, 0]);
 
   const scene3Opacity = useTransform(smoothProgress, [0.7, 0.8, 0.9, 0.95], [0, 1, 1, 0]);
-  const scene3Scale = useTransform(smoothProgress, [0.7, 0.8], [0.9, 1]);
+  const scene3Scale = useTransform(smoothProgress, [0.7, 0.8], [0.95, 1]);
 
   const scene4Opacity = useTransform(smoothProgress, [0.94, 0.98], [0, 1]);
-  const scene4Y = useTransform(smoothProgress, [0.94, 0.99], [50, 0]);
+  const scene4Y = useTransform(smoothProgress, [0.94, 0.99], [30, 0]);
 
   return (
-    <main ref={containerRef} className="relative bg-[#020205] min-h-[800vh] w-full selection:bg-accent selection:text-black">
+    <main ref={containerRef} className="relative bg-[#020205] min-h-[600vh] w-full selection:bg-accent selection:text-black">
       <SceneBackground />
 
-      {/* FIXED SCENE ENGINE - Anchored and centered */}
       <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
         
         {/* SCENE 1: IDENTITY */}
@@ -75,12 +74,12 @@ export default function AuraForgePage() {
           </div>
         </motion.div>
 
-        {/* SCENE 2: STRATEGIST (CITY ENTRY) */}
+        {/* SCENE 2: STRATEGIST */}
         <motion.div 
           style={{ opacity: scene2Opacity, y: scene2Y }}
           className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
         >
-          <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center h-full">
+          <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
             <div className="space-y-6 md:space-y-12 order-2 lg:order-1 text-center lg:text-left">
               <h2 className="text-5xl md:text-[10rem] font-black tracking-tighter leading-[0.8] uppercase">
                 URBAN <br />
@@ -100,7 +99,7 @@ export default function AuraForgePage() {
           </div>
         </motion.div>
 
-        {/* SCENE 3: PORTFOLIO CAPSULES */}
+        {/* SCENE 3: PORTFOLIO */}
         <motion.div 
           style={{ opacity: scene3Opacity, scale: scene3Scale }}
           className="absolute inset-0 flex items-center justify-center p-6 pointer-events-auto"
@@ -110,9 +109,6 @@ export default function AuraForgePage() {
               <div className="text-center md:text-left">
                 <h2 className="text-6xl md:text-[10rem] font-black tracking-tighter uppercase leading-[0.8]">RESONANCE</h2>
                 <p className="text-accent/50 font-code uppercase tracking-[0.6em] text-[10px] md:text-xs mt-4">Global Influence Case Studies</p>
-              </div>
-              <div className="hidden lg:block text-[11px] font-code text-white/20 uppercase tracking-[0.4em]">
-                City Grid Sector 07 / Active
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-h-[70vh] overflow-y-auto lg:overflow-visible px-4 custom-scrollbar">
