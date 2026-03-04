@@ -26,8 +26,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       1000
     );
     
-    const distance = 20;
-    camera.position.set(0, 0, distance);
+    // Updated distance to 14 for the "Clean" look
+    camera.position.set(0, 0, 14);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -173,23 +173,24 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     if (isTransitioned && planetRef.current && atmosphereRef.current) {
       const tl = gsap.timeline();
       
+      // Matched GSAP timing and values to the "Clean" version
       tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
         y: planetRef.current.rotation.y + Math.PI * 4,
-        duration: 1.5,
+        duration: 1,
         ease: "power2.inOut"
       });
 
       tl.to([planetRef.current.scale, atmosphereRef.current.scale], {
-        x: 0.4,
-        y: 0.4,
-        z: 0.4,
-        duration: 1.5,
+        x: 0.5,
+        y: 0.5,
+        z: 0.5,
+        duration: 1,
         ease: "power2.inOut"
       }, 0);
 
       tl.to([planetRef.current.position, atmosphereRef.current.position], {
-        x: -12,
-        duration: 1.5,
+        x: -10,
+        duration: 1,
         ease: "power2.inOut"
       }, 0);
     }

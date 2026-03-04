@@ -22,6 +22,7 @@ export default function Page() {
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
+      // Sensitivity check to avoid accidental triggers
       if (e.deltaY > 50 && !isTransitioned) {
         handleNext();
       }
@@ -71,7 +72,7 @@ export default function Page() {
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1, duration: 1 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
             className="fixed inset-y-0 right-0 w-1/2 z-10 flex flex-col items-start justify-center p-20 bg-gradient-to-l from-black/80 to-transparent backdrop-blur-sm"
           >
             <div className="max-w-xl">
