@@ -30,12 +30,18 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHT =====
-    const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+    // White sun light
+    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
     sun.position.set(10, 5, 5);
     scene.add(sun);
 
-    const ambient = new THREE.AmbientLight(0x404040);
-    scene.add(ambient);
+    // Purple rim light from the back
+    const purpleLight = new THREE.DirectionalLight(0x7c3aed, 1);
+    purpleLight.position.set(-10, -5, -5);
+    scene.add(purpleLight);
+
+    // Ambient fill
+    scene.add(new THREE.AmbientLight(0x222222));
 
     // ===== EARTH =====
     const loader = new THREE.TextureLoader();
@@ -43,84 +49,81 @@ export const SceneBackground: React.FC = () => {
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
     );
 
-    const geometry = new THREE.SphereGeometry(6, 64, 64);
-    const material = new THREE.MeshStandardMaterial({
+    const earthGeometry = new THREE.SphereGeometry(6, 64, 64);
+    const earthMaterial = new THREE.MeshStandardMaterial({
       map: earthTexture,
       roughness: 1,
       metalness: 0,
     });
 
-    // Purple color grading via Shader injection
-    material.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <dithering_fragment>',
-        `
-        gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.5, 0.2, 0.7), 0.25);
-        #include <dithering_fragment>
-        `
-      );
-    };
-
-    const earth = new THREE.Mesh(geometry, material);
+    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
     scene.add(earth);
 
-    // ===== CODE SYMBOL SPRITES =====
-    function createTextSprite(text: string, color: string = "#ffffff") {
+    // ===== SYMBOL SPRITES =====
+    function createSymbol(text: string) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return new THREE.Group();
 
-      canvas.width = 256;
-      canvas.height = 256;
+      canvas.width = 128;
+      canvas.height = 128;
 
-      ctx.fillStyle = "transparent";
-      ctx.fillRect(0, 0, 256, 256);
-
-      ctx.font = "bold 120px Arial";
+      ctx.font = "bold 60px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = color;
-      ctx.fillText(text, 128, 128);
+      ctx.fillStyle = "white";
+      ctx.fillText(text, 64, 64);
 
       const texture = new THREE.CanvasTexture(canvas);
-      const spriteMat = new THREE.SpriteMaterial({
+      const material = new THREE.SpriteMaterial({
         map: texture,
         transparent: true,
       });
 
-      const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(1.5, 1.5, 1.5);
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(0.8, 0.8, 0.8);
       return sprite;
     }
 
-    const symbols = ["{ }", "< />", "#", ";", "()", "Ps", "Ai", "Ae", "Pr"];
-    const orbitGroup = new THREE.Group();
-    scene.add(orbitGroup);
+    // ===== ORBIT RINGS =====
+    const symbols = ["{ }", "< />", "#", ";", "()"];
 
-    for (let i = 0; i < 40; i++) {
-      const text = symbols[Math.floor(Math.random() * symbols.length)];
-      const color = text.length <= 2 ? "#a855f7" : "#ffffff";
-      const sprite = createTextSprite(text, color) as THREE.Sprite;
+    function createRing(radius: number, count: number, tiltX: number, tiltZ: number) {
+      const group = new THREE.Group();
 
-      const radius = 9 + Math.random() * 4;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(Math.random() * 2 - 1);
+      for (let i = 0; i < count; i++) {
+        const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+        const sprite = createSymbol(symbol) as THREE.Sprite;
 
-      sprite.position.set(
-        radius * Math.sin(phi) * Math.cos(theta),
-        radius * Math.sin(phi) * Math.sin(theta),
-        radius * Math.cos(phi)
-      );
+        const angle = (i / count) * Math.PI * 2;
+        sprite.position.x = Math.cos(angle) * radius;
+        sprite.position.z = Math.sin(angle) * radius;
+        sprite.position.y = 0;
 
-      orbitGroup.add(sprite);
+        group.add(sprite);
+      }
+
+      group.rotation.x = tiltX;
+      group.rotation.z = tiltZ;
+      scene.add(group);
+      return group;
     }
+
+    const ring1 = createRing(9, 40, 0.2, 0);
+    const ring2 = createRing(11, 50, -0.4, 0.3);
+    const ring3 = createRing(13, 60, 0.6, -0.2);
 
     // ===== ANIMATION =====
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+
       earth.rotation.y += 0.002;
-      orbitGroup.rotation.y += 0.001;
+
+      ring1.rotation.y += 0.002;
+      ring2.rotation.y -= 0.0015;
+      ring3.rotation.y += 0.001;
+
       renderer.render(scene, camera);
     };
 
