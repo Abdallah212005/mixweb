@@ -4,9 +4,9 @@
 import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useScroll, useTransform, useSpring } from "framer-motion";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,7 +27,6 @@ export const SceneBackground: React.FC = () => {
   const cityOpacity = useTransform(smoothProgress, [0.6, 0.85], [0, 1]);
   const cityY = useTransform(smoothProgress, [0.65, 0.95], [400, 0]);
   
-  // Fades out stars completely during Scene 2 to ensure a deep black background
   const starOpacity = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 0.65, 1], [0.8, 0.8, 0, 0, 0.1, 0.1]);
 
   useEffect(() => {
@@ -46,8 +45,7 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     const renderScene = new RenderPass(scene, camera);
-    // Balanced bloom to avoid washing out the black background
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.85);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
@@ -106,9 +104,9 @@ export const SceneBackground: React.FC = () => {
           float brightness = (texColor.r + texColor.g + texColor.b)/3.0;
 
           if(brightness < 0.4){
-            texColor.rgb *= vec3(0.08, 0.06, 0.15); // Deep dark oceans
+            texColor.rgb *= vec3(0.08, 0.06, 0.15);
           } else {
-            texColor.rgb = mix(texColor.rgb, vec3(0.4, 0.0, 0.7), 0.65); // Subtle purple continents
+            texColor.rgb = mix(texColor.rgb, vec3(0.4, 0.0, 0.7), 0.65);
           }
 
           diffuseColor *= texColor;
@@ -121,7 +119,7 @@ export const SceneBackground: React.FC = () => {
       const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
       planetGroup.add(planet);
 
-      // Sharp One-Sided Atmosphere Glow
+      // Sharp Atmosphere Glow
       const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
       const atmoMat = new THREE.ShaderMaterial({
         uniforms: { 
@@ -148,7 +146,6 @@ export const SceneBackground: React.FC = () => {
           varying vec3 vNormal;
           void main() {
             float sunBias = max(0.0, dot(vNormal, sunDirection));
-            // Sharper directional factor for one-sided glow
             float directionalFactor = 0.0 + 3.5 * pow(sunBias, 3.5);
             gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalFactor );
           }
@@ -163,14 +160,12 @@ export const SceneBackground: React.FC = () => {
       planetGroup.userData.planetMat = planetMat;
     });
 
-    // Cinematic Sun Object in distance
     const sunGeo = new THREE.SphereGeometry(30, 32, 32);
     const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
     sunMesh.position.set(1000, 250, 500);
     scene.add(sunMesh);
 
-    // City Scene
     const cityGroup = new THREE.Group();
     scene.add(cityGroup);
     const buildingMat = new THREE.MeshStandardMaterial({ color: 0x020205, metalness: 0.9, roughness: 0.1, transparent: true });
@@ -186,7 +181,6 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    // Main Sunlight
     const sunLight = new THREE.DirectionalLight(0xffffff, 3.0);
     sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);

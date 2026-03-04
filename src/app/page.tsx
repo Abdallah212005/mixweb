@@ -3,34 +3,38 @@
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { SceneBackground } from "@/components/three/SceneBackground";
+import dynamic from "next/dynamic";
 import { PortfolioPortal } from "@/components/ui/PortfolioPortal";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
-// Realistic Jagged Lightning Bolt component jumping from text edges
+// Import SceneBackground dynamically to prevent SSR issues with Three.js
+const SceneBackground = dynamic(
+  () => import("@/components/three/SceneBackground").then((mod) => mod.SceneBackground),
+  { ssr: false }
+);
+
+// Realistic Jagged Lightning Bolt component
 const LightningBolt = () => {
   const [path, setPath] = useState("");
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const generatePath = () => {
-      // Start positions distributed around the text area edges
       const isHorizontal = Math.random() > 0.5;
       let startX, startY;
       
       if (isHorizontal) {
-        startX = 35 + Math.random() * 30; // Between 35% and 65% width
-        startY = Math.random() > 0.5 ? 45 : 55; // Near top or bottom edge of text
+        startX = 35 + Math.random() * 30;
+        startY = Math.random() > 0.5 ? 45 : 55;
       } else {
-        startX = Math.random() > 0.5 ? 35 : 65; // Near left or right edge of text
-        startY = 48 + Math.random() * 4; // Near center height
+        startX = Math.random() > 0.5 ? 35 : 65;
+        startY = 48 + Math.random() * 4;
       }
       
       let currentX = startX;
       let currentY = startY;
       let newPath = `M ${startX} ${startY}`;
       
-      // Multi-segment logic for jagged electric look (8 segments)
       const segments = 8;
       for (let i = 1; i <= segments; i++) {
         const targetX = startX + (Math.random() - 0.5) * 15;
@@ -83,16 +87,26 @@ const LightningBolt = () => {
 
 export default function AuraForgePage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollPercent, setScrollPercent] = useState(0);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 25, // Cinematic slow reaction
+    stiffness: 25,
     damping: 40,
     restDelta: 0.001
   });
+
+  // Hydration-safe scroll percentage update
+  useEffect(() => {
+    const unsubscribe = smoothProgress.on("change", (latest) => {
+      setScrollPercent(Math.round(latest * 100));
+    });
+    return () => unsubscribe();
+  }, [smoothProgress]);
 
   // Scene Transform Definitions
   const scene1Opacity = useTransform(smoothProgress, [0, 0.15, 0.25], [1, 1, 0]);
@@ -102,8 +116,7 @@ export default function AuraForgePage() {
   const scene2Y = useTransform(smoothProgress, [0.25, 0.35, 0.55, 0.65], [100, 0, 0, -100]);
   const scene3Y = useTransform(smoothProgress, [0.65, 0.75, 1.0], [100, 0, 0]);
 
-  // NAVIGATION LOGIC (Keyboard Arrows & Swipe)
-  const snapPoints = [0, 0.45, 0.8]; // Points representing each scene's center
+  const snapPoints = [0, 0.45, 0.8];
   
   const navigateToSection = useCallback((direction: 'next' | 'prev') => {
     const currentProgress = scrollYProgress.get();
@@ -146,7 +159,7 @@ export default function AuraForgePage() {
     const handleTouchEnd = (e: TouchEvent) => {
       const touchEnd = e.changedTouches[0].clientY;
       const diff = touchStart - touchEnd;
-      if (Math.abs(diff) > 70) { // Threshold for swipe
+      if (Math.abs(diff) > 70) {
         if (diff > 0) navigateToSection("next");
         else navigateToSection("prev");
       }
@@ -231,7 +244,6 @@ export default function AuraForgePage() {
                   transition={{ delay: 1.5, duration: 1 }}
                   className="flex justify-center space-x-6 pointer-events-auto relative z-30"
               >
-                  {/* Instagram Button */}
                   <motion.a 
                     whileHover={{ scale: 1.1, backgroundColor: "rgba(196, 27, 253, 0.15)", boxShadow: "0 0 20px rgba(196, 27, 253, 0.4)" }}
                     whileTap={{ scale: 0.9 }}
@@ -246,7 +258,6 @@ export default function AuraForgePage() {
                       </svg>
                   </motion.a>
 
-                  {/* Facebook Button */}
                   <motion.a 
                     whileHover={{ scale: 1.1, backgroundColor: "rgba(196, 27, 253, 0.15)", boxShadow: "0 0 20px rgba(196, 27, 253, 0.4)" }}
                     whileTap={{ scale: 0.9 }}
@@ -261,7 +272,6 @@ export default function AuraForgePage() {
                       </svg>
                   </motion.a>
 
-                  {/* WhatsApp Button */}
                   <motion.a 
                     whileHover={{ scale: 1.1, backgroundColor: "rgba(196, 27, 253, 0.15)", boxShadow: "0 0 20px rgba(196, 27, 253, 0.4)" }}
                     whileTap={{ scale: 0.9 }}
@@ -294,8 +304,6 @@ export default function AuraForgePage() {
                 Neural architecture scaling brands beyond conventional limits. Absolute authority.
               </p>
             </div>
-            <div className="w-full pointer-events-auto flex justify-center scale-95 lg:scale-100">
-            </div>
           </div>
         </motion.div>
 
@@ -325,7 +333,7 @@ export default function AuraForgePage() {
           <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_15px_#C41BFD]" />
           <div>
             <p className="text-[7px] font-code text-white/40 uppercase tracking-[0.5em]">SYSTEM_SYNC</p>
-            <p className="text-[10px] font-code text-white uppercase">{Math.round(smoothProgress.get() * 100)}%</p>
+            <p className="text-[10px] font-code text-white uppercase">{scrollPercent}%</p>
           </div>
         </div>
       </div>
