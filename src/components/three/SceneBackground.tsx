@@ -6,15 +6,14 @@ import * as THREE from "three";
 import gsap from "gsap";
 
 interface SceneBackgroundProps {
-  isTransitioned?: boolean;
+  scene: number;
 }
 
-export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned = false }) => {
+export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const planetRef = useRef<THREE.Mesh | null>(null);
   const atmosphereRef = useRef<THREE.Mesh | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
-  const triggeredRef = useRef(false);
   const basePositionsRef = useRef<Float32Array | null>(null);
   const timeRef = useRef(0);
   const starCount = 6000;
@@ -22,7 +21,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const scene = new THREE.Scene();
+    const sceneThree = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       60,
       window.innerWidth / window.innerHeight,
@@ -39,35 +38,25 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
     
     containerRef.current.appendChild(renderer.domElement);
 
     // Lights
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
     purpleSun.position.set(8, 4, 6);
-    scene.add(purpleSun);
-
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
-    fillLight.position.set(-5, 2, 5);
-    scene.add(fillLight);
+    sceneThree.add(purpleSun);
 
     const ambient = new THREE.AmbientLight(0x111111);
-    scene.add(ambient);
+    sceneThree.add(ambient);
 
     // Planet Setup
     const loader = new THREE.TextureLoader();
     const earthMap = loader.load(
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
     );
-    const bumpMap = loader.load(
-      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
-    );
 
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
-      bumpMap: bumpMap,
-      bumpScale: 0.8,
       roughness: 0.9,
       metalness: 0.05,
     });
@@ -81,12 +70,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         float lightPower = dot(normalize(vNormal), lightDir);
         lightPower = clamp(lightPower, 0.0, 1.0);
         float shadowMask = smoothstep(0.0, 0.45, lightPower);
-        float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
-        vec3 oceanColor = vec3(0.07, 0.07, 0.09);
-        vec3 landColor = vec3(0.6, 0.18, 0.85);
-        vec3 litColor = mix(landColor, oceanColor, oceanFactor);
-        vec3 finalColor = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
-        gl_FragColor.rgb = finalColor;
+        vec3 litColor = mix(vec3(0.6, 0.18, 0.85), vec3(0.07, 0.07, 0.09), smoothstep(0.05, 0.25, baseColor.b - baseColor.r));
+        gl_FragColor.rgb = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
         #include <dithering_fragment>
         `
       );
@@ -94,9 +79,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
 
     const planet = new THREE.Mesh(new THREE.SphereGeometry(6, 128, 128), planetMaterial);
     planetRef.current = planet;
-    scene.add(planet);
+    sceneThree.add(planet);
 
-    // Atmosphere
     const atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
@@ -118,9 +102,9 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     });
     const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), atmosphereMaterial);
     atmosphereRef.current = atmosphere;
-    scene.add(atmosphere);
+    sceneThree.add(atmosphere);
 
-    // Star Glow Texture
+    // Stars
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64;
     starCanvas.height = 64;
@@ -135,7 +119,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     }
     const starTexture = new THREE.CanvasTexture(starCanvas);
 
-    // Stars Setup
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
 
@@ -158,7 +141,9 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
 
     const stars = new THREE.Points(starGeometry, starMaterial);
     starsRef.current = stars;
-    scene.add(stars);
+    sceneThree.add(stars);
+
+    basePositionsRef.current = new Float32Array(starPositions);
 
     let animationFrameId: number;
     const animate = () => {
@@ -167,33 +152,20 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       if (planetRef.current) planetRef.current.rotation.y += 0.0015;
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.0015;
 
-      if (!triggeredRef.current && starsRef.current) {
-        starsRef.current.rotation.y += 0.004;
-      }
-
-      if (basePositionsRef.current && starsRef.current) {
+      if (starsRef.current && basePositionsRef.current) {
         timeRef.current += 0.01;
         const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
         const base = basePositionsRef.current;
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
-          const iy = ix + 1;
-          const iz = ix + 2;
-
-          // Smooth flowing movement
           positions[ix] = base[ix] + Math.sin(timeRef.current * 0.5 + i * 0.1) * 0.04;
-          positions[iy] = base[iy] + Math.cos(timeRef.current * 0.4 + i * 0.15) * 0.04;
-          positions[iz] = base[iz] + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
+          positions[ix + 1] = base[ix + 1] + Math.cos(timeRef.current * 0.4 + i * 0.15) * 0.04;
+          positions[ix + 2] = base[ix + 2] + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
         }
         starsRef.current.geometry.attributes.position.needsUpdate = true;
-
-        // Twinkle effect
-        if (starsRef.current.material instanceof THREE.PointsMaterial) {
-          starsRef.current.material.size = 0.11 + Math.sin(timeRef.current * 2) * 0.01;
-        }
       }
 
-      renderer.render(scene, camera);
+      renderer.render(sceneThree, camera);
     };
     animate();
 
@@ -218,75 +190,60 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
   }, []);
 
   useEffect(() => {
-    if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
-      triggeredRef.current = true;
-      const tl = gsap.timeline();
-      
-      // Planet Transformation
-      tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
-        y: planetRef.current.rotation.y + Math.PI * 4,
-        duration: 1.2,
-        ease: "power2.inOut"
-      });
+    if (!planetRef.current || !atmosphereRef.current || !starsRef.current) return;
 
-      tl.to([planetRef.current.scale, atmosphereRef.current.scale], {
-        x: 0.5,
-        y: 0.5,
-        z: 0.5,
-        duration: 1.2,
-        ease: "power2.inOut"
-      }, 0);
+    const tl = gsap.timeline();
+    const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
+    const targetPositions = new Float32Array(starCount * 3);
+    const thickness = 0.25;
+    let symbolIndex = 0;
 
-      tl.to([planetRef.current.position, atmosphereRef.current.position], {
-        x: -6,
-        duration: 1.2,
-        ease: "power2.inOut"
-      }, 0);
+    function drawThickLine(x1: number, y1: number, x2: number, y2: number, count: number, xOff: number, yOff: number) {
+      for (let i = 0; i < count; i++) {
+        if (symbolIndex >= starCount) break;
+        const t = i / count;
+        let x = x1 + (x2 - x1) * t;
+        let y = y1 + (y2 - y1) * t;
 
-      // Star Morphing
-      gsap.to(starsRef.current.rotation, {
-        y: 0,
-        duration: 1,
-        ease: "power2.inOut"
-      });
+        const offset = (Math.random() - 0.5) * thickness;
+        const dx = y2 - y1;
+        const dy = -(x2 - x1);
+        const len = Math.sqrt(dx * dx + dy * dy);
 
-      const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
-      const targetPositions = new Float32Array(starCount * 3);
+        x += (dx / len) * offset;
+        y += (dy / len) * offset;
 
-      let symbolIndex = 0;
-      const thickness = 0.25;
-      const symbolStarCount = 1400;
-
-      function drawThickLine(x1: number, y1: number, x2: number, y2: number, count: number) {
-        for (let i = 0; i < count; i++) {
-          if (symbolIndex >= starCount) break;
-          const t = i / count;
-          let x = x1 + (x2 - x1) * t;
-          let y = y1 + (y2 - y1) * t;
-
-          const offset = (Math.random() - 0.5) * thickness;
-          const dx = y2 - y1;
-          const dy = -(x2 - x1);
-          const len = Math.sqrt(dx * dx + dy * dy);
-
-          x += (dx / len) * offset;
-          y += (dy / len) * offset;
-
-          targetPositions[symbolIndex * 3] = x + 4;
-          targetPositions[symbolIndex * 3 + 1] = y + 5.2;
-          targetPositions[symbolIndex * 3 + 2] = (Math.random() - 0.5) * 0.3;
-          symbolIndex++;
-        }
+        targetPositions[symbolIndex * 3] = x + xOff;
+        targetPositions[symbolIndex * 3 + 1] = y + yOff;
+        targetPositions[symbolIndex * 3 + 2] = (Math.random() - 0.5) * 0.3;
+        symbolIndex++;
       }
+    }
 
-      // Draw </> Thick Symbol
-      drawThickLine(-1.8, 1.5, -2.8, 0, Math.floor(symbolStarCount / 6));
-      drawThickLine(-2.8, 0, -1.8, -1.5, Math.floor(symbolStarCount / 6));
-      drawThickLine(0.6, 1.5, -0.6, -1.5, Math.floor(symbolStarCount / 4));
-      drawThickLine(1.8, 1.5, 2.8, 0, Math.floor(symbolStarCount / 6));
-      drawThickLine(2.8, 0, 1.8, -1.5, Math.floor(symbolStarCount / 6));
+    if (scene === 1) {
+      // Return to center orbit
+      tl.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, duration: 1.5, ease: "power3.inOut" });
+      tl.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
 
-      // Fill remaining stars as background field
+      for (let i = 0; i < starCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 9 + Math.random() * 1.5;
+        targetPositions[i * 3] = Math.cos(angle) * radius;
+        targetPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+        targetPositions[i * 3 + 2] = Math.sin(angle) * radius;
+      }
+    } else if (scene === 2) {
+      // Web Dev </> Symbol
+      tl.to([planetRef.current.position, atmosphereRef.current.position], { x: -6, duration: 1.5, ease: "power3.inOut" });
+      tl.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
+
+      const symbolStarCount = 1400;
+      drawThickLine(-1.8, 1.5, -2.8, 0, symbolStarCount / 6, 4, 5.2);
+      drawThickLine(-2.8, 0, -1.8, -1.5, symbolStarCount / 6, 4, 5.2);
+      drawThickLine(0.6, 1.5, -0.6, -1.5, symbolStarCount / 4, 4, 5.2);
+      drawThickLine(1.8, 1.5, 2.8, 0, symbolStarCount / 6, 4, 5.2);
+      drawThickLine(2.8, 0, 1.8, -1.5, symbolStarCount / 6, 4, 5.2);
+
       for (let i = symbolIndex; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
         const r = 8 + Math.random() * 5;
@@ -294,29 +251,52 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         targetPositions[i * 3 + 1] = Math.sin(a) * r;
         targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 6;
       }
+    } else if (scene === 3) {
+      // Digital Marketing "PS" Symbol
+      tl.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, duration: 1.5, ease: "power3.inOut" });
+      tl.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
 
-      // Animate each star to target
-      for (let i = 0; i < starCount; i++) {
-        gsap.to(positions, {
-          [i * 3]: targetPositions[i * 3],
-          [i * 3 + 1]: targetPositions[i * 3 + 1],
-          [i * 3 + 2]: targetPositions[i * 3 + 2],
-          duration: 1.8 + Math.random() * 0.4,
-          ease: "power3.inOut",
-          onUpdate: () => {
-            if (starsRef.current) {
-              starsRef.current.geometry.attributes.position.needsUpdate = true;
-            }
-          },
-          onComplete: () => {
-            if (i === starCount - 1) {
-              basePositionsRef.current = new Float32Array(targetPositions);
-            }
-          }
-        });
+      const symbolStarCount = 1800;
+      // Drawing a thick "P"
+      drawThickLine(-3, 1.5, -3, -1.5, symbolStarCount / 6, -4, 5.2);
+      drawThickLine(-3, 1.5, -1.5, 1.5, symbolStarCount / 10, -4, 5.2);
+      drawThickLine(-1.5, 1.5, -1.5, 0, symbolStarCount / 10, -4, 5.2);
+      drawThickLine(-1.5, 0, -3, 0, symbolStarCount / 10, -4, 5.2);
+      
+      // Drawing a thick "S"
+      drawThickLine(3, 1.5, 1, 1.5, symbolStarCount / 10, -4, 5.2);
+      drawThickLine(1, 1.5, 1, 0, symbolStarCount / 10, -4, 5.2);
+      drawThickLine(1, 0, 3, 0, symbolStarCount / 10, -4, 5.2);
+      drawThickLine(3, 0, 3, -1.5, symbolStarCount / 10, -4, 5.2);
+      drawThickLine(3, -1.5, 1, -1.5, symbolStarCount / 10, -4, 5.2);
+
+      for (let i = symbolIndex; i < starCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 8 + Math.random() * 5;
+        targetPositions[i * 3] = Math.cos(a) * r;
+        targetPositions[i * 3 + 1] = Math.sin(a) * r;
+        targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 6;
       }
     }
-  }, [isTransitioned]);
+
+    // Animate stars to new formation
+    for (let i = 0; i < starCount; i++) {
+      gsap.to(positions, {
+        [i * 3]: targetPositions[i * 3],
+        [i * 3 + 1]: targetPositions[i * 3 + 1],
+        [i * 3 + 2]: targetPositions[i * 3 + 2],
+        duration: 1.5,
+        ease: "power3.inOut",
+        onUpdate: () => {
+          if (starsRef.current) starsRef.current.geometry.attributes.position.needsUpdate = true;
+        },
+        onComplete: () => {
+          if (i === starCount - 1) basePositionsRef.current = new Float32Array(targetPositions);
+        }
+      });
+    }
+
+  }, [scene]);
 
   return <div ref={containerRef} className="fixed inset-0 z-0 bg-black" />;
 };
