@@ -17,7 +17,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   
   const startPositionsRef = useRef<Float32Array | null>(null);
   const targetPositionsRef = useRef<Float32Array | null>(null);
-  const currentPositionsRef = useRef<Float32Array | null>(null);
   
   const transitionRef = useRef({ progress: 1 });
   const timeRef = useRef(0);
@@ -33,7 +32,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     containerRef.current.appendChild(renderer.domElement);
 
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
@@ -43,7 +41,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
     const loader = new THREE.TextureLoader();
     const earthMap = loader.load("https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg");
-    const planetMaterial = new THREE.MeshStandardMaterial({ map: earthMap, roughness: 0.9, metalness: 0.05 });
+    const planetMaterial = new THREE.MeshStandardMaterial({ map: earthMap, roughness: 0.9, metalness: 0.1 });
     
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
@@ -54,8 +52,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         float lightPower = dot(normalize(vNormal), lightDir);
         lightPower = clamp(lightPower, 0.0, 1.0);
         float shadowMask = smoothstep(0.0, 0.45, lightPower);
-        vec3 litColor = mix(vec3(0.6, 0.18, 0.85), vec3(0.07, 0.07, 0.09), smoothstep(0.05, 0.25, baseColor.b - baseColor.r));
-        gl_FragColor.rgb = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
+        vec3 litColor = mix(vec3(0.5, 0.1, 0.8), vec3(0.05, 0.05, 0.1), smoothstep(0.05, 0.25, baseColor.b - baseColor.r));
+        gl_FragColor.rgb = mix(vec3(0.01, 0.01, 0.02), litColor, shadowMask);
         #include <dithering_fragment>
         `
       );
@@ -76,15 +74,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          float intensity = pow(0.8 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-          gl_FragColor = vec4(0.8, 0.3, 1.0, 1.0) * intensity;
+          float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
+          gl_FragColor = vec4(0.7, 0.4, 1.0, 1.0) * intensity;
         }
       `,
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide,
       transparent: true,
     });
-    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), atmosphereMaterial);
+    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(6.4, 128, 128), atmosphereMaterial);
     atmosphereRef.current = atmosphere;
     sceneThree.add(atmosphere);
 
@@ -103,7 +101,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
     const starGeometry = new THREE.BufferGeometry();
     const posArray = new Float32Array(starCount * 3);
-    
     for (let i = 0; i < starCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 9 + Math.random() * 2;
@@ -114,9 +111,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
     startPositionsRef.current = new Float32Array(posArray);
     targetPositionsRef.current = new Float32Array(posArray);
-    currentPositionsRef.current = new Float32Array(posArray);
 
-    starGeometry.setAttribute('position', new THREE.BufferAttribute(currentPositionsRef.current, 3));
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posArray), 3));
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       transparent: true,
@@ -134,8 +130,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       animationFrameId = requestAnimationFrame(animate);
       timeRef.current += 0.01;
 
-      if (planetRef.current) planetRef.current.rotation.y += 0.0015;
-      if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.0015;
+      if (planetRef.current) planetRef.current.rotation.y += 0.002;
+      if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.002;
 
       if (starsRef.current && startPositionsRef.current && targetPositionsRef.current) {
         const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
@@ -146,27 +142,25 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
           
-          // Interpolate between start and target
+          // Smooth Interpolation from CURRENT state to TARGET
           let baseX = start[ix] + (target[ix] - start[ix]) * p;
           let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
           let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
 
-          // Apply orbital rotation only if in scene 1
-          if (scene === 1) {
-            const orbitSpeed = 0.15;
-            const angle = timeRef.current * orbitSpeed;
+          // Add Orbital Rotation specifically for scene 1 or as a subtle drift
+          if (scene === 1 && p > 0.8) {
+            const orbitSpeed = 0.1;
+            const angle = timeRef.current * orbitSpeed + (i * 0.01);
             const cosA = Math.cos(angle);
             const sinA = Math.sin(angle);
-            
-            const rotatedX = baseX * cosA - baseZ * sinA;
-            const rotatedZ = baseX * sinA + baseZ * cosA;
-            
-            baseX = rotatedX;
-            baseZ = rotatedZ;
+            const r = Math.sqrt(baseX * baseX + baseZ * baseZ);
+            baseX = Math.cos(angle) * r;
+            baseZ = Math.sin(angle) * r;
           }
 
-          positions[ix] = baseX + Math.sin(timeRef.current * 0.5 + i * 0.1) * 0.05;
-          positions[ix + 1] = baseY + Math.cos(timeRef.current * 0.4 + i * 0.15) * 0.05;
+          // Subtle Breathing
+          positions[ix] = baseX + Math.sin(timeRef.current * 0.5 + i) * 0.05;
+          positions[ix + 1] = baseY + Math.cos(timeRef.current * 0.4 + i * 0.5) * 0.05;
           positions[ix + 2] = baseZ + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
         }
         starsRef.current.geometry.attributes.position.needsUpdate = true;
@@ -189,16 +183,16 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (containerRef.current) containerRef.current.removeChild(renderer.domElement);
       renderer.dispose();
     };
-  }, [scene]);
+  }, []);
 
   useEffect(() => {
-    if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current) return;
+    if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current || !startPositionsRef.current) return;
 
-    if (starsRef.current && startPositionsRef.current) {
-      const currentAttr = starsRef.current.geometry.attributes.position.array as Float32Array;
-      startPositionsRef.current.set(currentAttr);
-    }
+    // STEP 1: CAPTURE CURRENT POSITIONS AS THE NEW START
+    const currentAttr = starsRef.current.geometry.attributes.position.array as Float32Array;
+    startPositionsRef.current.set(currentAttr);
 
+    // STEP 2: CALCULATE NEW TARGETS
     const nextTargets = new Float32Array(starCount * 3);
     let index = 0;
     const thickness = 0.25;
@@ -217,7 +211,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         y += (dy / len) * offset;
         nextTargets[index * 3] = x + xOff;
         nextTargets[index * 3 + 1] = y + yOff;
-        nextTargets[index * 3 + 2] = (Math.random() - 0.5) * 0.3;
+        nextTargets[index * 3 + 2] = (Math.random() - 0.5) * 0.5;
         index++;
       }
     }
@@ -230,7 +224,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         const angle = Math.random() * Math.PI * 2;
         const radius = 9 + Math.random() * 2;
         nextTargets[i * 3] = Math.cos(angle) * radius;
-        nextTargets[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+        nextTargets[i * 3 + 1] = (Math.random() - 0.5) * 1.5;
         nextTargets[i * 3 + 2] = Math.sin(angle) * radius;
       }
     } else if (scene === 2) {
@@ -246,22 +240,24 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 8 + Math.random() * 20;
+        const r = 10 + Math.random() * 20;
         nextTargets[i * 3] = Math.cos(a) * r;
         nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 10 - 5;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 20 - 10;
       }
     } else if (scene === 3) {
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.45, y: 0.45, z: 0.45, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(planetRef.current.rotation, { y: planetRef.current.rotation.y + Math.PI * 4, duration: 1.5, ease: "power2.inOut" });
 
-      const sCount = 1800;
-      // P
+      const sCount = 2000;
+      // Drawing "P"
       drawThickLine(-3, 1.5, -3, -1.5, sCount / 6, -4, 5.2);
       drawThickLine(-3, 1.5, -1.5, 1.5, sCount / 10, -4, 5.2);
       drawThickLine(-1.5, 1.5, -1.5, 0, sCount / 10, -4, 5.2);
       drawThickLine(-1.5, 0, -3, 0, sCount / 10, -4, 5.2);
-      // S
+      
+      // Drawing "S"
       drawThickLine(3, 1.5, 1, 1.5, sCount / 10, -4, 5.2);
       drawThickLine(1, 1.5, 1, 0, sCount / 10, -4, 5.2);
       drawThickLine(1, 0, 3, 0, sCount / 10, -4, 5.2);
@@ -270,16 +266,26 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 8 + Math.random() * 25;
+        const r = 15 + Math.random() * 30;
         nextTargets[i * 3] = Math.cos(a) * r;
         nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 10 - 5;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 20 - 10;
       }
     }
 
     targetPositionsRef.current.set(nextTargets);
+    
+    // STEP 3: RESET AND RUN ANIMATION
     transitionRef.current.progress = 0;
-    gsap.to(transitionRef.current, { progress: 1, duration: 1.5, ease: "power3.inOut" });
+    gsap.to(transitionRef.current, { 
+      progress: 1, 
+      duration: 1.8, 
+      ease: "power2.inOut",
+      onComplete: () => {
+        // Stabilize start for next movement
+        startPositionsRef.current?.set(targetPositionsRef.current!);
+      }
+    });
 
   }, [scene]);
 

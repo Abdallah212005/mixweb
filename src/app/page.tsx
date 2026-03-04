@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Cpu, Code, TrendingUp } from "lucide-react";
+import { ChevronDown, Code, TrendingUp, Cpu } from "lucide-react";
 
 const SceneBackground = dynamic(
   () => import("@/components/three/SceneBackground").then((mod) => mod.SceneBackground),
@@ -14,42 +14,54 @@ const SceneBackground = dynamic(
 export default function Page() {
   const [scene, setScene] = useState(1);
   const totalScenes = 3;
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleNext = useCallback(() => {
-    setScene(s => Math.min(s + 1, totalScenes));
-  }, []);
+    if (isTransitioning) return;
+    if (scene < totalScenes) {
+      setIsTransitioning(true);
+      setScene(s => s + 1);
+      setTimeout(() => setIsTransitioning(false), 1500);
+    }
+  }, [scene, isTransitioning]);
 
   const handlePrev = useCallback(() => {
-    setScene(s => Math.max(s - 1, 1));
-  }, []);
+    if (isTransitioning) return;
+    if (scene > 1) {
+      setIsTransitioning(true);
+      setScene(s => s - 1);
+      setTimeout(() => setIsTransitioning(false), 1500);
+    }
+  }, [scene, isTransitioning]);
 
   useEffect(() => {
-    let isWheeling: ReturnType<typeof setTimeout>;
+    let lastWheelTime = 0;
     
     const handleWheel = (e: WheelEvent) => {
-      clearTimeout(isWheeling);
-      isWheeling = setTimeout(() => {
-        if (e.deltaY > 50) {
-          handleNext();
-        } else if (e.deltaY < -50) {
-          handlePrev();
-        }
-      }, 50);
+      const now = Date.now();
+      if (now - lastWheelTime < 1000) return;
+
+      if (e.deltaY > 30) {
+        handleNext();
+        lastWheelTime = now;
+      } else if (e.deltaY < -30) {
+        handlePrev();
+        lastWheelTime = now;
+      }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
+      if (e.key === "ArrowDown" || e.key === "PageDown") {
         handleNext();
-      } else if (e.key === "ArrowUp") {
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
         handlePrev();
       }
     };
 
-    window.addEventListener("wheel", handleWheel);
+    window.addEventListener("wheel", handleWheel, { passive: true });
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      clearTimeout(isWheeling);
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -82,7 +94,7 @@ export default function Page() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="text-7xl font-black tracking-tighter text-white uppercase glow-text"
+                className="text-7xl font-black tracking-tighter text-white uppercase glow-text leading-[0.9]"
               >
                 Engineer <br /> 
                 <span className="text-accent">Influence</span>
@@ -110,14 +122,14 @@ export default function Page() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[60%] pointer-events-none"
+            className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[55%] pointer-events-none"
           >
             <div className="flex flex-col items-start gap-2">
               <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
-                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2"
+                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2 leading-none"
               >
                 WEB DEVELOPMENT
               </motion.div>
@@ -140,8 +152,8 @@ export default function Page() {
             </div>
 
             <motion.div
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 1, duration: 0.8 }}
               className="fixed bottom-12 right-12 p-10 border-r-2 border-accent/20 bg-black/40 backdrop-blur-3xl"
             >
@@ -168,14 +180,14 @@ export default function Page() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[15%] pointer-events-none"
+            className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[12%] pointer-events-none"
           >
             <div className="flex flex-col items-start gap-2">
               <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
-                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2"
+                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2 leading-none"
               >
                 DIGITAL MARKETING
               </motion.div>
@@ -198,8 +210,8 @@ export default function Page() {
             </div>
 
             <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 1, duration: 0.8 }}
               className="fixed bottom-12 left-12 p-10 border-l-2 border-accent/20 bg-black/40 backdrop-blur-3xl"
             >
