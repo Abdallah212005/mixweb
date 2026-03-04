@@ -18,6 +18,7 @@ export const SceneBackground: React.FC = () => {
       0.1,
       1000
     );
+    // مسافة سينمائية تعطي عمقاً للمشهد
     camera.position.z = 14;
 
     const renderer = new THREE.WebGLRenderer({
@@ -27,19 +28,19 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
-    // 🎬 Dark Cinematic Tone Mapping
+    // 🎬 Cinematic Tone Mapping
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.75;
     
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    // Purple Sun (Main Light) - Position (8, 4, 6)
+    // Purple Sun (Main Light)
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 3.0);
     purpleSun.position.set(8, 4, 6);
     scene.add(purpleSun);
 
-    // Purple Rim Light
+    // Purple Rim Light (لإبراز الحواف)
     const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.8);
     purpleRim.position.set(-10, -5, -6);
     scene.add(purpleRim);
@@ -66,37 +67,37 @@ export const SceneBackground: React.FC = () => {
       metalness: 0.02,
     });
 
-    // 🎨 Advanced Shader: Light & Shadow Integration
+    // 🎨 Advanced Shader: فصل البحر عن اليابسة + نظام الظلال
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
         vec3 baseColor = gl_FragColor.rgb;
 
-        // 👇 نحسب الإضاءة (قوة الضوء الساقط بناءً على موضع الشمس)
+        // 👇 حساب اتجاه وقوة الإضاءة الساقطة
         float lightPower = dot(normalize(vNormal), normalize(vec3(8.0, 4.0, 6.0)));
         lightPower = clamp(lightPower, 0.0, 1.0);
 
-        // نحدد الظل (Shadow Mask)
+        // نحدد ماسك الظل (المناطق المظلمة تبقى سوداء فخمة)
         float shadowMask = smoothstep(0.0, 0.25, lightPower);
 
-        // ==== فصل بحر ويابسة ====
+        // ==== فصل المحيطات عن اليابسة ====
         float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
         oceanFactor = pow(oceanFactor, 2.0);
 
-        // 🌊 بحر فحمي تقيل
+        // 🌊 محيط فحمي تقيل
         vec3 oceanColor = vec3(0.05, 0.05, 0.07);
 
-        // 🏔 يابسة بنفسجي واضح
+        // 🏔 يابسة بنفسجي مشبع
         vec3 landColor = vec3(0.55, 0.12, 0.75);
 
         // دمج ألوان المناطق المضيئة
         vec3 litColor = mix(landColor, oceanColor, oceanFactor);
 
-        // زيادة الكونتراست
+        // زيادة التباين (Contrast)
         litColor = pow(litColor, vec3(1.25));
 
-        // 👇 هنا السحر: المناطق المضيئة تأخذ اللون، والمظلمة تبقى سوداء فخمة
+        // 👇 النتيجة النهائية: المناطق المضيئة تأخذ اللون، والمظلمة تختفي في السواد
         vec3 finalColor = mix(vec3(0.0), litColor, shadowMask);
 
         gl_FragColor.rgb = finalColor;
