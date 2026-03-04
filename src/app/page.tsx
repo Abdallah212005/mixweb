@@ -2,10 +2,11 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { PortfolioPortal } from "@/components/ui/PortfolioPortal";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 // Import SceneBackground dynamically to prevent SSR issues with Three.js
 const SceneBackground = dynamic(
@@ -89,6 +90,7 @@ export default function AuraForgePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollPercent, setScrollPercent] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [activeSection, setActiveSection] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
@@ -105,11 +107,14 @@ export default function AuraForgePage() {
     restDelta: 0.001
   });
 
-  // Hydration-safe scroll percentage update
+  // Hydration-safe updates
   useEffect(() => {
     if (!isMounted) return;
     const unsubscribe = smoothProgress.on("change", (latest) => {
       setScrollPercent(Math.round(latest * 100));
+      if (latest < 0.3) setActiveSection(0);
+      else if (latest < 0.7) setActiveSection(1);
+      else setActiveSection(2);
     });
     return () => unsubscribe();
   }, [smoothProgress, isMounted]);
@@ -122,7 +127,7 @@ export default function AuraForgePage() {
   const scene2Y = useTransform(smoothProgress, [0.25, 0.35, 0.55, 0.65], [100, 0, 0, -100]);
   const scene3Y = useTransform(smoothProgress, [0.65, 0.75, 1.0], [100, 0, 0]);
 
-  const snapPoints = [0, 0.45, 0.8];
+  const snapPoints = [0, 0.45, 0.9];
   
   const navigateToSection = useCallback((direction: 'next' | 'prev') => {
     const currentProgress = scrollYProgress.get();
@@ -130,7 +135,7 @@ export default function AuraForgePage() {
     
     if (direction === "next") {
       targetIndex = snapPoints.findIndex(p => p > currentProgress + 0.05);
-      if (targetIndex === -1) targetIndex = snapPoints.length - 1;
+      if (targetIndex === -1) return;
     } else {
       const reversedPoints = [...snapPoints].reverse();
       const found = reversedPoints.find(p => p < currentProgress - 0.05);
@@ -144,7 +149,7 @@ export default function AuraForgePage() {
       top: targetScroll,
       behavior: "smooth"
     });
-  }, [scrollYProgress]);
+  }, [scrollYProgress, snapPoints]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -165,15 +170,16 @@ export default function AuraForgePage() {
     const handleTouchEnd = (e: TouchEvent) => {
       const touchEnd = e.changedTouches[0].clientY;
       const diff = touchStart - touchEnd;
-      if (Math.abs(diff) > 70) {
+      // Sensitivity threshold
+      if (Math.abs(diff) > 50) {
         if (diff > 0) navigateToSection("next");
         else navigateToSection("prev");
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
     
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -206,7 +212,7 @@ export default function AuraForgePage() {
   ];
 
   return (
-    <main ref={containerRef} className="relative bg-black min-h-[400vh] w-full selection:bg-accent selection:text-black">
+    <main ref={containerRef} className="relative bg-black min-h-[400vh] w-full selection:bg-accent selection:text-black scroll-smooth">
       <SceneBackground />
 
       <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
@@ -333,6 +339,38 @@ export default function AuraForgePage() {
 
       </div>
 
+      {/* ARROW NAVIGATION BUTTONS */}
+      <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+        <motion.button
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(196, 27, 253, 0.2)" }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => navigateToSection('prev')}
+          className={`p-3 rounded-full border border-accent/20 text-accent backdrop-blur-xl transition-opacity duration-300 ${activeSection === 0 ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}
+          title="Previous Section"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </motion.button>
+        
+        <div className="flex flex-col items-center gap-2 my-2">
+          {[0, 1, 2].map((i) => (
+            <div 
+              key={i} 
+              className={`w-1 transition-all duration-300 rounded-full ${activeSection === i ? 'h-6 bg-accent' : 'h-1 bg-white/20'}`}
+            />
+          ))}
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.1, backgroundColor: "rgba(196, 27, 253, 0.2)" }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => navigateToSection('next')}
+          className={`p-3 rounded-full border border-accent/20 text-accent backdrop-blur-xl transition-opacity duration-300 ${activeSection === 2 ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}
+          title="Next Section"
+        >
+          <ChevronDown className="w-6 h-6" />
+        </motion.button>
+      </div>
+
       {/* HUD & NAVIGATION */}
       <div className="fixed top-12 left-12 z-50 pointer-events-none hidden md:block">
         <div className="flex items-center gap-4">
@@ -341,6 +379,19 @@ export default function AuraForgePage() {
             <p className="text-[7px] font-code text-white/40 uppercase tracking-[0.5em]">SYSTEM_SYNC</p>
             <p className="text-[10px] font-code text-white uppercase">{isMounted ? `${scrollPercent}%` : '0%'}</p>
           </div>
+        </div>
+        <div className="mt-4">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={activeSection}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="text-[8px] font-code text-accent uppercase tracking-[0.3em]"
+            >
+              {activeSection === 0 ? 'IDENTITY_CORE' : activeSection === 1 ? 'STRATEGIST_MODE' : 'RESONANCE_SCAN'}
+            </motion.p>
+          </AnimatePresence>
         </div>
       </div>
     </main>
