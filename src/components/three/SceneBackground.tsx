@@ -34,7 +34,7 @@ export const SceneBackground: React.FC = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    // Purple Sun (Main Light)
+    // Purple Sun (Main Light) - Position (8, 4, 6)
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 3.0);
     purpleSun.position.set(8, 4, 6);
     scene.add(purpleSun);
@@ -66,33 +66,38 @@ export const SceneBackground: React.FC = () => {
       metalness: 0.02,
     });
 
-    // 🎨 Advanced Shader: Precise Land/Ocean Isolation
+    // 🎨 Advanced Shader: Light & Shadow Integration
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
         vec3 baseColor = gl_FragColor.rgb;
 
-        // نحسب نسبة الزرقة أقوى
-        float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
+        // 👇 نحسب الإضاءة (قوة الضوء الساقط بناءً على موضع الشمس)
+        float lightPower = dot(normalize(vNormal), normalize(vec3(8.0, 4.0, 6.0)));
+        lightPower = clamp(lightPower, 0.0, 1.0);
 
-        // نعمله sharper عشان الفصل يبقى أوضح
+        // نحدد الظل (Shadow Mask)
+        float shadowMask = smoothstep(0.0, 0.25, lightPower);
+
+        // ==== فصل بحر ويابسة ====
+        float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
         oceanFactor = pow(oceanFactor, 2.0);
 
-        // 🌊 محيط فحمي تقيل
+        // 🌊 بحر فحمي تقيل
         vec3 oceanColor = vec3(0.05, 0.05, 0.07);
 
         // 🏔 يابسة بنفسجي واضح
         vec3 landColor = vec3(0.55, 0.12, 0.75);
 
-        // دمج أقوى
-        vec3 finalColor = mix(landColor, oceanColor, oceanFactor);
+        // دمج ألوان المناطق المضيئة
+        vec3 litColor = mix(landColor, oceanColor, oceanFactor);
 
-        // نزود كونتراست
-        finalColor = pow(finalColor, vec3(1.25));
+        // زيادة الكونتراست
+        litColor = pow(litColor, vec3(1.25));
 
-        // تعتيم عام خفيف
-        finalColor *= 0.85;
+        // 👇 هنا السحر: المناطق المضيئة تأخذ اللون، والمظلمة تبقى سوداء فخمة
+        vec3 finalColor = mix(vec3(0.0), litColor, shadowMask);
 
         gl_FragColor.rgb = finalColor;
 
