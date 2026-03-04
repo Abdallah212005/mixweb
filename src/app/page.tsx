@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -12,14 +11,15 @@ const SceneBackground = dynamic(
 export default function Page() {
   return (
     <main className="relative bg-black w-full h-screen overflow-hidden">
-      {/* Real Earth Scene */}
       <SceneBackground />
       
-      {/* Minimalist Overlay */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-10 pointer-events-none opacity-20">
-        <p className="font-code text-[10px] text-white uppercase tracking-[0.4em]">
-          Orbital Dust Active • Interactive Core
-        </p>
+      {/* HUD Overlay for start reference */}
+      <div className="fixed inset-0 pointer-events-none z-10 flex items-center justify-center">
+        <div className="text-center">
+          <p className="font-code text-[10px] text-accent uppercase tracking-[0.5em] animate-pulse">
+            Neural Link Established
+          </p>
+        </div>
       </div>
     </main>
   );

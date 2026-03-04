@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -6,12 +5,11 @@ import * as THREE from "three";
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mouse = useRef(new THREE.Vector2(0, 0));
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // ================= SCENE =================
+    // ===== SCENE =====
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
 
@@ -21,7 +19,7 @@ export const SceneBackground: React.FC = () => {
       0.1,
       1000
     );
-    camera.position.set(0, 0, 15);
+    camera.position.z = 18;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -31,125 +29,104 @@ export const SceneBackground: React.FC = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
-    // ================= LIGHTING (High Reality) =================
-    // Sun light from the side
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    sunLight.position.set(10, 5, 5);
-    scene.add(sunLight);
+    // ===== LIGHT =====
+    const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+    sun.position.set(10, 5, 5);
+    scene.add(sun);
 
-    // Subtle ambient light for dark side visibility
     const ambient = new THREE.AmbientLight(0x404040);
     scene.add(ambient);
 
-    // ================= REAL EARTH =================
-    const textureLoader = new THREE.TextureLoader();
-    const earthTexture = textureLoader.load(
+    // ===== EARTH =====
+    const loader = new THREE.TextureLoader();
+    const earthTexture = loader.load(
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
     );
 
-    const planetGeo = new THREE.SphereGeometry(5, 64, 64);
-    const planetMat = new THREE.MeshStandardMaterial({
+    const geometry = new THREE.SphereGeometry(6, 64, 64);
+    const material = new THREE.MeshStandardMaterial({
       map: earthTexture,
       roughness: 1,
       metalness: 0,
     });
 
-    const planet = new THREE.Mesh(planetGeo, planetMat);
-    scene.add(planet);
+    // Purple color grading via Shader injection
+    material.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <dithering_fragment>',
+        `
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.5, 0.2, 0.7), 0.25);
+        #include <dithering_fragment>
+        `
+      );
+    };
 
-    // ================= DUST PARTICLES (Magnetic Interaction) =================
-    const count = 1500;
-    const dustGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(count * 3);
-    const basePositions: THREE.Vector3[] = [];
+    const earth = new THREE.Mesh(geometry, material);
+    scene.add(earth);
 
-    for (let i = 0; i < count; i++) {
-      const r = 7 + Math.random() * 5;
+    // ===== CODE SYMBOL SPRITES =====
+    function createTextSprite(text: string, color: string = "#ffffff") {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return new THREE.Group();
+
+      canvas.width = 256;
+      canvas.height = 256;
+
+      ctx.fillStyle = "transparent";
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.font = "bold 120px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = color;
+      ctx.fillText(text, 128, 128);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+      });
+
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(1.5, 1.5, 1.5);
+      return sprite;
+    }
+
+    const symbols = ["{ }", "< />", "#", ";", "()", "Ps", "Ai", "Ae", "Pr"];
+    const orbitGroup = new THREE.Group();
+    scene.add(orbitGroup);
+
+    for (let i = 0; i < 40; i++) {
+      const text = symbols[Math.floor(Math.random() * symbols.length)];
+      const color = text.length <= 2 ? "#a855f7" : "#ffffff";
+      const sprite = createTextSprite(text, color) as THREE.Sprite;
+
+      const radius = 9 + Math.random() * 4;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
-
-      positions[i * 3] = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = z;
-
-      basePositions.push(new THREE.Vector3(x, y, z));
-    }
-
-    dustGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-
-    const dustMat = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.04,
-      transparent: true,
-      opacity: 0.6,
-    });
-
-    const dust = new THREE.Points(dustGeo, dustMat);
-    scene.add(dust);
-
-    // ================= MOUSE =================
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-
-    // ================= ANIMATION =================
-    let animationFrameId: number;
-
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-
-      planet.rotation.y += 0.002;
-      dust.rotation.y += 0.0005;
-
-      const posAttribute = dustGeo.attributes.position;
-      const positionsArray = posAttribute.array as Float32Array;
-
-      // Approximate 3D point from mouse
-      const mouse3D = new THREE.Vector3(
-        mouse.current.x * 10,
-        mouse.current.y * 7,
-        0
+      sprite.position.set(
+        radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.sin(phi) * Math.sin(theta),
+        radius * Math.cos(phi)
       );
 
-      for (let i = 0; i < count; i++) {
-        const index = i * 3;
-        const base = basePositions[i];
-        
-        const currentPos = new THREE.Vector3(
-          positionsArray[index],
-          positionsArray[index + 1],
-          positionsArray[index + 2]
-        );
+      orbitGroup.add(sprite);
+    }
 
-        const dist = currentPos.distanceTo(mouse3D);
-
-        if (dist < 4) {
-          // Magnetic pull
-          currentPos.lerp(mouse3D, 0.04);
-        } else {
-          // Gentle return
-          currentPos.lerp(base, 0.015);
-        }
-
-        positionsArray[index] = currentPos.x;
-        positionsArray[index + 1] = currentPos.y;
-        positionsArray[index + 2] = currentPos.z;
-      }
-
-      posAttribute.needsUpdate = true;
-
+    // ===== ANIMATION =====
+    let animationFrameId: number;
+    const animate = () => {
+      animationFrameId = requestAnimationFrame(animate);
+      earth.rotation.y += 0.002;
+      orbitGroup.rotation.y += 0.001;
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // ================= RESIZE =================
+    // ===== RESIZE =====
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -158,7 +135,6 @@ export const SceneBackground: React.FC = () => {
     window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
       containerRef.current?.removeChild(renderer.domElement);
