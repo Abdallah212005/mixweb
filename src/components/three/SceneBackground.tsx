@@ -119,11 +119,11 @@ export const SceneBackground: React.FC = () => {
       const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
       planetGroup.add(planet);
 
-      // Sharp Atmosphere Glow
-      const atmoGeo = new THREE.SphereGeometry(6.7, 128, 128);
+      // Sharper Atmosphere Glow
+      const atmoGeo = new THREE.SphereGeometry(6.75, 128, 128);
       const atmoMat = new THREE.ShaderMaterial({
         uniforms: { 
-          glowColor: { value: new THREE.Color("#9D00FF") }, 
+          glowColor: { value: new THREE.Color("#C41BFD") }, 
           uOpacity: { value: 1.0 },
           sunDirection: { value: new THREE.Vector3(1.0, 0.25, 0.5).normalize() }
         },
@@ -134,7 +134,7 @@ export const SceneBackground: React.FC = () => {
           void main() {
             vNormal = normalize( normalMatrix * normal );
             vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
-            vIntensity = pow( 0.7 - dot(vNormal, vec3(0,0,1.0)), 6.0 );
+            vIntensity = pow( 0.85 - dot(vNormal, vec3(0,0,1.0)), 6.0 );
             gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
           }
         `,
@@ -146,7 +146,7 @@ export const SceneBackground: React.FC = () => {
           varying vec3 vNormal;
           void main() {
             float sunBias = max(0.0, dot(vNormal, sunDirection));
-            float directionalFactor = 0.0 + 3.5 * pow(sunBias, 3.5);
+            float directionalFactor = 0.1 + 4.5 * pow(sunBias, 4.0);
             gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalFactor );
           }
         `,
@@ -181,7 +181,7 @@ export const SceneBackground: React.FC = () => {
       }
     }
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 3.0);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 4.0);
     sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);
 

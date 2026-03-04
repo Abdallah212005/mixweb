@@ -88,6 +88,11 @@ const LightningBolt = () => {
 export default function AuraForgePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollPercent, setScrollPercent] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -102,11 +107,12 @@ export default function AuraForgePage() {
 
   // Hydration-safe scroll percentage update
   useEffect(() => {
+    if (!isMounted) return;
     const unsubscribe = smoothProgress.on("change", (latest) => {
       setScrollPercent(Math.round(latest * 100));
     });
     return () => unsubscribe();
-  }, [smoothProgress]);
+  }, [smoothProgress, isMounted]);
 
   // Scene Transform Definitions
   const scene1Opacity = useTransform(smoothProgress, [0, 0.15, 0.25], [1, 1, 0]);
@@ -333,7 +339,7 @@ export default function AuraForgePage() {
           <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_15px_#C41BFD]" />
           <div>
             <p className="text-[7px] font-code text-white/40 uppercase tracking-[0.5em]">SYSTEM_SYNC</p>
-            <p className="text-[10px] font-code text-white uppercase">{scrollPercent}%</p>
+            <p className="text-[10px] font-code text-white uppercase">{isMounted ? `${scrollPercent}%` : '0%'}</p>
           </div>
         </div>
       </div>
