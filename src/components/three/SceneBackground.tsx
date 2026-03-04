@@ -17,6 +17,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   
   const startPositionsRef = useRef<Float32Array | null>(null);
   const targetPositionsRef = useRef<Float32Array | null>(null);
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const mouse3DRef = useRef(new THREE.Vector3(0, 0, 0));
   
   const transitionRef = useRef({ progress: 1 });
   const timeRef = useRef(0);
@@ -125,6 +127,20 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     starsRef.current = stars;
     sceneThree.add(stars);
 
+    // Mouse Tracking Logic
+    const handleMouseMove = (event: MouseEvent) => {
+      mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      
+      // Project mouse to 3D plane (z=0)
+      const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5);
+      vector.unproject(camera);
+      const dir = vector.sub(camera.position).normalize();
+      const distance = -camera.position.z / dir.z;
+      mouse3DRef.current.copy(camera.position).add(dir.multiplyScalar(distance));
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
@@ -138,30 +154,49 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         const start = startPositionsRef.current;
         const target = targetPositionsRef.current;
         const p = transitionRef.current.progress;
+        const mouse3D = mouse3DRef.current;
 
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
           
-          // Smooth Interpolation from CURRENT state to TARGET
+          // 1. BASE TRANSITION CALCULATION
           let baseX = start[ix] + (target[ix] - start[ix]) * p;
           let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
           let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
 
-          // Add Orbital Rotation specifically for scene 1 or as a subtle drift
+          // 2. SCENE 1 ORBITAL ROTATION (ACTIVE)
           if (scene === 1 && p > 0.8) {
-            const orbitSpeed = 0.1;
-            const angle = timeRef.current * orbitSpeed + (i * 0.01);
-            const cosA = Math.cos(angle);
-            const sinA = Math.sin(angle);
-            const r = Math.sqrt(baseX * baseX + baseZ * baseZ);
-            baseX = Math.cos(angle) * r;
-            baseZ = Math.sin(angle) * r;
+            const orbitSpeed = 0.05;
+            const radius = Math.sqrt(baseX * baseX + baseZ * baseZ);
+            const initialAngle = Math.atan2(baseZ, baseX);
+            const angle = initialAngle + timeRef.current * orbitSpeed;
+            baseX = Math.cos(angle) * radius;
+            baseZ = Math.sin(angle) * radius;
           }
 
-          // Subtle Breathing
-          positions[ix] = baseX + Math.sin(timeRef.current * 0.5 + i) * 0.05;
-          positions[ix + 1] = baseY + Math.cos(timeRef.current * 0.4 + i * 0.5) * 0.05;
-          positions[ix + 2] = baseZ + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
+          // 3. MOUSE SCATTER LOGIC
+          const dx = baseX - mouse3D.x;
+          const dy = baseY - mouse3D.y;
+          const dz = baseZ - mouse3D.z;
+          const distSq = dx * dx + dy * dy + dz * dz;
+          const threshold = 16; // Interaction radius
+          
+          let scatterX = 0;
+          let scatterY = 0;
+          let scatterZ = 0;
+
+          if (distSq < threshold) {
+            const force = (threshold - distSq) / threshold;
+            const power = force * 2.5; // Scatter intensity
+            scatterX = (dx / Math.sqrt(distSq)) * power;
+            scatterY = (dy / Math.sqrt(distSq)) * power;
+            scatterZ = (dz / Math.sqrt(distSq)) * power;
+          }
+
+          // 4. APPLY EVERYTHING WITH SMOOTH BREATHING
+          positions[ix] = baseX + scatterX + Math.sin(timeRef.current * 0.5 + i) * 0.05;
+          positions[ix + 1] = baseY + scatterY + Math.cos(timeRef.current * 0.4 + i * 0.5) * 0.05;
+          positions[ix + 2] = baseZ + scatterZ + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
         }
         starsRef.current.geometry.attributes.position.needsUpdate = true;
       }
@@ -179,6 +214,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(animationFrameId);
       if (containerRef.current) containerRef.current.removeChild(renderer.domElement);
       renderer.dispose();
@@ -188,11 +224,10 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   useEffect(() => {
     if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current || !startPositionsRef.current) return;
 
-    // STEP 1: CAPTURE CURRENT POSITIONS AS THE NEW START
-    const currentAttr = starsRef.current.geometry.attributes.position.array as Float32Array;
-    startPositionsRef.current.set(currentAttr);
+    // CAPTURE CURRENT BASE POSITIONS (without mouse scatter) to start next move
+    // We use the last intended target to ensure we don't start from a "scattered" state
+    startPositionsRef.current.set(targetPositionsRef.current);
 
-    // STEP 2: CALCULATE NEW TARGETS
     const nextTargets = new Float32Array(starCount * 3);
     let index = 0;
     const thickness = 0.25;
@@ -251,13 +286,11 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       gsap.to(planetRef.current.rotation, { y: planetRef.current.rotation.y + Math.PI * 4, duration: 1.5, ease: "power2.inOut" });
 
       const sCount = 2000;
-      // Drawing "P"
       drawThickLine(-3, 1.5, -3, -1.5, sCount / 6, -4, 5.2);
       drawThickLine(-3, 1.5, -1.5, 1.5, sCount / 10, -4, 5.2);
       drawThickLine(-1.5, 1.5, -1.5, 0, sCount / 10, -4, 5.2);
       drawThickLine(-1.5, 0, -3, 0, sCount / 10, -4, 5.2);
       
-      // Drawing "S"
       drawThickLine(3, 1.5, 1, 1.5, sCount / 10, -4, 5.2);
       drawThickLine(1, 1.5, 1, 0, sCount / 10, -4, 5.2);
       drawThickLine(1, 0, 3, 0, sCount / 10, -4, 5.2);
@@ -275,14 +308,12 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
     targetPositionsRef.current.set(nextTargets);
     
-    // STEP 3: RESET AND RUN ANIMATION
     transitionRef.current.progress = 0;
     gsap.to(transitionRef.current, { 
       progress: 1, 
       duration: 1.8, 
       ease: "power2.inOut",
       onComplete: () => {
-        // Stabilize start for next movement
         startPositionsRef.current?.set(targetPositionsRef.current!);
       }
     });
