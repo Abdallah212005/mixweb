@@ -3,6 +3,9 @@
 
 import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -10,10 +13,8 @@ export const SceneBackground: React.FC = () => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // ===== SCENE =====
+    // ===== SCENE & CAMERA =====
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
-
     const camera = new THREE.PerspectiveCamera(
       60,
       window.innerWidth / window.innerHeight,
@@ -30,18 +31,16 @@ export const SceneBackground: React.FC = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
-    // ===== LIGHT =====
-    const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-    sun.position.set(10, 5, 5);
+    // ===== LIGHTING =====
+    const sun = new THREE.DirectionalLight(0xffffff, 1.7);
+    sun.position.set(8, 5, 5);
     scene.add(sun);
 
-    const ambient = new THREE.AmbientLight(0x222222);
+    const ambient = new THREE.AmbientLight(0x111111);
     scene.add(ambient);
 
     // ===== TEXTURES =====
     const loader = new THREE.TextureLoader();
-    
-    // تحميل الخامات من مستودع Three.js الرسمي لضمان الجودة
     const earthMap = loader.load(
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
     );
@@ -49,23 +48,25 @@ export const SceneBackground: React.FC = () => {
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
 
-    // ===== MATERIAL WITH PURPLE SHADER =====
-    const material = new THREE.MeshStandardMaterial({
+    // ===== PLANET MATERIAL WITH SHADER GRADING =====
+    const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
       bumpScale: 0.4,
-      roughness: 0.9,
-      metalness: 0.05
+      roughness: 0.8,
+      metalness: 0.05,
     });
 
-    // تحويل الألوان إلى الأرجواني برمجياً عبر الـ Shader
-    material.onBeforeCompile = (shader) => {
+    planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
-        vec3 purple = vec3(0.55, 0.25, 0.75);
-        float gray = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
-        gl_FragColor.rgb = mix(vec3(gray) * purple * 2.0, gl_FragColor.rgb * 0.4, 0.3);
+        float brightness = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+        vec3 deepPurple = vec3(0.25, 0.05, 0.4);
+        vec3 midPurple = vec3(0.55, 0.2, 0.75);
+        vec3 purpleTone = mix(deepPurple, midPurple, brightness);
+        purpleTone = pow(purpleTone, vec3(0.9));
+        gl_FragColor.rgb = mix(purpleTone, gl_FragColor.rgb * 0.3, 0.25);
         #include <dithering_fragment>
         `
       );
@@ -73,16 +74,57 @@ export const SceneBackground: React.FC = () => {
 
     const planet = new THREE.Mesh(
       new THREE.SphereGeometry(6, 128, 128),
-      material
+      planetMaterial
     );
     scene.add(planet);
+
+    // ===== ATMOSPHERE GLOW =====
+    const atmosphereMaterial = new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+          gl_FragColor = vec4(0.6, 0.2, 1.0, 1.0) * intensity;
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      transparent: true,
+    });
+
+    const atmosphere = new THREE.Mesh(
+      new THREE.SphereGeometry(6.3, 128, 128),
+      atmosphereMaterial
+    );
+    scene.add(atmosphere);
+
+    // ===== POST-PROCESSING (BLOOM) =====
+    const renderScene = new RenderPass(scene, camera);
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.6, // Strength
+      0.4, // Radius
+      0.8  // Threshold
+    );
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
 
     // ===== ANIMATION =====
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       planet.rotation.y += 0.002;
-      renderer.render(scene, camera);
+      atmosphere.rotation.y += 0.002;
+      composer.render();
     };
     animate();
 
@@ -91,6 +133,7 @@ export const SceneBackground: React.FC = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
     };
     window.addEventListener("resize", handleResize);
 
@@ -101,8 +144,11 @@ export const SceneBackground: React.FC = () => {
         containerRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      material.dispose();
+      composer.dispose();
+      planetMaterial.dispose();
+      atmosphereMaterial.dispose();
       planet.geometry.dispose();
+      atmosphere.geometry.dispose();
     };
   }, []);
 
