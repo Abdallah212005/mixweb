@@ -136,7 +136,6 @@ export default function Page() {
       { merge: true }
     );
 
-    // Simulate feedback delay for aesthetic purposes
     setTimeout(() => {
       setIsSending(false);
       setFormData({ name: "", email: "", message: "" });
@@ -153,6 +152,21 @@ export default function Page() {
     <main className="relative bg-black w-full h-screen overflow-hidden font-body">
       <SceneBackground scene={scene} />
       
+      {/* GLOBAL HUD ELEMENTS */}
+      <div className="fixed top-6 left-6 md:top-10 md:left-10 z-50 flex flex-col gap-1 pointer-events-none">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+          <span className="text-[8px] md:text-[10px] font-code text-accent uppercase tracking-[0.3em]">Mix Aura: Live</span>
+        </div>
+        <span className="text-[6px] md:text-[8px] font-code text-white/30 uppercase tracking-[0.2em]">System: Active_Pulse</span>
+      </div>
+
+      <div className="fixed top-6 right-6 md:top-10 md:right-10 z-50 flex flex-col items-end gap-1 text-[6px] md:text-[8px] font-code text-white/30 uppercase tracking-[0.2em] pointer-events-none">
+        <span>LAT: 30.0444° N</span>
+        <span>LON: 31.2357° E</span>
+        <span className="text-accent/40 mt-1 hidden md:block">Status: Orbital_Sync</span>
+      </div>
+
       <AnimatePresence mode="wait">
         {scene === 1 && (
           <motion.div 
@@ -162,20 +176,6 @@ export default function Page() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none p-4 md:p-10"
           >
-            <div className="absolute top-6 left-6 md:top-10 md:left-10 flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                <span className="text-[8px] md:text-[10px] font-code text-accent uppercase tracking-[0.3em]">System: Active</span>
-              </div>
-              <span className="text-[6px] md:text-[8px] font-code text-white/30 uppercase tracking-[0.2em]">Auth: Secure_Admin</span>
-            </div>
-
-            <div className="absolute top-6 right-6 md:top-10 md:right-10 flex flex-col items-end gap-1 text-[6px] md:text-[8px] font-code text-white/30 uppercase tracking-[0.2em]">
-              <span>LAT: 30.0444° N</span>
-              <span>LON: 31.2357° E</span>
-              <span className="text-accent/40 mt-1 hidden md:block">Status: Orbital_Sync</span>
-            </div>
-
             <div className="relative text-center w-full px-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -228,9 +228,7 @@ export default function Page() {
             </motion.button>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      <AnimatePresence mode="wait">
         {scene === 2 && (
           <motion.div 
             key="scene-2"
@@ -263,9 +261,7 @@ export default function Page() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      <AnimatePresence mode="wait">
         {scene === 3 && (
           <motion.div 
             key="scene-3"
@@ -298,9 +294,7 @@ export default function Page() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      <AnimatePresence mode="wait">
         {scene === 4 && (
           <motion.div 
             key="scene-4"

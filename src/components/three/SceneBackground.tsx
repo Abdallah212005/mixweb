@@ -90,7 +90,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     atmosphere.scale.set(0, 0, 0);
     sceneThree.add(atmosphere);
 
-    // Initial Planet Entrance
     gsap.to([planet.scale, atmosphere.scale], {
       x: 1,
       y: 1,
@@ -100,7 +99,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       delay: 0.5
     });
 
-    // Star Texture Generation
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64; starCanvas.height = 64;
     const ctx = starCanvas.getContext("2d");
@@ -181,7 +179,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
           let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
           let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
 
-          // Mouse Repulsion
           const dx = baseX - mouse3D.x;
           const dy = baseY - mouse3D.y;
           const dz = baseZ - mouse3D.z;
@@ -299,7 +296,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(planetRef.current.rotation, { y: planetRef.current.rotation.y + Math.PI * 4, duration: 1.5, ease: "power2.inOut" });
 
       const sCount = 2000;
       const xOff = isMobile ? 0 : -4;

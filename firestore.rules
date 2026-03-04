@@ -31,6 +31,7 @@ service cloud.firestore {
     }
 
     match /roles_admin/{adminId} {
+      // Allow individual users to check their own role status
       allow get: if isSignedIn() && request.auth.uid == adminId;
       allow list: if isAdmin();
       // Allow elevation for development setup
