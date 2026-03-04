@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -82,14 +83,14 @@ export default function Page() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 1 }}
-            className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[55%] pointer-events-none"
+            className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[60%] pointer-events-none"
           >
-            <div className="flex flex-col items-start gap-4">
+            <div className="flex flex-col items-start gap-2">
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1.2, duration: 1 }}
-                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-4"
+                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2"
               >
                 WEB DEVELOPMENT
               </motion.div>
@@ -98,7 +99,7 @@ export default function Page() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.6 }}
                 transition={{ delay: 1.8, duration: 1 }}
-                className="max-w-md text-left text-[12px] font-code text-white uppercase tracking-[0.6em] mt-2 leading-relaxed"
+                className="max-w-md text-left text-[11px] font-code text-white uppercase tracking-[0.5em] leading-relaxed"
               >
                 Architecting digital empires with precision code and futuristic aesthetics.
               </motion.p>
@@ -120,12 +121,12 @@ export default function Page() {
             >
               <div className="flex items-center gap-4 mb-4">
                 <Code size={18} className="text-accent animate-pulse" />
-                <span className="text-[11px] font-code text-accent uppercase tracking-[0.4em]">Engine: AuraCore 2.0</span>
+                <span className="text-[11px] font-code text-accent uppercase tracking-[0.4em]">Engine: AuraCore 3.0</span>
               </div>
               <div className="space-y-2">
                 <p className="text-[10px] font-code text-white/40">PARTICLES: 6000 ACTIVE</p>
-                <p className="text-[10px] font-code text-white/40">TRANSITION: GSAP MORPH</p>
-                <p className="text-[10px] font-code text-white/40">SHADER: NEON PURPLE</p>
+                <p className="text-[10px] font-code text-white/40">MORPH: THICK SYMBOL</p>
+                <p className="text-[10px] font-code text-white/40">BREATHING: ENABLED</p>
               </div>
             </motion.div>
           </motion.div>
