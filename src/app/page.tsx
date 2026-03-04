@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Terminal } from "lucide-react";
+import { ChevronDown, Terminal, Cpu } from "lucide-react";
 
 const SceneBackground = dynamic(
   () => import("@/components/three/SceneBackground").then((mod) => mod.SceneBackground),
@@ -35,7 +35,7 @@ export default function Page() {
     <main className="relative bg-black w-full h-screen overflow-hidden">
       <SceneBackground isTransitioned={isTransitioned} />
       
-      {/* 🚀 Slide 1: HUD */}
+      {/* 🚀 HUD Layer 1: Entrance */}
       <AnimatePresence>
         {!isTransitioned && (
           <motion.div 
@@ -45,77 +45,90 @@ export default function Page() {
             className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
           >
             <div className="text-center">
-              <p className="font-code text-[10px] text-accent/20 uppercase tracking-[0.8em] animate-pulse">
-                AuraForge Command Console
-              </p>
-              <h1 className="mt-6 text-7xl font-bold tracking-tighter text-white uppercase glow-text">
+              <motion.p 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="font-code text-[10px] text-accent/40 uppercase tracking-[1em] mb-4"
+              >
+                AuraForge Systems Online
+              </motion.p>
+              <motion.h1 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="text-7xl font-black tracking-tighter text-white uppercase glow-text"
+              >
                 Engineer <br /> 
                 <span className="text-accent">Influence</span>
-              </h1>
+              </motion.h1>
             </div>
 
             <motion.button
               onClick={handleNext}
-              className="absolute bottom-12 left-1/2 -translate-x-1/2 pointer-events-auto p-4 text-white/50 hover:text-white transition-colors"
+              className="absolute bottom-12 left-1/2 -translate-x-1/2 pointer-events-auto p-4 text-white/30 hover:text-accent hover:scale-110 transition-all"
               animate={{ y: [0, 10, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
             >
-              <ChevronDown size={40} />
+              <ChevronDown size={32} />
             </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 🚀 Slide 2: Cinematic Code Content */}
+      {/* 🚀 HUD Layer 2: Web Dev Reveal */}
       <AnimatePresence>
         {isTransitioned && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.2, duration: 1.5 }}
+            transition={{ delay: 1.5, duration: 1.5 }}
             className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
           >
-            <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-2 mt-20">
               <motion.div 
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 1.5, duration: 1 }}
-                className="text-8xl font-black text-white glow-purple select-none"
-              >
-                &lt;/&gt;
-              </motion.div>
-              <motion.h2 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 1.8, duration: 0.8 }}
-                className="text-4xl font-light tracking-[0.3em] text-accent uppercase"
+                transition={{ delay: 1.8, duration: 1 }}
+                className="text-[28px] font-bold tracking-[1em] text-accent uppercase glow-purple"
               >
                 Web Development
-              </motion.h2>
+              </motion.div>
               <motion.p
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.6 }}
-                transition={{ delay: 2.2, duration: 1 }}
-                className="max-w-md text-center text-sm font-code text-white/80 leading-relaxed mt-4"
+                animate={{ opacity: 0.5 }}
+                transition={{ delay: 2.5, duration: 1 }}
+                className="max-w-md text-center text-[11px] font-code text-white uppercase tracking-widest mt-6"
               >
-                Precision engineering for the digital void. We craft high-performance architectures that define influence.
+                Architecture built for dominance in the digital void
               </motion.p>
             </div>
 
-            {/* Side Terminal Info */}
+            {/* Side Analytics HUD */}
             <motion.div
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 2.5, duration: 1 }}
-              className="fixed bottom-12 right-12 p-6 border-l border-accent/30 bg-black/40 backdrop-blur-md"
+              transition={{ delay: 2.8, duration: 1 }}
+              className="fixed bottom-12 right-12 p-8 border-r-2 border-accent/20 bg-black/40 backdrop-blur-xl"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <Terminal size={14} className="text-accent" />
-                <span className="text-[10px] font-code text-accent uppercase tracking-widest">System Status</span>
+              <div className="flex items-center gap-4 mb-4">
+                <Cpu size={16} className="text-accent animate-pulse" />
+                <span className="text-[10px] font-code text-accent uppercase tracking-[0.3em]">Core Status</span>
               </div>
-              <p className="text-[10px] font-code text-white/40">Core: 100% Operational</p>
-              <p className="text-[10px] font-code text-white/40">Sync: Phase 02 Complete</p>
+              <div className="space-y-1">
+                <p className="text-[10px] font-code text-white/40">LATENCY: 0.04ms</p>
+                <p className="text-[10px] font-code text-white/40">BANDWIDTH: MAX</p>
+                <p className="text-[10px] font-code text-white/40">INTEGRITY: 100%</p>
+              </div>
             </motion.div>
+
+            {/* Bottom HUD Bar */}
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 0.2 }}
+              transition={{ delay: 3, duration: 1 }}
+              className="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"
+            />
           </motion.div>
         )}
       </AnimatePresence>

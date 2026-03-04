@@ -41,7 +41,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
+    const purpleSun = new THREE.DirectionalLight(0xa855f7, 3.0);
     purpleSun.position.set(8, 4, 6);
     scene.add(purpleSun);
 
@@ -61,13 +61,13 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
 
-    // ===== PLANET MATERIAL =====
+    // ===== PLANET MATERIAL (Dark Purple Shader) =====
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
-      bumpScale: 0.8,
-      roughness: 0.9,
-      metalness: 0.05,
+      bumpScale: 0.7,
+      roughness: 0.95,
+      metalness: 0.02,
     });
 
     planetMaterial.onBeforeCompile = (shader) => {
@@ -79,16 +79,16 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         float lightPower = dot(normalize(vNormal), lightDir);
         lightPower = clamp(lightPower, 0.0, 1.0);
 
-        float shadowMask = smoothstep(0.0, 0.45, lightPower);
+        float shadowMask = smoothstep(0.0, 0.25, lightPower);
 
         float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
         oceanFactor = pow(oceanFactor, 2.0);
 
-        vec3 oceanColor = vec3(0.07, 0.07, 0.09);
-        vec3 landColor = vec3(0.6, 0.18, 0.85);
+        vec3 oceanColor = vec3(0.05, 0.05, 0.07);
+        vec3 landColor = vec3(0.55, 0.12, 0.75);
 
         vec3 litColor = mix(landColor, oceanColor, oceanFactor);
-        litColor = pow(litColor, vec3(1.1));
+        litColor = pow(litColor, vec3(1.25));
 
         vec3 finalColor = mix(vec3(0.0, 0.0, 0.0), litColor, shadowMask);
 
@@ -106,7 +106,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     planetRef.current = planet;
     scene.add(planet);
 
-    // ===== ATMOSPHERE =====
+    // ===== ATMOSPHERE GLOW =====
     const atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
@@ -134,26 +134,42 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     atmosphereRef.current = atmosphere;
     scene.add(atmosphere);
 
-    // ===== STAR RING =====
-    const starCount = 600;
+    // ===== STAR RING (Particle System) =====
+    const starCount = 900;
     const starGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(starCount * 3);
 
     for (let i = 0; i < starCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = 9 + Math.random() * 2;
+      const radius = 9 + Math.random() * 1.5;
       positions[i * 3] = Math.cos(angle) * radius;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 1;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
       positions[i * 3 + 2] = Math.sin(angle) * radius;
     }
 
     starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    
+    // Circular Texture for stars
+    const starCanvas = document.createElement("canvas");
+    starCanvas.width = 64;
+    starCanvas.height = 64;
+    const ctx = starCanvas.getContext("2d");
+    if (ctx) {
+      ctx.beginPath();
+      ctx.arc(32, 32, 30, 0, Math.PI * 2);
+      ctx.fillStyle = "white";
+      ctx.fill();
+    }
+    const starTexture = new THREE.CanvasTexture(starCanvas);
+
     const starMaterial = new THREE.PointsMaterial({
-      color: 0xa855f7,
-      size: 0.08,
+      map: starTexture,
+      color: 0xffffff,
+      size: 0.12,
       transparent: true,
-      opacity: 0.6,
-      blending: THREE.AdditiveBlending
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
 
     const stars = new THREE.Points(starGeometry, starMaterial);
@@ -167,7 +183,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       if (!isTransitioned) {
         planet.rotation.y += 0.0015;
         atmosphere.rotation.y += 0.0015;
-        stars.rotation.y += 0.001;
+        stars.rotation.y += 0.004;
       }
       renderer.render(scene, camera);
     };
@@ -194,82 +210,75 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     };
   }, []);
 
-  // ===== HANDLE TRANSITION =====
+  // ===== HANDLE TRANSITION (GSAP MORPHING) =====
   useEffect(() => {
     if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
       const tl = gsap.timeline();
       
-      // 1. Planet & Atmosphere Movement
+      // 1. Planet Spin + Move + Scale
       tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
         y: planetRef.current.rotation.y + Math.PI * 4,
-        duration: 1.5,
+        duration: 1.2,
         ease: "power2.inOut"
       });
 
       tl.to([planetRef.current.scale, atmosphereRef.current.scale], {
-        x: 0.4,
-        y: 0.4,
-        z: 0.4,
-        duration: 1.5,
+        x: 0.5,
+        y: 0.5,
+        z: 0.5,
+        duration: 1.2,
         ease: "power2.inOut"
       }, 0);
 
       tl.to([planetRef.current.position, atmosphereRef.current.position], {
-        x: -10,
-        duration: 1.5,
+        x: -8,
+        duration: 1.2,
         ease: "power2.inOut"
       }, 0);
 
-      // 2. Stars Transformation to </>
-      const starCount = 600;
-      const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
-      
+      // 2. Stars Form </> 
       gsap.to(starsRef.current.rotation, {
         y: 0,
         duration: 1,
         ease: "power2.inOut"
       });
 
-      for (let i = 0; i < starCount; i++) {
-        let targetX, targetY, targetZ = 0;
+      const starCount = 900;
+      const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
-        if (i < starCount / 3) { // Left Bracket <
-          const subIdx = i % 200;
-          if (subIdx < 100) {
-            targetX = 1 - (subIdx * 0.02);
-            targetY = subIdx * 0.02;
-          } else {
-            targetX = -1 + ((subIdx - 100) * 0.02);
-            targetY = 2 - ((subIdx - 100) * 0.02);
-          }
-          targetX -= 1.5;
-          targetY -= 1;
-        } else if (i < (starCount * 2) / 3) { // Slash /
-          const subIdx = i % 200;
-          targetX = (subIdx * 0.015) - 1.5;
-          targetY = (subIdx * 0.03) - 3;
-        } else { // Right Bracket >
-          const subIdx = i % 200;
-          if (subIdx < 100) {
-            targetX = -1 + (subIdx * 0.02);
-            targetY = subIdx * 0.02;
-          } else {
-            targetX = 1 - ((subIdx - 100) * 0.02);
-            targetY = 2 - ((subIdx - 100) * 0.02);
-          }
-          targetX += 1.5;
-          targetY -= 1;
+      for (let i = 0; i < starCount; i++) {
+        const t = i / starCount;
+        let targetX = 0;
+        let targetY = 0;
+        let targetZ = 0;
+
+        if (t < 0.33) {
+          // < Bracket
+          const p = t / 0.33;
+          targetX = -2 + p * 1.2;
+          targetY = 1 - p * 2;
+        } else if (t < 0.66) {
+          // / Slash
+          const p = (t - 0.33) / 0.33;
+          targetX = -0.5 + p * 1;
+          targetY = 1 - p * 2;
+        } else {
+          // > Bracket
+          const p = (t - 0.66) / 0.34;
+          targetX = 0.8 + p * 1.2;
+          targetY = -1 + p * 2;
         }
 
-        // Apply offsets and scale
-        targetX *= 1.5;
-        targetY *= 1.5;
+        // Apply scale and offsets for centering the code logo
+        targetX *= 2.5;
+        targetY *= 2.5;
+        targetX += 2; // Shift a bit to the right since planet moved left
 
         gsap.to(positions, {
           [i * 3]: targetX,
           [i * 3 + 1]: targetY,
           [i * 3 + 2]: targetZ,
-          duration: 1.5 + Math.random() * 0.5,
+          duration: 1.6 + Math.random() * 0.4,
           ease: "power3.inOut",
           onUpdate: () => {
             if (starsRef.current) {
