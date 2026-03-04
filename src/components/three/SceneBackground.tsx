@@ -63,7 +63,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
     const planet = new THREE.Mesh(new THREE.SphereGeometry(6, 128, 128), planetMaterial);
     planetRef.current = planet;
-    planet.scale.set(0, 0, 0); // Start at scale 0 for intro
+    planet.scale.set(0, 0, 0); 
     sceneThree.add(planet);
 
     const atmosphereMaterial = new THREE.ShaderMaterial({
@@ -87,10 +87,9 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     });
     const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(6.4, 128, 128), atmosphereMaterial);
     atmosphereRef.current = atmosphere;
-    atmosphere.scale.set(0, 0, 0); // Start at scale 0 for intro
+    atmosphere.scale.set(0, 0, 0);
     sceneThree.add(atmosphere);
 
-    // Planet & Atmosphere Cinematic Intro
     gsap.to([planet.scale, atmosphere.scale], {
       x: 1,
       y: 1,
@@ -140,7 +139,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     starsRef.current = stars;
     sceneThree.add(stars);
 
-    // Stars Intro
     gsap.to(starMaterial, {
       opacity: 1,
       duration: 2,
@@ -311,7 +309,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 10, z: -10, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1.5, y: 1.5, z: 1.5, duration: 1.5, ease: "power3.inOut" });
 
-      // Envelope Shape
       const sCount = 2500;
       drawThickLine(-3.5, 2, 3.5, 2, sCount / 10, 0, -2);
       drawThickLine(3.5, 2, 3.5, -2, sCount / 10, 0, -2);
