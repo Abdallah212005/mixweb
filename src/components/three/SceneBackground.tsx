@@ -48,12 +48,12 @@ export const SceneBackground: React.FC = () => {
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
 
-    // ===== PLANET MATERIAL WITH SHADER GRADING =====
+    // ===== PLANET MATERIAL WITH UPDATED SHADER =====
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
-      bumpScale: 0.4,
-      roughness: 0.8,
+      bumpScale: 0.5,
+      roughness: 0.85,
       metalness: 0.05,
     });
 
@@ -62,11 +62,14 @@ export const SceneBackground: React.FC = () => {
         '#include <dithering_fragment>',
         `
         float brightness = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
-        vec3 deepPurple = vec3(0.25, 0.05, 0.4);
-        vec3 midPurple = vec3(0.55, 0.2, 0.75);
-        vec3 purpleTone = mix(deepPurple, midPurple, brightness);
-        purpleTone = pow(purpleTone, vec3(0.9));
-        gl_FragColor.rgb = mix(purpleTone, gl_FragColor.rgb * 0.3, 0.25);
+
+        // نزود الكونتراست بس
+        gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.85));
+
+        // نضيف إحساس بنفسجي خفيف حسب الإضاءة
+        vec3 purpleLight = vec3(0.35, 0.1, 0.6);
+        gl_FragColor.rgb += purpleLight * (1.0 - brightness) * 0.25;
+
         #include <dithering_fragment>
         `
       );
