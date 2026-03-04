@@ -14,6 +14,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
   const planetRef = useRef<THREE.Mesh | null>(null);
   const atmosphereRef = useRef<THREE.Mesh | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
+  const triggeredRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -189,7 +190,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      if (!isTransitioned) {
+      if (!triggeredRef.current) {
         planet.rotation.y += 0.0015;
         atmosphere.rotation.y += 0.0015;
         stars.rotation.y += 0.004;
@@ -221,6 +222,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
   // ===== HANDLE TRANSITION (3000 STAR MORPHING) =====
   useEffect(() => {
     if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
+      triggeredRef.current = true;
       const tl = gsap.timeline();
       
       tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
@@ -253,38 +255,36 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
       function spread(v: number) {
-        return v + (Math.random() - 0.5) * 0.08;
+        return v + (Math.random() - 0.5) * 0.06;
       }
 
       for (let i = 0; i < starCount; i++) {
-        const section = i % 3;
-        const progress = (i / starCount) * 3; // normalized progress within the count
+        let section = i % 3;
+        let progress = ((i / starCount) * 2); // Normalized 0 to 2 range for better math coverage
 
         let targetX = 0;
         let targetY = 0;
         let targetZ = 0;
 
-        const offsetX = 4.5; // shift to the right side of the planet
+        const offsetX = 4.5; // Offset to the right
+        const offsetY = 1.8; // Align with text
 
         if (section === 0) {
           // <
-          const p = (i / starCount) * 3; // progress for this section (approx 0-1)
-          targetX = -1.2 + Math.sin(p * Math.PI) * 0.6;
-          targetY = Math.cos(p * Math.PI) * 1.2;
+          targetX = -1.5 + progress * 0.8;
+          targetY = 1 - progress * 1.2;
         } else if (section === 1) {
           // /
-          const p = ((i - 1) / starCount) * 3 - 1; 
-          targetX = -0.2 + p * 0.8;
-          targetY = 1.2 - p * 2.4;
+          targetX = -0.2 + progress * 0.6;
+          targetY = 1 - progress * 2;
         } else {
           // >
-          const p = ((i - 2) / starCount) * 3 - 2;
-          targetX = 1.2 - Math.sin(p * Math.PI) * 0.6;
-          targetY = Math.cos(p * Math.PI) * 1.2;
+          targetX = 1.5 - progress * 0.8;
+          targetY = -1 + progress * 1.2;
         }
 
         targetX = spread(targetX) + offsetX;
-        targetY = spread(targetY);
+        targetY = spread(targetY) + offsetY;
 
         gsap.to(positions, {
           [i * 3]: targetX,

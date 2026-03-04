@@ -87,10 +87,10 @@ export default function Page() {
           >
             <div className="flex flex-col items-start gap-4">
               <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2, duration: 0.8 }}
-                className="text-6xl font-black text-white/90 tracking-[0.2em] glow-text mb-4"
+                className="text-7xl font-black text-white glow-text mb-4 tracking-widest"
               >
                 &lt;/&gt;
               </motion.div>
@@ -99,7 +99,7 @@ export default function Page() {
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 1.4, duration: 1 }}
-                className="text-[48px] font-black tracking-[0.2em] text-gradient uppercase glow-purple"
+                className="text-5xl font-black tracking-[12px] text-gradient uppercase glow-purple"
               >
                 WEB DEVELOPMENT
               </motion.div>
