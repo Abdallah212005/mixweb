@@ -77,30 +77,21 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         `
         vec3 baseColor = gl_FragColor.rgb;
 
-        // Light direction calculation
         vec3 lightDir = normalize(vec3(8.0, 4.0, 6.0));
         float lightPower = dot(normalize(vNormal), lightDir);
         lightPower = clamp(lightPower, 0.0, 1.0);
 
-        // Soft shadow mask
         float shadowMask = smoothstep(0.0, 0.45, lightPower);
 
-        // Ocean vs Land Separation
         float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
         oceanFactor = pow(oceanFactor, 2.0);
 
-        // Charcoal ocean
         vec3 oceanColor = vec3(0.07, 0.07, 0.09);
-
-        // Vibrant purple land
         vec3 landColor = vec3(0.6, 0.18, 0.85);
 
         vec3 litColor = mix(landColor, oceanColor, oceanFactor);
-
-        // Balanced contrast
         litColor = pow(litColor, vec3(1.1));
 
-        // Blend with shadow (not absolute black)
         vec3 finalColor = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
 
         gl_FragColor.rgb = finalColor;
@@ -259,32 +250,32 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       }
 
       for (let i = 0; i < starCount; i++) {
-        let section = i % 3;
-        let progress = ((i / starCount) * 2); // Normalized 0 to 2 range for better math coverage
+        let line = i % 3;
+        let t = (i / starCount) * 1.2;
 
         let targetX = 0;
         let targetY = 0;
         let targetZ = 0;
 
-        const offsetX = 4.5; // Offset to the right
-        const offsetY = 1.8; // Align with text
+        const centerX = 4.5; // Offset for symbols
+        const centerY = 1.8; // Vertical align with title
 
-        if (section === 0) {
+        if (line === 0) {
           // <
-          targetX = -1.5 + progress * 0.8;
-          targetY = 1 - progress * 1.2;
-        } else if (section === 1) {
+          targetX = -1.2 + t * 0.8;
+          targetY = 1 - t * 1.5;
+        } else if (line === 1) {
           // /
-          targetX = -0.2 + progress * 0.6;
-          targetY = 1 - progress * 2;
+          targetX = -0.2 + t * 0.6;
+          targetY = 1 - t * 2;
         } else {
           // >
-          targetX = 1.5 - progress * 0.8;
-          targetY = -1 + progress * 1.2;
+          targetX = 1.2 - t * 0.8;
+          targetY = -1 + t * 1.5;
         }
 
-        targetX = spread(targetX) + offsetX;
-        targetY = spread(targetY) + offsetY;
+        targetX = spread(targetX) + centerX;
+        targetY = spread(targetY) + centerY;
 
         gsap.to(positions, {
           [i * 3]: targetX,
