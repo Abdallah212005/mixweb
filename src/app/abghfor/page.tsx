@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { useCollection, useDoc, useFirebase, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, doc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Mail, Calendar, Trash2, CheckCircle, Search, LogIn, ShieldAlert, Key, RefreshCcw } from "lucide-react";
+import { Shield, Mail, Calendar, Trash2, CheckCircle, Search, LogIn, ShieldAlert, Key, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   const { firestore, user, auth } = useFirebase();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isElevating, setIsElevating] = useState(false);
 
   // 1. Monitor user's admin role document
   const adminDocRef = useMemoFirebase(() => {
@@ -26,9 +26,9 @@ export default function AdminDashboard() {
     return doc(firestore, "roles_admin", user.uid);
   }, [firestore, user]);
 
-  const { data: adminRole, isLoading: isAdminCheckLoading, error: adminCheckError } = useDoc(adminDocRef);
+  const { data: adminRole, isLoading: isAdminCheckLoading } = useDoc(adminDocRef);
   
-  // We only consider authorized if we have explicit data from the server
+  // Authorization is strictly based on the server-side document
   const isAuthorized = !!adminRole && adminRole.role === "admin";
 
   // 2. Only query submissions if the user is DEFINITIVELY authorized
@@ -38,7 +38,7 @@ export default function AdminDashboard() {
     return query(collection(firestore, "contactSubmissions"), orderBy("submissionDateTime", "desc"));
   }, [firestore, user, isAuthorized]);
 
-  const { data: submissions, isLoading: isDataLoading, error: submissionsError } = useCollection(submissionsQuery);
+  const { data: submissions, isLoading: isDataLoading } = useCollection(submissionsQuery);
 
   const handleDelete = (id: string) => {
     if (!firestore) return;
@@ -59,26 +59,26 @@ export default function AdminDashboard() {
   const handleBecomeAdmin = () => {
     if (!user || !firestore) return;
     
-    // Explicitly set the admin role
+    setIsElevating(true);
+    // Explicitly set the admin role record in Firestore
     setDocumentNonBlocking(
       doc(firestore, "roles_admin", user.uid),
       { 
         id: user.uid, 
         role: "admin", 
         grantedAt: new Date().toISOString(),
-        agentName: `AGENT_${user.uid.substring(0, 4).toUpperCase()}`
+        agentName: `MASTER_${user.uid.substring(0, 4).toUpperCase()}`
       },
       { merge: true }
     );
     
     toast({ 
-      title: "Elevating Privileges", 
-      description: "Synchronizing agent credentials with master database...",
+      title: "Syncing Privileges", 
+      description: "Writing master credentials to security layer...",
     });
 
-    // Give Firestore a moment to propagate the write before we stop showing the "Access Denied" screen
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 2000);
+    // Reset elevation state after a short delay to allow Firestore to propagate
+    setTimeout(() => setIsElevating(false), 1500);
   };
 
   const filteredSubmissions = submissions?.filter(s => 
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
     s.message?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isLoading = isAdminCheckLoading || isRefreshing;
+  const isLoading = isAdminCheckLoading || isElevating;
 
   return (
     <div className="min-h-screen bg-[#050406] text-white p-6 md:p-12 font-body selection:bg-accent selection:text-black">
@@ -157,9 +157,9 @@ export default function AdminDashboard() {
                 Elevate to Command Master
              </Button>
           </motion.div>
-        ) : isLoading ? (
+        ) : isLoading || isDataLoading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-6">
-             <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin shadow-[0_0_30px_#a855f7]" />
+             <Loader2 className="w-16 h-16 text-accent animate-spin drop-shadow-[0_0_15px_#a855f7]" />
              <p className="font-code text-white/30 tracking-[1em] text-[10px] animate-pulse uppercase">Syncing Database...</p>
           </div>
         ) : (
@@ -253,3 +253,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
