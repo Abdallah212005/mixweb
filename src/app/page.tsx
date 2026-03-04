@@ -11,12 +11,14 @@ const SceneBackground = dynamic(
 
 export default function Page() {
   return (
-    <main className="relative bg-[#050406] w-full h-screen overflow-hidden selection:bg-accent selection:text-black">
+    <main className="relative bg-[#000000] w-full h-screen overflow-hidden">
       {/* 3D Planet Scene Only */}
       <SceneBackground />
       
-      {/* Absolute Zero UI Overlay */}
-      <div className="fixed inset-0 pointer-events-none z-10" />
+      {/* Clean Slate Layer */}
+      <div className="fixed inset-0 z-10 pointer-events-none flex items-center justify-center">
+        <div className="opacity-0">Planet Initialized</div>
+      </div>
     </main>
   );
 }
