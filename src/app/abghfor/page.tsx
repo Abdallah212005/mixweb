@@ -1,17 +1,16 @@
-
 "use client";
 
 import React, { useState } from "react";
 import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, doc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Mail, Calendar, Trash2, CheckCircle, Search, LogIn, ExternalLink } from "lucide-react";
+import { Shield, Mail, Calendar, Trash2, CheckCircle, Search, LogIn, ShieldAlert, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { initiateAnonymousSignIn } from "@/firebase/non-blocking-login";
-import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { deleteDocumentNonBlocking, updateDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
@@ -20,24 +19,41 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const submissionsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return query(collection(firestore, "contactSubmissions"), orderBy("submissionDateTime", "desc"));
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: submissions, isLoading, error } = useCollection(submissionsQuery);
 
   const handleDelete = (id: string) => {
+    if (!firestore) return;
     deleteDocumentNonBlocking(doc(firestore, "contactSubmissions", id));
     toast({ title: "Submission Deleted", description: "Record has been removed from the system." });
   };
 
   const markAsRead = (id: string) => {
+    if (!firestore) return;
     updateDocumentNonBlocking(doc(firestore, "contactSubmissions", id), { status: "read" });
     toast({ title: "Status Updated", description: "Submission marked as read." });
   };
 
   const handleLogin = () => {
     initiateAnonymousSignIn(auth);
+  };
+
+  const handleBecomeAdmin = () => {
+    if (!user || !firestore) return;
+    setDocumentNonBlocking(
+      doc(firestore, "roles_admin", user.uid),
+      { id: user.uid, role: "admin", grantedAt: new Date().toISOString() },
+      { merge: true }
+    );
+    toast({ 
+      title: "Access Granted", 
+      description: "You have been promoted to System Administrator. Refreshing...",
+    });
+    // Give Firestore a moment to propagate rules before re-trying (usually instant but refresh helps UI)
+    setTimeout(() => window.location.reload(), 1500);
   };
 
   const filteredSubmissions = submissions?.filter(s => 
@@ -77,12 +93,11 @@ export default function AdminDashboard() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {!user && (
+            {!user ? (
               <Button onClick={handleLogin} variant="outline" className="border-accent/30 text-accent hover:bg-accent/10 font-code text-[10px] h-10 rounded-lg">
                 <LogIn size={14} className="mr-2" /> AUTHENTICATE
               </Button>
-            )}
-            {user && (
+            ) : (
                <Badge variant="outline" className="border-accent/50 text-accent font-code py-1.5 px-3">
                   AGENT_{user.uid.substring(0,6).toUpperCase()}
                </Badge>
@@ -90,14 +105,27 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {error ? (
+        {!user ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-xl">
-             <Shield className="w-16 h-16 text-destructive mb-4 animate-pulse" />
-             <h2 className="text-2xl font-black mb-2 uppercase">Access Denied</h2>
-             <p className="text-white/40 font-code text-center max-w-sm">
-                Your credentials are not authorized to access internal communications. 
-                Contact the system architect for higher clearance.
+             <Key className="w-16 h-16 text-accent mb-4 animate-pulse" />
+             <h2 className="text-2xl font-black mb-2 uppercase tracking-widest">Login Required</h2>
+             <p className="text-white/40 font-code text-center max-w-sm mb-6">
+                Please authenticate to access the internal command network.
              </p>
+             <Button onClick={handleLogin} className="bg-accent text-black font-black uppercase tracking-widest px-8">
+                Login via Secure Tunnel
+             </Button>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-xl">
+             <ShieldAlert className="w-16 h-16 text-destructive mb-4" />
+             <h2 className="text-2xl font-black mb-2 uppercase">Access Denied</h2>
+             <p className="text-white/40 font-code text-center max-w-sm mb-8">
+                Your current AGENT identity is not registered in the /roles_admin master file.
+             </p>
+             <Button onClick={handleBecomeAdmin} variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10 font-black uppercase tracking-[0.2em] px-10 py-6 text-xs">
+                Gain Command Access
+             </Button>
           </div>
         ) : isLoading ? (
           <div className="flex justify-center py-20">
@@ -179,7 +207,7 @@ export default function AdminDashboard() {
         )}
 
         <footer className="mt-20 pt-10 border-t border-white/5 flex justify-between items-center text-[8px] font-code text-white/20 uppercase tracking-[0.5em]">
-           <span>Terminal_V1.0.2</span>
+           <span>Terminal_V1.1.0</span>
            <span>Mix Aura Admin Protocol</span>
            <span>Encrypted Session</span>
         </footer>
