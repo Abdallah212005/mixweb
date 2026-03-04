@@ -136,8 +136,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     atmosphereRef.current = atmosphere;
     scene.add(atmosphere);
 
-    // ===== STAR SYSTEM (2500 STARS) =====
-    const starCount = 2500;
+    // ===== STAR SYSTEM (6000 STARS) =====
+    const starCount = 6000;
     const starGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(starCount * 3);
 
@@ -156,7 +156,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     const starMaterial = new THREE.PointsMaterial({
       map: starTex,
       color: 0xffffff,
-      size: 0.08,
+      size: 0.07,
       transparent: true,
       opacity: 0.8,
       blending: THREE.AdditiveBlending,
@@ -232,26 +232,26 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         ease: "power2.inOut"
       });
 
-      const starCount = 2500;
+      const starCount = 6000;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
-      // ==== DRAW PERFECT </> SHAPE ====
+      // ==== DRAW PERFECT </> SHAPE WITH DOTS ====
       const shape = new THREE.Shape();
       // <
-      shape.moveTo(-2, 1.5);
-      shape.lineTo(-3, 0);
-      shape.lineTo(-2, -1.5);
+      shape.moveTo(-2.6, 1.8);
+      shape.lineTo(-3.8, 0);
+      shape.lineTo(-2.6, -1.8);
       // /
-      shape.moveTo(-0.5, 1.5);
-      shape.lineTo(0.5, -1.5);
+      shape.moveTo(-0.8, 1.8);
+      shape.lineTo(0.8, -1.8);
       // >
-      shape.moveTo(2, 1.5);
-      shape.lineTo(3, 0);
-      shape.lineTo(2, -1.5);
+      shape.moveTo(2.6, 1.8);
+      shape.lineTo(3.8, 0);
+      shape.lineTo(2.6, -1.8);
 
       const points = shape.getSpacedPoints(starCount - 1);
       const centerX = 4.5; 
-      const centerY = 2.2; 
+      const centerY = 3.5; 
 
       function spread(v: number) {
         return v + (Math.random() - 0.5) * 0.08;
