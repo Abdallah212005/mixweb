@@ -66,25 +66,33 @@ export const SceneBackground: React.FC = () => {
       metalness: 0.02,
     });
 
-    // 🎨 Custom Shader: Separate Oceans and Land
+    // 🎨 Advanced Shader: Precise Land/Ocean Isolation
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
-        vec3 color = gl_FragColor.rgb;
+        vec3 baseColor = gl_FragColor.rgb;
 
-        // Mask oceans based on blue channel dominance
-        float oceanMask = smoothstep(0.15, 0.35, color.b - color.r);
+        // نحسب نسبة الزرقة أقوى
+        float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
 
-        // Define colors
-        vec3 darkOcean = vec3(0.12, 0.12, 0.14);
-        vec3 purpleLand = vec3(0.35, 0.08, 0.55);
+        // نعمله sharper عشان الفصل يبقى أوضح
+        oceanFactor = pow(oceanFactor, 2.0);
 
-        // Mix based on mask
-        vec3 finalColor = mix(purpleLand, darkOcean, oceanMask);
+        // 🌊 محيط فحمي تقيل
+        vec3 oceanColor = vec3(0.05, 0.05, 0.07);
 
-        // Apply deeper contrast
-        finalColor = pow(finalColor, vec3(1.15));
+        // 🏔 يابسة بنفسجي واضح
+        vec3 landColor = vec3(0.55, 0.12, 0.75);
+
+        // دمج أقوى
+        vec3 finalColor = mix(landColor, oceanColor, oceanFactor);
+
+        // نزود كونتراست
+        finalColor = pow(finalColor, vec3(1.25));
+
+        // تعتيم عام خفيف
+        finalColor *= 0.85;
 
         gl_FragColor.rgb = finalColor;
 
