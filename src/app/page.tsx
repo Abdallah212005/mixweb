@@ -60,7 +60,7 @@ export default function Page() {
       <SceneBackground scene={scene} />
       
       {/* 🚀 HUD Layer 1: Entrance */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {scene === 1 && (
           <motion.div 
             key="scene-1"
@@ -102,21 +102,21 @@ export default function Page() {
       </AnimatePresence>
 
       {/* 🚀 HUD Layer 2: Web Dev Reveal */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {scene === 2 && (
           <motion.div 
             key="scene-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.8 }}
             className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[60%] pointer-events-none"
           >
             <div className="flex flex-col items-start gap-2">
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 1 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
                 className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2"
               >
                 WEB DEVELOPMENT
@@ -125,7 +125,7 @@ export default function Page() {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.6 }}
-                transition={{ delay: 1, duration: 1 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
                 className="max-w-md text-left text-[11px] font-code text-white uppercase tracking-[0.5em] leading-relaxed"
               >
                 Architecting digital empires with precision code and futuristic aesthetics.
@@ -134,7 +134,7 @@ export default function Page() {
               <motion.div
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ delay: 1.5, duration: 0.8 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
                 className="h-1 w-40 bg-accent mt-6 origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]"
               />
             </div>
@@ -142,7 +142,7 @@ export default function Page() {
             <motion.div
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 1.8, duration: 1 }}
+              transition={{ delay: 1, duration: 0.8 }}
               className="fixed bottom-12 right-12 p-10 border-r-2 border-accent/20 bg-black/40 backdrop-blur-3xl"
             >
               <div className="flex items-center gap-4 mb-4">
@@ -160,21 +160,21 @@ export default function Page() {
       </AnimatePresence>
 
       {/* 🚀 HUD Layer 3: Digital Marketing Reveal */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {scene === 3 && (
           <motion.div 
             key="scene-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.8 }}
             className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[15%] pointer-events-none"
           >
             <div className="flex flex-col items-start gap-2">
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 1 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
                 className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2"
               >
                 DIGITAL MARKETING
@@ -183,7 +183,7 @@ export default function Page() {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.6 }}
-                transition={{ delay: 1, duration: 1 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
                 className="max-w-md text-left text-[11px] font-code text-white uppercase tracking-[0.5em] leading-relaxed"
               >
                 Engineering virality and market dominance through data-driven campaigns.
@@ -192,7 +192,7 @@ export default function Page() {
               <motion.div
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ delay: 1.5, duration: 0.8 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
                 className="h-1 w-40 bg-accent mt-6 origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]"
               />
             </div>
@@ -200,7 +200,7 @@ export default function Page() {
             <motion.div
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 1.8, duration: 1 }}
+              transition={{ delay: 1, duration: 0.8 }}
               className="fixed bottom-12 left-12 p-10 border-l-2 border-accent/20 bg-black/40 backdrop-blur-3xl"
             >
               <div className="flex items-center gap-4 mb-4">

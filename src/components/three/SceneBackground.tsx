@@ -14,7 +14,13 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   const planetRef = useRef<THREE.Mesh | null>(null);
   const atmosphereRef = useRef<THREE.Mesh | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
-  const basePositionsRef = useRef<Float32Array | null>(null);
+  
+  // Storage for star positions
+  const startPositionsRef = useRef<Float32Array | null>(null);
+  const targetPositionsRef = useRef<Float32Array | null>(null);
+  const currentPositionsRef = useRef<Float32Array | null>(null);
+  
+  const transitionRef = useRef({ progress: 1 });
   const timeRef = useRef(0);
   const starCount = 6000;
 
@@ -22,45 +28,27 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     if (!containerRef.current) return;
 
     const sceneThree = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      60,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 0, 14);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-    });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    
     containerRef.current.appendChild(renderer.domElement);
 
     // Lights
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
     purpleSun.position.set(8, 4, 6);
     sceneThree.add(purpleSun);
+    sceneThree.add(new THREE.AmbientLight(0x111111));
 
-    const ambient = new THREE.AmbientLight(0x111111);
-    sceneThree.add(ambient);
-
-    // Planet Setup
+    // Planet
     const loader = new THREE.TextureLoader();
-    const earthMap = loader.load(
-      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
-    );
-
-    const planetMaterial = new THREE.MeshStandardMaterial({
-      map: earthMap,
-      roughness: 0.9,
-      metalness: 0.05,
-    });
-
+    const earthMap = loader.load("https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg");
+    const planetMaterial = new THREE.MeshStandardMaterial({ map: earthMap, roughness: 0.9, metalness: 0.05 });
+    
+    // Custom shader for purple tint
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
@@ -81,6 +69,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     planetRef.current = planet;
     sceneThree.add(planet);
 
+    // Atmosphere
     const atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
@@ -104,10 +93,9 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     atmosphereRef.current = atmosphere;
     sceneThree.add(atmosphere);
 
-    // Stars
+    // Stars Setup
     const starCanvas = document.createElement("canvas");
-    starCanvas.width = 64;
-    starCanvas.height = 64;
+    starCanvas.width = 64; starCanvas.height = 64;
     const ctx = starCanvas.getContext("2d");
     if (ctx) {
       const gradient = ctx.createRadialGradient(32, 32, 2, 32, 32, 32);
@@ -120,17 +108,22 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const starTexture = new THREE.CanvasTexture(starCanvas);
 
     const starGeometry = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(starCount * 3);
-
+    const posArray = new Float32Array(starCount * 3);
+    
+    // Initial Orbit Position
     for (let i = 0; i < starCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = 9 + Math.random() * 1.5;
-      starPositions[i * 3] = Math.cos(angle) * radius;
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
-      starPositions[i * 3 + 2] = Math.sin(angle) * radius;
+      const radius = 9 + Math.random() * 2;
+      posArray[i * 3] = Math.cos(angle) * radius;
+      posArray[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+      posArray[i * 3 + 2] = Math.sin(angle) * radius;
     }
 
-    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    startPositionsRef.current = new Float32Array(posArray);
+    targetPositionsRef.current = new Float32Array(posArray);
+    currentPositionsRef.current = new Float32Array(posArray);
+
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(currentPositionsRef.current, 3));
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       transparent: true,
@@ -143,24 +136,31 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     starsRef.current = stars;
     sceneThree.add(stars);
 
-    basePositionsRef.current = new Float32Array(starPositions);
-
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      
+      timeRef.current += 0.01;
+
       if (planetRef.current) planetRef.current.rotation.y += 0.0015;
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.0015;
 
-      if (starsRef.current && basePositionsRef.current) {
-        timeRef.current += 0.01;
+      if (starsRef.current && startPositionsRef.current && targetPositionsRef.current && currentPositionsRef.current) {
         const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
-        const base = basePositionsRef.current;
+        const start = startPositionsRef.current;
+        const target = targetPositionsRef.current;
+        const p = transitionRef.current.progress;
+
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
-          positions[ix] = base[ix] + Math.sin(timeRef.current * 0.5 + i * 0.1) * 0.04;
-          positions[ix + 1] = base[ix + 1] + Math.cos(timeRef.current * 0.4 + i * 0.15) * 0.04;
-          positions[ix + 2] = base[ix + 2] + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
+          // Interpolate between start and target
+          const baseX = start[ix] + (target[ix] - start[ix]) * p;
+          const baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
+          const baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
+
+          // Add breathing/wave animation
+          positions[ix] = baseX + Math.sin(timeRef.current * 0.5 + i * 0.1) * 0.05;
+          positions[ix + 1] = baseY + Math.cos(timeRef.current * 0.4 + i * 0.15) * 0.05;
+          positions[ix + 2] = baseZ + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
         }
         starsRef.current.geometry.attributes.position.needsUpdate = true;
       }
@@ -179,122 +179,104 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     return () => {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
-      if (containerRef.current && renderer.domElement) {
-        containerRef.current.removeChild(renderer.domElement);
-      }
+      if (containerRef.current) containerRef.current.removeChild(renderer.domElement);
       renderer.dispose();
-      planetMaterial.dispose();
-      atmosphereMaterial.dispose();
-      starMaterial.dispose();
     };
   }, []);
 
   useEffect(() => {
-    if (!planetRef.current || !atmosphereRef.current || !starsRef.current) return;
+    if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current) return;
 
-    const tl = gsap.timeline();
-    const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
-    const targetPositions = new Float32Array(starCount * 3);
+    // Prepare for transition
+    if (currentPositionsRef.current && startPositionsRef.current && starsRef.current) {
+      const currentAttr = starsRef.current.geometry.attributes.position.array as Float32Array;
+      startPositionsRef.current.set(currentAttr);
+    }
+
+    const nextTargets = new Float32Array(starCount * 3);
+    let index = 0;
     const thickness = 0.25;
-    let symbolIndex = 0;
 
     function drawThickLine(x1: number, y1: number, x2: number, y2: number, count: number, xOff: number, yOff: number) {
       for (let i = 0; i < count; i++) {
-        if (symbolIndex >= starCount) break;
+        if (index >= starCount) break;
         const t = i / count;
         let x = x1 + (x2 - x1) * t;
         let y = y1 + (y2 - y1) * t;
-
         const offset = (Math.random() - 0.5) * thickness;
         const dx = y2 - y1;
         const dy = -(x2 - x1);
-        const len = Math.sqrt(dx * dx + dy * dy);
-
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
         x += (dx / len) * offset;
         y += (dy / len) * offset;
-
-        targetPositions[symbolIndex * 3] = x + xOff;
-        targetPositions[symbolIndex * 3 + 1] = y + yOff;
-        targetPositions[symbolIndex * 3 + 2] = (Math.random() - 0.5) * 0.3;
-        symbolIndex++;
+        nextTargets[index * 3] = x + xOff;
+        nextTargets[index * 3 + 1] = y + yOff;
+        nextTargets[index * 3 + 2] = (Math.random() - 0.5) * 0.3;
+        index++;
       }
     }
 
     if (scene === 1) {
-      // Return to center orbit
-      tl.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, duration: 1.5, ease: "power3.inOut" });
-      tl.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
+      // Intro: Orbital Ring
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
 
       for (let i = 0; i < starCount; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const radius = 9 + Math.random() * 1.5;
-        targetPositions[i * 3] = Math.cos(angle) * radius;
-        targetPositions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
-        targetPositions[i * 3 + 2] = Math.sin(angle) * radius;
+        const radius = 9 + Math.random() * 2;
+        nextTargets[i * 3] = Math.cos(angle) * radius;
+        nextTargets[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+        nextTargets[i * 3 + 2] = Math.sin(angle) * radius;
       }
     } else if (scene === 2) {
-      // Web Dev </> Symbol
-      tl.to([planetRef.current.position, atmosphereRef.current.position], { x: -6, duration: 1.5, ease: "power3.inOut" });
-      tl.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
+      // Web Dev: </> Symbol
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: -6, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
 
-      const symbolStarCount = 1400;
-      drawThickLine(-1.8, 1.5, -2.8, 0, symbolStarCount / 6, 4, 5.2);
-      drawThickLine(-2.8, 0, -1.8, -1.5, symbolStarCount / 6, 4, 5.2);
-      drawThickLine(0.6, 1.5, -0.6, -1.5, symbolStarCount / 4, 4, 5.2);
-      drawThickLine(1.8, 1.5, 2.8, 0, symbolStarCount / 6, 4, 5.2);
-      drawThickLine(2.8, 0, 1.8, -1.5, symbolStarCount / 6, 4, 5.2);
+      const sCount = 1400;
+      drawThickLine(-1.8, 1.5, -2.8, 0, sCount / 6, 4, 5.2);
+      drawThickLine(-2.8, 0, -1.8, -1.5, sCount / 6, 4, 5.2);
+      drawThickLine(0.6, 1.5, -0.6, -1.5, sCount / 4, 4, 5.2);
+      drawThickLine(1.8, 1.5, 2.8, 0, sCount / 6, 4, 5.2);
+      drawThickLine(2.8, 0, 1.8, -1.5, sCount / 6, 4, 5.2);
 
-      for (let i = symbolIndex; i < starCount; i++) {
+      for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 8 + Math.random() * 5;
-        targetPositions[i * 3] = Math.cos(a) * r;
-        targetPositions[i * 3 + 1] = Math.sin(a) * r;
-        targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 6;
+        const r = 8 + Math.random() * 15;
+        nextTargets[i * 3] = Math.cos(a) * r;
+        nextTargets[i * 3 + 1] = Math.sin(a) * r;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 10 - 5;
       }
     } else if (scene === 3) {
-      // Digital Marketing "PS" Symbol
-      tl.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, duration: 1.5, ease: "power3.inOut" });
-      tl.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
+      // Marketing: PS Symbol
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
 
-      const symbolStarCount = 1800;
-      // Drawing a thick "P"
-      drawThickLine(-3, 1.5, -3, -1.5, symbolStarCount / 6, -4, 5.2);
-      drawThickLine(-3, 1.5, -1.5, 1.5, symbolStarCount / 10, -4, 5.2);
-      drawThickLine(-1.5, 1.5, -1.5, 0, symbolStarCount / 10, -4, 5.2);
-      drawThickLine(-1.5, 0, -3, 0, symbolStarCount / 10, -4, 5.2);
-      
-      // Drawing a thick "S"
-      drawThickLine(3, 1.5, 1, 1.5, symbolStarCount / 10, -4, 5.2);
-      drawThickLine(1, 1.5, 1, 0, symbolStarCount / 10, -4, 5.2);
-      drawThickLine(1, 0, 3, 0, symbolStarCount / 10, -4, 5.2);
-      drawThickLine(3, 0, 3, -1.5, symbolStarCount / 10, -4, 5.2);
-      drawThickLine(3, -1.5, 1, -1.5, symbolStarCount / 10, -4, 5.2);
+      const sCount = 1800;
+      // P
+      drawThickLine(-3, 1.5, -3, -1.5, sCount / 6, -4, 5.2);
+      drawThickLine(-3, 1.5, -1.5, 1.5, sCount / 10, -4, 5.2);
+      drawThickLine(-1.5, 1.5, -1.5, 0, sCount / 10, -4, 5.2);
+      drawThickLine(-1.5, 0, -3, 0, sCount / 10, -4, 5.2);
+      // S
+      drawThickLine(3, 1.5, 1, 1.5, sCount / 10, -4, 5.2);
+      drawThickLine(1, 1.5, 1, 0, sCount / 10, -4, 5.2);
+      drawThickLine(1, 0, 3, 0, sCount / 10, -4, 5.2);
+      drawThickLine(3, 0, 3, -1.5, sCount / 10, -4, 5.2);
+      drawThickLine(3, -1.5, 1, -1.5, sCount / 10, -4, 5.2);
 
-      for (let i = symbolIndex; i < starCount; i++) {
+      for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 8 + Math.random() * 5;
-        targetPositions[i * 3] = Math.cos(a) * r;
-        targetPositions[i * 3 + 1] = Math.sin(a) * r;
-        targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 6;
+        const r = 8 + Math.random() * 20;
+        nextTargets[i * 3] = Math.cos(a) * r;
+        nextTargets[i * 3 + 1] = Math.sin(a) * r;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 10 - 5;
       }
     }
 
-    // Animate stars to new formation
-    for (let i = 0; i < starCount; i++) {
-      gsap.to(positions, {
-        [i * 3]: targetPositions[i * 3],
-        [i * 3 + 1]: targetPositions[i * 3 + 1],
-        [i * 3 + 2]: targetPositions[i * 3 + 2],
-        duration: 1.5,
-        ease: "power3.inOut",
-        onUpdate: () => {
-          if (starsRef.current) starsRef.current.geometry.attributes.position.needsUpdate = true;
-        },
-        onComplete: () => {
-          if (i === starCount - 1) basePositionsRef.current = new Float32Array(targetPositions);
-        }
-      });
-    }
+    targetPositionsRef.current.set(nextTargets);
+    transitionRef.current.progress = 0;
+    gsap.to(transitionRef.current, { progress: 1, duration: 1.5, ease: "power3.inOut" });
 
   }, [scene]);
 
