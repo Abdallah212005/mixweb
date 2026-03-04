@@ -86,15 +86,6 @@ export default function Page() {
             className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[55%] pointer-events-none"
           >
             <div className="flex flex-col items-start gap-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2, duration: 0.8 }}
-                className="text-7xl font-black text-white glow-text mb-4 tracking-widest"
-              >
-                &lt;/&gt;
-              </motion.div>
-              
               <motion.div 
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -134,8 +125,8 @@ export default function Page() {
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-code text-white/40">STACK: NEXT.JS 15 / THREE.JS</p>
-                <p className="text-[10px] font-code text-white/40">DENSITY: 3000 STARS</p>
-                <p className="text-[10px] font-code text-white/40">RENDER: CINEMATIC SHADER</p>
+                <p className="text-[10px] font-code text-white/40">DENSITY: 2500 STARS</p>
+                <p className="text-[10px] font-code text-white/40">MORPH: PERFECT SYMBOL</p>
               </div>
             </motion.div>
           </motion.div>

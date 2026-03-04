@@ -136,8 +136,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     atmosphereRef.current = atmosphere;
     scene.add(atmosphere);
 
-    // ===== STAR SYSTEM (3000 STARS) =====
-    const starCount = 3000;
+    // ===== STAR SYSTEM (2500 STARS) =====
+    const starCount = 2500;
     const starGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(starCount * 3);
 
@@ -151,20 +151,10 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
 
     starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     
-    const starCanvas = document.createElement("canvas");
-    starCanvas.width = 64;
-    starCanvas.height = 64;
-    const ctx = starCanvas.getContext("2d");
-    if (ctx) {
-      ctx.beginPath();
-      ctx.arc(32, 32, 30, 0, Math.PI * 2);
-      ctx.fillStyle = "white";
-      ctx.fill();
-    }
-    const starTexture = new THREE.CanvasTexture(starCanvas);
+    const starTex = loader.load("https://threejs.org/examples/textures/sprites/disc.png");
 
     const starMaterial = new THREE.PointsMaterial({
-      map: starTexture,
+      map: starTex,
       color: 0xffffff,
       size: 0.08,
       transparent: true,
@@ -210,7 +200,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     };
   }, []);
 
-  // ===== HANDLE TRANSITION (3000 STAR MORPHING) =====
+  // ===== HANDLE TRANSITION (PERFECT SYMBOL MORPHING) =====
   useEffect(() => {
     if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
       triggeredRef.current = true;
@@ -242,40 +232,35 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         ease: "power2.inOut"
       });
 
-      const starCount = 3000;
+      const starCount = 2500;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
+      // ==== DRAW PERFECT </> SHAPE ====
+      const shape = new THREE.Shape();
+      // <
+      shape.moveTo(-2, 1.5);
+      shape.lineTo(-3, 0);
+      shape.lineTo(-2, -1.5);
+      // /
+      shape.moveTo(-0.5, 1.5);
+      shape.lineTo(0.5, -1.5);
+      // >
+      shape.moveTo(2, 1.5);
+      shape.lineTo(3, 0);
+      shape.lineTo(2, -1.5);
+
+      const points = shape.getSpacedPoints(starCount - 1);
+      const centerX = 4.5; 
+      const centerY = 2.2; 
+
       function spread(v: number) {
-        return v + (Math.random() - 0.5) * 0.06;
+        return v + (Math.random() - 0.5) * 0.08;
       }
 
       for (let i = 0; i < starCount; i++) {
-        let line = i % 3;
-        let t = (i / starCount) * 1.2;
-
-        let targetX = 0;
-        let targetY = 0;
-        let targetZ = 0;
-
-        const centerX = 4.5; // Offset for symbols
-        const centerY = 1.8; // Vertical align with title
-
-        if (line === 0) {
-          // <
-          targetX = -1.2 + t * 0.8;
-          targetY = 1 - t * 1.5;
-        } else if (line === 1) {
-          // /
-          targetX = -0.2 + t * 0.6;
-          targetY = 1 - t * 2;
-        } else {
-          // >
-          targetX = 1.2 - t * 0.8;
-          targetY = -1 + t * 1.5;
-        }
-
-        targetX = spread(targetX) + centerX;
-        targetY = spread(targetY) + centerY;
+        const targetX = spread(points[i].x) + centerX;
+        const targetY = spread(points[i].y) + centerY;
+        const targetZ = 0;
 
         gsap.to(positions, {
           [i * 3]: targetX,
