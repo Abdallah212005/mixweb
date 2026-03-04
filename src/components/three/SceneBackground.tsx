@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -89,6 +90,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     atmosphere.scale.set(0, 0, 0);
     sceneThree.add(atmosphere);
 
+    // Initial Planet Entrance
     gsap.to([planet.scale, atmosphere.scale], {
       x: 1,
       y: 1,
@@ -98,6 +100,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       delay: 0.5
     });
 
+    // Star Texture Generation
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64; starCanvas.height = 64;
     const ctx = starCanvas.getContext("2d");
@@ -128,7 +131,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       transparent: true,
-      size: 0.12,
+      size: 0.15,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       opacity: 0
@@ -178,6 +181,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
           let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
           let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
 
+          // Mouse Repulsion
           const dx = baseX - mouse3D.x;
           const dy = baseY - mouse3D.y;
           const dz = baseZ - mouse3D.z;
