@@ -27,29 +27,30 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
-    // Cinematic Tone Mapping
+    // 🎬 Cinematic Tone Mapping - Darker Style
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 0.9;
     
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    // Sun Light
-    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
-    sun.position.set(8, 4, 6);
+    // Sun (Main Light)
+    const sun = new THREE.DirectionalLight(0xffffff, 2.0);
+    sun.position.set(7, 3, 6);
     scene.add(sun);
 
-    // Purple Rim
-    const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.4);
-    purpleRim.position.set(-10, -3, -6);
+    // Purple Rim Light
+    const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.2);
+    purpleRim.position.set(-10, -4, -6);
     scene.add(purpleRim);
 
-    // Fill Light
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    // Subtle Fill Light
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.18);
     fillLight.position.set(0, 0, 10);
     scene.add(fillLight);
 
-    const ambient = new THREE.AmbientLight(0x111111);
+    // Deep Ambient Light
+    const ambient = new THREE.AmbientLight(0x080808);
     scene.add(ambient);
 
     // ===== TEXTURES =====
@@ -65,8 +66,8 @@ export const SceneBackground: React.FC = () => {
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
-      bumpScale: 0.5,
-      roughness: 0.85,
+      bumpScale: 0.6, // More texture
+      roughness: 0.9,
       metalness: 0.05,
     });
 
@@ -76,12 +77,12 @@ export const SceneBackground: React.FC = () => {
         `
         float brightness = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
 
-        // Contrast boost
-        gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.92));
+        // Deepen Contrast
+        gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.1));
 
-        // Subtle purple in shadows
+        // Subtle Purple in Shadows Only
         vec3 purple = vec3(0.4, 0.15, 0.65);
-        gl_FragColor.rgb += purple * (1.0 - brightness) * 0.18;
+        gl_FragColor.rgb += purple * (1.0 - brightness) * 0.22;
 
         #include <dithering_fragment>
         `
@@ -106,7 +107,8 @@ export const SceneBackground: React.FC = () => {
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+          // Tighter intensity for cinematic feel
+          float intensity = pow(0.75 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.2);
           gl_FragColor = vec4(0.6, 0.2, 1.0, 1.0) * intensity;
         }
       `,
@@ -116,7 +118,7 @@ export const SceneBackground: React.FC = () => {
     });
 
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(7.3, 128, 128),
+      new THREE.SphereGeometry(7.4, 128, 128),
       atmosphereMaterial
     );
     scene.add(atmosphere);
@@ -125,8 +127,8 @@ export const SceneBackground: React.FC = () => {
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      planet.rotation.y += 0.002;
-      atmosphere.rotation.y += 0.002;
+      planet.rotation.y += 0.0018;
+      atmosphere.rotation.y += 0.0018;
       renderer.render(scene, camera);
     };
     animate();

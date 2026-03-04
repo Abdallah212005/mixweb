@@ -14,11 +14,11 @@ export default function Page() {
     <main className="relative bg-black w-full h-screen overflow-hidden">
       <SceneBackground />
       
-      {/* HUD Overlay Clean Starting Point */}
-      <div className="fixed inset-0 pointer-events-none z-10 flex items-center justify-center">
+      {/* 🚀 Simple HUD - Starting from a clean slate */}
+      <div className="fixed inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
         <div className="text-center">
-          <p className="font-code text-[10px] text-accent/40 uppercase tracking-[0.8em] animate-pulse">
-            AuraForge Core Online
+          <p className="font-code text-[10px] text-accent/30 uppercase tracking-[0.8em] animate-pulse">
+            AuraForge Command Console
           </p>
         </div>
       </div>
