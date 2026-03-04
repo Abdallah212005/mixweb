@@ -18,8 +18,10 @@ export const SceneBackground: React.FC = () => {
       0.1,
       1000
     );
-    // مسافة سينمائية تعطي عمقاً للمشهد
-    camera.position.z = 14;
+    
+    // 🎥 Cinematic Camera Distance
+    const distance = 22;
+    camera.position.set(0, 0, distance);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -40,7 +42,7 @@ export const SceneBackground: React.FC = () => {
     purpleSun.position.set(8, 4, 6);
     scene.add(purpleSun);
 
-    // Purple Rim Light (لإبراز الحواف)
+    // Purple Rim Light
     const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.8);
     purpleRim.position.set(-10, -5, -6);
     scene.add(purpleRim);
@@ -67,14 +69,14 @@ export const SceneBackground: React.FC = () => {
       metalness: 0.02,
     });
 
-    // 🎨 Advanced Shader: فصل البحر عن اليابسة + نظام الظلال
+    // 🎨 Advanced Shader: فصل البحر عن اليابسة + نظام الظلال السينمائي
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
         vec3 baseColor = gl_FragColor.rgb;
 
-        // 👇 حساب اتجاه وقوة الإضاءة الساقطة
+        // 👇 حساب اتجاه وقوة الإضاءة الساقطة لمناطق الظل
         float lightPower = dot(normalize(vNormal), normalize(vec3(8.0, 4.0, 6.0)));
         lightPower = clamp(lightPower, 0.0, 1.0);
 
