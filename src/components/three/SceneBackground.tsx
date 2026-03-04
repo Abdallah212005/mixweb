@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -61,6 +60,21 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     const bumpMap = loader.load(
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
+
+    // ===== STAR GLOW TEXTURE =====
+    const starCanvas = document.createElement("canvas");
+    starCanvas.width = 64;
+    starCanvas.height = 64;
+    const ctx = starCanvas.getContext("2d");
+    if (ctx) {
+      const gradient = ctx.createRadialGradient(32, 32, 2, 32, 32, 32);
+      gradient.addColorStop(0, "white");
+      gradient.addColorStop(0.3, "#d8b4fe");
+      gradient.addColorStop(1, "transparent");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 64, 64);
+    }
+    const starTexture = new THREE.CanvasTexture(starCanvas);
 
     // ===== PLANET MATERIAL (Custom Shader) =====
     const planetMaterial = new THREE.MeshStandardMaterial({
@@ -151,14 +165,10 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
 
     starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     
-    const starTex = loader.load("https://threejs.org/examples/textures/sprites/disc.png");
-
     const starMaterial = new THREE.PointsMaterial({
-      map: starTex,
-      color: 0xffffff,
-      size: 0.07,
+      map: starTexture,
       transparent: true,
-      opacity: 0.8,
+      size: 0.15,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -171,11 +181,16 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      if (!triggeredRef.current) {
-        planet.rotation.y += 0.0015;
-        atmosphere.rotation.y += 0.0015;
-        stars.rotation.y += 0.004;
+      
+      // Continuous planet rotation
+      if (planetRef.current) planetRef.current.rotation.y += 0.0015;
+      if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.0015;
+      
+      // Rotate stars only if not transitioned
+      if (!triggeredRef.current && starsRef.current) {
+        starsRef.current.rotation.y += 0.004;
       }
+      
       renderer.render(scene, camera);
     };
     animate();
@@ -200,12 +215,13 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     };
   }, []);
 
-  // ===== HANDLE TRANSITION (PERFECT SYMBOL MORPHING) =====
+  // ===== HANDLE TRANSITION (PRECISION SYMBOL MORPHING) =====
   useEffect(() => {
     if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
       triggeredRef.current = true;
       const tl = gsap.timeline();
       
+      // Planet movement
       tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
         y: planetRef.current.rotation.y + Math.PI * 4,
         duration: 1.2,
@@ -226,6 +242,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         ease: "power2.inOut"
       }, 0);
 
+      // Stop star rotation and morph
       gsap.to(starsRef.current.rotation, {
         y: 0,
         duration: 1,
@@ -235,23 +252,23 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       const starCount = 6000;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
-      // ==== DRAW PERFECT </> SHAPE WITH DOTS ====
+      // ==== DEFINE PRECISE </> SHAPE ====
       const shape = new THREE.Shape();
       // <
-      shape.moveTo(-2.6, 1.8);
+      shape.moveTo(-2.5, 1.8);
       shape.lineTo(-3.8, 0);
-      shape.lineTo(-2.6, -1.8);
+      shape.lineTo(-2.5, -1.8);
       // /
-      shape.moveTo(-0.8, 1.8);
-      shape.lineTo(0.8, -1.8);
+      shape.moveTo(-0.6, 1.8);
+      shape.lineTo(0.6, -1.8);
       // >
-      shape.moveTo(2.6, 1.8);
+      shape.moveTo(2.5, 1.8);
       shape.lineTo(3.8, 0);
-      shape.lineTo(2.6, -1.8);
+      shape.lineTo(2.5, -1.8);
 
       const points = shape.getSpacedPoints(starCount - 1);
       const centerX = 4.5; 
-      const centerY = 3.5; 
+      const centerY = 4.5; 
 
       function spread(v: number) {
         return v + (Math.random() - 0.5) * 0.08;

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -90,7 +89,7 @@ export default function Page() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1.2, duration: 1 }}
-                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-2"
+                className="text-6xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-4"
               >
                 WEB DEVELOPMENT
               </motion.div>
