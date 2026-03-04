@@ -10,24 +10,15 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll();
-
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 15,
-    damping: 40,
-    restDelta: 0.001
-  });
-
-  const cameraZ = useTransform(smoothProgress, [0, 0.35, 0.65, 0.85, 1], [40, 15, 6, 2.5, 2.0]);
-  const cameraY = useTransform(smoothProgress, [0, 0.35, 0.65, 0.85, 1], [10, 4, 1.5, 0.5, 0.3]);
-  const cameraX = useTransform(smoothProgress, [0.7, 0.85, 1], [0, 1.5, 0]); 
   
-  const planetOpacity = useTransform(smoothProgress, [0.5, 0.75], [1, 0]);
-  const planetScale = useTransform(smoothProgress, [0, 0.75], [1.8, 12]);
-  const cityOpacity = useTransform(smoothProgress, [0.6, 0.85], [0, 1]);
-  const cityY = useTransform(smoothProgress, [0.65, 0.95], [400, 0]);
+  // Static state for now since we are on the first slide
+  const cameraZ = 40;
+  const cameraY = 10;
+  const cameraX = 0;
   
-  const starOpacity = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 0.65, 1], [0.8, 0.8, 0, 0, 0.1, 0.1]);
+  const planetOpacity = 1;
+  const planetScale = 1.8;
+  const starOpacity = 0.8;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -74,7 +65,7 @@ export const SceneBackground: React.FC = () => {
       size: 1.5, 
       vertexColors: true, 
       transparent: true, 
-      opacity: 0.6, 
+      opacity: starOpacity, 
       blending: THREE.AdditiveBlending 
     });
     const stars = new THREE.Points(starGeometry, starMaterial);
@@ -95,7 +86,7 @@ export const SceneBackground: React.FC = () => {
       });
 
       planetMat.onBeforeCompile = (shader) => {
-        shader.uniforms.uOpacity = { value: 1.0 };
+        shader.uniforms.uOpacity = { value: planetOpacity };
         shader.fragmentShader = `uniform float uOpacity;\n${shader.fragmentShader}`;
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <map_fragment>',
@@ -124,7 +115,7 @@ export const SceneBackground: React.FC = () => {
       const atmoMat = new THREE.ShaderMaterial({
         uniforms: { 
           glowColor: { value: new THREE.Color("#C41BFD") }, 
-          uOpacity: { value: 1.0 },
+          uOpacity: { value: planetOpacity },
           sunDirection: { value: new THREE.Vector3(1.0, 0.25, 0.5).normalize() }
         },
         vertexShader: `
@@ -166,21 +157,6 @@ export const SceneBackground: React.FC = () => {
     sunMesh.position.set(1000, 250, 500);
     scene.add(sunMesh);
 
-    const cityGroup = new THREE.Group();
-    scene.add(cityGroup);
-    const buildingMat = new THREE.MeshStandardMaterial({ color: 0x020205, metalness: 0.9, roughness: 0.1, transparent: true });
-    const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-    for (let i = -1500; i <= 1500; i += 250) {
-      for (let j = -1500; j <= 1500; j += 250) {
-        const d = Math.sqrt(i * i + j * j);
-        const h = 200 + (1500 - d) / 2 + Math.random() * 300;
-        const b = new THREE.Mesh(boxGeo, buildingMat);
-        b.scale.set(30 + Math.random() * 40, h, 30 + Math.random() * 40);
-        b.position.set(i, h / 2 - 150, j);
-        cityGroup.add(b);
-      }
-    }
-
     const sunLight = new THREE.DirectionalLight(0xffffff, 4.0);
     sunLight.position.set(400, 100, 200); 
     scene.add(sunLight);
@@ -191,29 +167,14 @@ export const SceneBackground: React.FC = () => {
     const animate = () => {
       requestAnimationFrame(animate);
       
-      camera.position.set(cameraX.get(), cameraY.get(), cameraZ.get());
-      const p = smoothProgress.get();
-      camera.lookAt(0, (p < 0.6) ? 0 : -0.25, (p > 0.75) ? 0.5 : 0);
+      camera.position.set(cameraX, cameraY, cameraZ);
+      camera.lookAt(0, 0, 0);
 
       if (planetGroup) {
         planetGroup.rotation.y += 0.0015;
-        planetGroup.scale.set(planetScale.get(), planetScale.get(), planetScale.get());
-        
-        const pMat = planetGroup.userData.planetMat;
-        const aMat = planetGroup.userData.atmoMat;
-        
-        if (pMat && pMat.userData.shader) {
-          pMat.userData.shader.uniforms.uOpacity.value = planetOpacity.get();
-        }
-        if (aMat) {
-          aMat.uniforms.uOpacity.value = planetOpacity.get();
-        }
+        planetGroup.scale.set(planetScale, planetScale, planetScale);
       }
       
-      cityGroup.position.y = cityY.get();
-      buildingMat.opacity = cityOpacity.get();
-      starMaterial.opacity = starOpacity.get();
-
       composer.render();
     };
 
@@ -233,7 +194,7 @@ export const SceneBackground: React.FC = () => {
       renderer.dispose();
       composer.dispose();
     };
-  }, [cameraZ, cameraY, cameraX, planetOpacity, planetScale, cityOpacity, cityY, starOpacity, smoothProgress]);
+  }, []);
 
   return <div ref={containerRef} className="fixed inset-0 z-0 pointer-events-none" />;
 };
