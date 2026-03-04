@@ -273,18 +273,18 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       shape.lineTo(gap + 0.8, 0);
       shape.lineTo(gap, -size);
 
-      const points = shape.getSpacedPoints(starCount - 1);
+      // Use fewer points for a spaced, dotted look
+      const symbolPoints = shape.getSpacedPoints(900); 
       const centerX = 4.0; 
       const centerY = 5.2; 
 
-      function spread(v: number) {
-        return v + (Math.random() - 0.5) * 0.06;
-      }
-
       for (let i = 0; i < starCount; i++) {
-        const targetX = spread(points[i].x) + centerX;
-        const targetY = spread(points[i].y) + centerY;
-        const targetZ = 0;
+        const p = symbolPoints[i % symbolPoints.length];
+        
+        const targetX = p.x + centerX;
+        const targetY = p.y + centerY;
+        // Simple depth variation for a stellar feel
+        const targetZ = (Math.random() - 0.5) * 0.05;
 
         gsap.to(positions, {
           [i * 3]: targetX,
