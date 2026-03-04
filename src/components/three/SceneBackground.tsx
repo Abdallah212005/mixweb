@@ -21,7 +21,7 @@ export const SceneBackground: React.FC = () => {
       0.1,
       1000
     );
-    camera.position.set(0, 0, 18);
+    camera.position.set(0, 0, 15);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -31,21 +31,23 @@ export const SceneBackground: React.FC = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
-    // ================= LIGHTING (واقعي) =================
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    sunLight.position.set(15, 10, 10);
+    // ================= LIGHTING (High Reality) =================
+    // Sun light from the side
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    sunLight.position.set(10, 5, 5);
     scene.add(sunLight);
 
-    const ambient = new THREE.AmbientLight(0x222222);
+    // Subtle ambient light for dark side visibility
+    const ambient = new THREE.AmbientLight(0x404040);
     scene.add(ambient);
 
-    // ================= PLANET =================
+    // ================= REAL EARTH =================
     const textureLoader = new THREE.TextureLoader();
     const earthTexture = textureLoader.load(
-      "https://threejsfundamentals.org/threejs/resources/images/earth-day.jpg"
+      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
     );
 
-    const planetGeo = new THREE.SphereGeometry(6, 64, 64);
+    const planetGeo = new THREE.SphereGeometry(5, 64, 64);
     const planetMat = new THREE.MeshStandardMaterial({
       map: earthTexture,
       roughness: 1,
@@ -55,14 +57,14 @@ export const SceneBackground: React.FC = () => {
     const planet = new THREE.Mesh(planetGeo, planetMat);
     scene.add(planet);
 
-    // ================= DUST PARTICLES =================
+    // ================= DUST PARTICLES (Magnetic Interaction) =================
     const count = 1500;
     const dustGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
     const basePositions: THREE.Vector3[] = [];
 
     for (let i = 0; i < count; i++) {
-      const r = 8 + Math.random() * 4;
+      const r = 7 + Math.random() * 5;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
@@ -81,9 +83,9 @@ export const SceneBackground: React.FC = () => {
 
     const dustMat = new THREE.PointsMaterial({
       color: 0xffffff,
-      size: 0.05,
+      size: 0.04,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.6,
     });
 
     const dust = new THREE.Points(dustGeo, dustMat);
@@ -102,16 +104,16 @@ export const SceneBackground: React.FC = () => {
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
-      planet.rotation.y += 0.0015;
+      planet.rotation.y += 0.002;
       dust.rotation.y += 0.0005;
 
       const posAttribute = dustGeo.attributes.position;
       const positionsArray = posAttribute.array as Float32Array;
 
-      // تحويل الماوس لنقطة ثلاثية الأبعاد تقريبية للتفاعل
+      // Approximate 3D point from mouse
       const mouse3D = new THREE.Vector3(
-        mouse.current.x * 8,
-        mouse.current.y * 5,
+        mouse.current.x * 10,
+        mouse.current.y * 7,
         0
       );
 
@@ -127,12 +129,12 @@ export const SceneBackground: React.FC = () => {
 
         const dist = currentPos.distanceTo(mouse3D);
 
-        if (dist < 3) {
-          // جذب طبيعي خفيف
-          currentPos.lerp(mouse3D, 0.03);
+        if (dist < 4) {
+          // Magnetic pull
+          currentPos.lerp(mouse3D, 0.04);
         } else {
-          // رجوع هادي
-          currentPos.lerp(base, 0.01);
+          // Gentle return
+          currentPos.lerp(base, 0.015);
         }
 
         positionsArray[index] = currentPos.x;

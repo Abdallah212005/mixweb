@@ -12,13 +12,13 @@ const SceneBackground = dynamic(
 export default function Page() {
   return (
     <main className="relative bg-black w-full h-screen overflow-hidden">
-      {/* Realistic Earth Scene */}
+      {/* Real Earth Scene */}
       <SceneBackground />
       
-      {/* Overlay for interaction hint */}
+      {/* Minimalist Overlay */}
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-10 pointer-events-none opacity-20">
         <p className="font-code text-[10px] text-white uppercase tracking-[0.4em]">
-          Orbital Dust Active • Move Mouse to Interact
+          Orbital Dust Active • Interactive Core
         </p>
       </div>
     </main>
