@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Cpu } from "lucide-react";
+import { ChevronDown, Cpu, Code } from "lucide-react";
 
 const SceneBackground = dynamic(
   () => import("@/components/three/SceneBackground").then((mod) => mod.SceneBackground),
@@ -83,42 +83,59 @@ export default function Page() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
+            className="fixed inset-0 z-10 flex flex-col items-start justify-center pl-[55%] pointer-events-none"
           >
-            <div className="flex flex-col items-center gap-2 mt-[45vh]">
+            <div className="flex flex-col items-start gap-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.2, duration: 0.8 }}
+                className="text-6xl font-black text-white/90 tracking-[0.2em] glow-text mb-4"
+              >
+                &lt;/&gt;
+              </motion.div>
+              
               <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 1.2, duration: 1 }}
-                className="text-[48px] font-black tracking-[0.3em] text-gradient uppercase glow-purple text-center"
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 1.4, duration: 1 }}
+                className="text-[48px] font-black tracking-[0.2em] text-gradient uppercase glow-purple"
               >
                 WEB DEVELOPMENT
               </motion.div>
+              
               <motion.p
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                transition={{ delay: 1.8, duration: 1 }}
-                className="max-w-md text-center text-[11px] font-code text-white uppercase tracking-[0.8em] mt-4"
+                animate={{ opacity: 0.6 }}
+                transition={{ delay: 2, duration: 1 }}
+                className="max-w-md text-left text-[11px] font-code text-white uppercase tracking-[0.6em] mt-2"
               >
-                Architecture built for digital dominance
+                Architecting digital empires with precision code and futuristic aesthetics.
               </motion.p>
+
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 2.2, duration: 0.8 }}
+                className="h-1 w-32 bg-accent mt-4 origin-left shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+              />
             </div>
 
             {/* Side Analytics HUD */}
             <motion.div
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 2.2, duration: 1 }}
+              transition={{ delay: 2.5, duration: 1 }}
               className="fixed bottom-12 right-12 p-8 border-r-2 border-accent/20 bg-black/40 backdrop-blur-xl"
             >
               <div className="flex items-center gap-4 mb-4">
-                <Cpu size={16} className="text-accent animate-pulse" />
-                <span className="text-[10px] font-code text-accent uppercase tracking-[0.3em]">Core Status</span>
+                <Code size={16} className="text-accent animate-pulse" />
+                <span className="text-[10px] font-code text-accent uppercase tracking-[0.3em]">Codebase Alpha</span>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-code text-white/40">LATENCY: 0.04ms</p>
-                <p className="text-[10px] font-code text-white/40">BANDWIDTH: MAX</p>
-                <p className="text-[10px] font-code text-white/40">INTEGRITY: 100%</p>
+                <p className="text-[10px] font-code text-white/40">STACK: NEXT.JS 15 / THREE.JS</p>
+                <p className="text-[10px] font-code text-white/40">DENSITY: 3000 STARS</p>
+                <p className="text-[10px] font-code text-white/40">RENDER: CINEMATIC SHADER</p>
               </div>
             </motion.div>
           </motion.div>

@@ -144,8 +144,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     atmosphereRef.current = atmosphere;
     scene.add(atmosphere);
 
-    // ===== STAR RING (Particle System) =====
-    const starCount = 1000;
+    // ===== STAR SYSTEM (3000 STARS) =====
+    const starCount = 3000;
     const starGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(starCount * 3);
 
@@ -174,7 +174,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       color: 0xffffff,
-      size: 0.12,
+      size: 0.08,
       transparent: true,
       opacity: 0.8,
       blending: THREE.AdditiveBlending,
@@ -218,7 +218,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     };
   }, []);
 
-  // ===== HANDLE TRANSITION (GSAP MORPHING) =====
+  // ===== HANDLE TRANSITION (3000 STAR MORPHING) =====
   useEffect(() => {
     if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
       const tl = gsap.timeline();
@@ -249,54 +249,42 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         ease: "power2.inOut"
       });
 
-      const starCount = 1000;
+      const starCount = 3000;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
       function spread(v: number) {
-        return v + (Math.random() - 0.5) * 0.06;
+        return v + (Math.random() - 0.5) * 0.08;
       }
 
       for (let i = 0; i < starCount; i++) {
-        let t = i / starCount;
+        const section = i % 3;
+        const progress = (i / starCount) * 3; // normalized progress within the count
+
         let targetX = 0;
         let targetY = 0;
         let targetZ = 0;
 
-        const centerY = 2.2;
+        const offsetX = 4.5; // shift to the right side of the planet
 
-        if (t < 0.33) {
+        if (section === 0) {
           // <
-          let p = t / 0.33;
-          if (p < 0.5) {
-            let pp = p * 2;
-            targetX = -2 + pp * 1.2;
-            targetY = 1 - pp * 1;
-          } else {
-            let pp = (p - 0.5) * 2;
-            targetX = -0.8 - pp * 1.2;
-            targetY = 0 - pp * 1;
-          }
-        } else if (t < 0.66) {
+          const p = (i / starCount) * 3; // progress for this section (approx 0-1)
+          targetX = -1.2 + Math.sin(p * Math.PI) * 0.6;
+          targetY = Math.cos(p * Math.PI) * 1.2;
+        } else if (section === 1) {
           // /
-          let p = (t - 0.33) / 0.33;
+          const p = ((i - 1) / starCount) * 3 - 1; 
           targetX = -0.2 + p * 0.8;
-          targetY = 1 - p * 2;
+          targetY = 1.2 - p * 2.4;
         } else {
           // >
-          let p = (t - 0.66) / 0.34;
-          if (p < 0.5) {
-            let pp = p * 2;
-            targetX = 0.8 + pp * 1.2;
-            targetY = -1 + pp * 1;
-          } else {
-            let pp = (p - 0.5) * 2;
-            targetX = 2 - pp * 1.2;
-            targetY = 0 + pp * 1;
-          }
+          const p = ((i - 2) / starCount) * 3 - 2;
+          targetX = 1.2 - Math.sin(p * Math.PI) * 0.6;
+          targetY = Math.cos(p * Math.PI) * 1.2;
         }
 
-        targetX = spread(targetX);
-        targetY = spread(targetY) + centerY;
+        targetX = spread(targetX) + offsetX;
+        targetY = spread(targetY);
 
         gsap.to(positions, {
           [i * 3]: targetX,
