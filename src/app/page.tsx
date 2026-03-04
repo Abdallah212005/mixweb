@@ -4,10 +4,14 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Zap, ShieldCheck, Cpu } from "lucide-react";
+import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Zap, ShieldCheck, Cpu, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useFirebase } from "@/firebase";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { doc, collection } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 const SceneBackground = dynamic(
   () => import("@/components/three/SceneBackground").then((mod) => mod.SceneBackground),
@@ -19,6 +23,12 @@ export default function Page() {
   const [scene, setScene] = useState(1);
   const totalScenes = 4;
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { toast } = useToast();
+  const { firestore } = useFirebase();
+
+  // Form State
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [isSending, setIsSending] = useState(false);
   
   // Refs for touch navigation
   const touchStartRef = useRef<number | null>(null);
@@ -71,26 +81,19 @@ export default function Page() {
       }
     };
 
-    // Touch handlers for mobile swipe
     const handleTouchStart = (e: TouchEvent) => {
       touchStartRef.current = e.touches[0].clientY;
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
       if (touchStartRef.current === null) return;
-      
       const touchEnd = e.changedTouches[0].clientY;
       const diff = touchStartRef.current - touchEnd;
-      const threshold = 50; // Minimum distance for swipe
-
+      const threshold = 50;
       if (Math.abs(diff) > threshold) {
-        if (diff > 0) {
-          handleNext();
-        } else {
-          handlePrev();
-        }
+        if (diff > 0) handleNext();
+        else handlePrev();
       }
-      
       touchStartRef.current = null;
     };
 
@@ -107,13 +110,49 @@ export default function Page() {
     };
   }, [handleNext, handlePrev, mounted]);
 
+  const handleSendTransmission = () => {
+    if (!formData.name || !formData.email || !formData.message) {
+      toast({
+        variant: "destructive",
+        title: "Incomplete Data",
+        description: "Please fill all required fields to initiate transmission.",
+      });
+      return;
+    }
+
+    setIsSending(true);
+    const submissionId = doc(collection(firestore, "contactSubmissions")).id;
+    
+    setDocumentNonBlocking(
+      doc(firestore, "contactSubmissions", submissionId),
+      {
+        id: submissionId,
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        status: "new",
+        submissionDateTime: new Date().toISOString()
+      },
+      { merge: true }
+    );
+
+    // Simulate feedback delay for aesthetic purposes
+    setTimeout(() => {
+      setIsSending(false);
+      setFormData({ name: "", email: "", message: "" });
+      toast({
+        title: "Transmission Successful",
+        description: "Your message has been encrypted and sent to the command center.",
+      });
+    }, 1000);
+  };
+
   if (!mounted) return null;
 
   return (
     <main className="relative bg-black w-full h-screen overflow-hidden font-body">
       <SceneBackground scene={scene} />
       
-      {/* 🚀 HUD Layer 1: Professional Intro */}
       <AnimatePresence mode="wait">
         {scene === 1 && (
           <motion.div 
@@ -123,7 +162,6 @@ export default function Page() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none p-4 md:p-10"
           >
-            {/* Top Left: System Status */}
             <div className="absolute top-6 left-6 md:top-10 md:left-10 flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
@@ -132,14 +170,12 @@ export default function Page() {
               <span className="text-[6px] md:text-[8px] font-code text-white/30 uppercase tracking-[0.2em]">Auth: Secure_Admin</span>
             </div>
 
-            {/* Top Right: Coordinates */}
             <div className="absolute top-6 right-6 md:top-10 md:right-10 flex flex-col items-end gap-1 text-[6px] md:text-[8px] font-code text-white/30 uppercase tracking-[0.2em]">
               <span>LAT: 30.0444° N</span>
               <span>LON: 31.2357° E</span>
               <span className="text-accent/40 mt-1 hidden md:block">Status: Orbital_Sync</span>
             </div>
 
-            {/* Main Center Content */}
             <div className="relative text-center w-full px-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -181,7 +217,6 @@ export default function Page() {
               </motion.div>
             </div>
 
-            {/* Bottom: Scroll Indicator */}
             <motion.button
               onClick={handleNext}
               className="absolute bottom-10 left-1/2 -translate-x-1/2 pointer-events-auto flex flex-col items-center gap-2 text-white/30 hover:text-accent transition-all group"
@@ -195,7 +230,6 @@ export default function Page() {
         )}
       </AnimatePresence>
 
-      {/* 🚀 HUD Layer 2: Web Dev Reveal */}
       <AnimatePresence mode="wait">
         {scene === 2 && (
           <motion.div 
@@ -225,18 +259,12 @@ export default function Page() {
                 Architecting digital empires with precision code and futuristic aesthetics.
               </motion.p>
 
-              <motion.div
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ delay: 0.8, duration: 0.8 }}
-                className="h-1 w-24 md:w-40 bg-accent mt-6 origin-center md:origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]"
-              />
+              <div className="h-1 w-24 md:w-40 bg-accent mt-6 origin-center md:origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]" />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 🚀 HUD Layer 3: Digital Marketing Reveal */}
       <AnimatePresence mode="wait">
         {scene === 3 && (
           <motion.div 
@@ -266,18 +294,12 @@ export default function Page() {
                 Engineering virality and market dominance through data-driven campaigns.
               </motion.p>
 
-              <motion.div
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ delay: 0.8, duration: 0.8 }}
-                className="h-1 w-24 md:w-40 bg-accent mt-6 origin-center md:origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]"
-              />
+              <div className="h-1 w-24 md:w-40 bg-accent mt-6 origin-center md:origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]" />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 🚀 HUD Layer 4: Contact Reveal */}
       <AnimatePresence mode="wait">
         {scene === 4 && (
           <motion.div 
@@ -302,13 +324,32 @@ export default function Page() {
 
               <div className="w-full space-y-3 md:space-y-4 bg-black/40 backdrop-blur-3xl p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-accent/10 shadow-[0_0_50px_rgba(168,85,247,0.1)]">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                  <Input placeholder="AGENT NAME" className="bg-white/5 border-white/10 font-code text-[9px] md:text-[10px] h-10 md:h-12 rounded-xl focus:border-accent/50 focus:ring-accent/20" />
-                  <Input placeholder="SECURE EMAIL" className="bg-white/5 border-white/10 font-code text-[9px] md:text-[10px] h-10 md:h-12 rounded-xl focus:border-accent/50 focus:ring-accent/20" />
+                  <Input 
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="AGENT NAME" 
+                    className="bg-white/5 border-white/10 font-code text-[9px] md:text-[10px] h-10 md:h-12 rounded-xl focus:border-accent/50 focus:ring-accent/20" 
+                  />
+                  <Input 
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="SECURE EMAIL" 
+                    className="bg-white/5 border-white/10 font-code text-[9px] md:text-[10px] h-10 md:h-12 rounded-xl focus:border-accent/50 focus:ring-accent/20" 
+                  />
                 </div>
-                <Textarea placeholder="ENCRYPTED MESSAGE..." className="bg-white/5 border-white/10 font-code text-[9px] md:text-[10px] min-h-[100px] md:min-h-[120px] rounded-xl focus:border-accent/50 focus:ring-accent/20" />
-                <Button className="w-full bg-accent hover:bg-accent/80 text-black font-black tracking-[0.2em] md:tracking-[0.3em] h-10 md:h-12 rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                  <Send size={14} className="mr-2 md:w-4 md:h-4" />
-                  SEND TRANSMISSION
+                <Textarea 
+                  value={formData.message}
+                  onChange={(e) => setFormData({...formData, message: e.target.value})}
+                  placeholder="ENCRYPTED MESSAGE..." 
+                  className="bg-white/5 border-white/10 font-code text-[9px] md:text-[10px] min-h-[100px] md:min-h-[120px] rounded-xl focus:border-accent/50 focus:ring-accent/20" 
+                />
+                <Button 
+                  onClick={handleSendTransmission}
+                  disabled={isSending}
+                  className="w-full bg-accent hover:bg-accent/80 text-black font-black tracking-[0.2em] md:tracking-[0.3em] h-10 md:h-12 rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                >
+                  {isSending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} className="mr-2 md:w-4 md:h-4" />}
+                  {isSending ? "ENCRYPTING..." : "SEND TRANSMISSION"}
                 </Button>
               </div>
 
