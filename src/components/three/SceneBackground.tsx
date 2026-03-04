@@ -3,9 +3,16 @@
 
 import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
+import gsap from "gsap";
 
-export const SceneBackground: React.FC = () => {
+interface SceneBackgroundProps {
+  isTransitioned?: boolean;
+}
+
+export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const planetRef = useRef<THREE.Mesh | null>(null);
+  const atmosphereRef = useRef<THREE.Mesh | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -19,7 +26,6 @@ export const SceneBackground: React.FC = () => {
       1000
     );
     
-    // 🎥 Cinematic Camera Distance
     const distance = 20;
     camera.position.set(0, 0, distance);
 
@@ -29,25 +35,20 @@ export const SceneBackground: React.FC = () => {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
-    // 🎬 Cinematic Tone Mapping
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.9;
     
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    // 💜 Purple Sun (Main Light)
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
     purpleSun.position.set(8, 4, 6);
     scene.add(purpleSun);
 
-    // 💡 Fill Light (Details Light)
     const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
     fillLight.position.set(-5, 2, 5);
     scene.add(fillLight);
 
-    // Deep Ambient Light
     const ambient = new THREE.AmbientLight(0x111111);
     scene.add(ambient);
 
@@ -69,38 +70,26 @@ export const SceneBackground: React.FC = () => {
       metalness: 0.05,
     });
 
-    // 🎨 Advanced Shader: Enhanced Contrast & Shadow Logic
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
         vec3 baseColor = gl_FragColor.rgb;
-
-        // 👇 حساب الإضاءة (قوة الضوء الساقط)
         vec3 lightDir = normalize(vec3(8.0, 4.0, 6.0));
         float lightPower = dot(normalize(vNormal), lightDir);
         lightPower = clamp(lightPower, 0.0, 1.0);
 
-        // نحدد ماسك الظل (ظل أنعم)
         float shadowMask = smoothstep(0.0, 0.45, lightPower);
 
-        // ==== فصل المحيطات عن اليابسة ====
         float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
         oceanFactor = pow(oceanFactor, 2.0);
 
-        // 🌊 محيط فحمي
         vec3 oceanColor = vec3(0.07, 0.07, 0.09);
-
-        // 🏔 يابسة بنفسجي أوضح
         vec3 landColor = vec3(0.6, 0.18, 0.85);
 
-        // دمج ألوان المناطق المضيئة
         vec3 litColor = mix(landColor, oceanColor, oceanFactor);
-
-        // زيادة التباين (Contrast)
         litColor = pow(litColor, vec3(1.1));
 
-        // 👇 النتيجة النهائية: الظل ليس أسود مطلقاً لإظهار العمق
         vec3 finalColor = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
 
         gl_FragColor.rgb = finalColor;
@@ -114,6 +103,7 @@ export const SceneBackground: React.FC = () => {
       new THREE.SphereGeometry(6, 128, 128),
       planetMaterial
     );
+    planetRef.current = planet;
     scene.add(planet);
 
     // ===== ATMOSPHERE GLOW =====
@@ -141,14 +131,17 @@ export const SceneBackground: React.FC = () => {
       new THREE.SphereGeometry(6.5, 128, 128),
       atmosphereMaterial
     );
+    atmosphereRef.current = atmosphere;
     scene.add(atmosphere);
 
     // ===== ANIMATION =====
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      planet.rotation.y += 0.0015;
-      atmosphere.rotation.y += 0.0015;
+      if (!isTransitioned) {
+        planet.rotation.y += 0.0015;
+        atmosphere.rotation.y += 0.0015;
+      }
       renderer.render(scene, camera);
     };
     animate();
@@ -174,6 +167,33 @@ export const SceneBackground: React.FC = () => {
       atmosphere.geometry.dispose();
     };
   }, []);
+
+  // ===== HANDLE TRANSITION =====
+  useEffect(() => {
+    if (isTransitioned && planetRef.current && atmosphereRef.current) {
+      const tl = gsap.timeline();
+      
+      tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
+        y: planetRef.current.rotation.y + Math.PI * 4,
+        duration: 1.5,
+        ease: "power2.inOut"
+      });
+
+      tl.to([planetRef.current.scale, atmosphereRef.current.scale], {
+        x: 0.4,
+        y: 0.4,
+        z: 0.4,
+        duration: 1.5,
+        ease: "power2.inOut"
+      }, 0);
+
+      tl.to([planetRef.current.position, atmosphereRef.current.position], {
+        x: -12,
+        duration: 1.5,
+        ease: "power2.inOut"
+      }, 0);
+    }
+  }, [isTransitioned]);
 
   return <div ref={containerRef} className="fixed inset-0 z-0 bg-black" />;
 };
