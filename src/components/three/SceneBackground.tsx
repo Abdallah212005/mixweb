@@ -27,30 +27,25 @@ export const SceneBackground: React.FC = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
-    // 🎬 Cinematic Tone Mapping - Darker Style
+    // 🎬 Dark Cinematic Tone Mapping
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.9;
+    renderer.toneMappingExposure = 0.75;
     
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    // Sun (Main Light)
-    const sun = new THREE.DirectionalLight(0xffffff, 2.0);
-    sun.position.set(7, 3, 6);
-    scene.add(sun);
+    // Purple Sun (Main Light)
+    const purpleSun = new THREE.DirectionalLight(0xa855f7, 3.0);
+    purpleSun.position.set(8, 4, 6);
+    scene.add(purpleSun);
 
     // Purple Rim Light
-    const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.2);
-    purpleRim.position.set(-10, -4, -6);
+    const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.8);
+    purpleRim.position.set(-10, -5, -6);
     scene.add(purpleRim);
 
-    // Subtle Fill Light
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.18);
-    fillLight.position.set(0, 0, 10);
-    scene.add(fillLight);
-
     // Deep Ambient Light
-    const ambient = new THREE.AmbientLight(0x080808);
+    const ambient = new THREE.AmbientLight(0x050505);
     scene.add(ambient);
 
     // ===== TEXTURES =====
@@ -66,23 +61,32 @@ export const SceneBackground: React.FC = () => {
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
-      bumpScale: 0.6, // More texture
-      roughness: 0.9,
-      metalness: 0.05,
+      bumpScale: 0.7,
+      roughness: 0.95,
+      metalness: 0.02,
     });
 
+    // 🎨 Custom Shader: Separate Oceans and Land
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
-        float brightness = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+        vec3 color = gl_FragColor.rgb;
 
-        // Deepen Contrast
-        gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.1));
+        // Mask oceans based on blue channel dominance
+        float oceanMask = smoothstep(0.15, 0.35, color.b - color.r);
 
-        // Subtle Purple in Shadows Only
-        vec3 purple = vec3(0.4, 0.15, 0.65);
-        gl_FragColor.rgb += purple * (1.0 - brightness) * 0.22;
+        // Define colors
+        vec3 darkOcean = vec3(0.12, 0.12, 0.14);
+        vec3 purpleLand = vec3(0.35, 0.08, 0.55);
+
+        // Mix based on mask
+        vec3 finalColor = mix(purpleLand, darkOcean, oceanMask);
+
+        // Apply deeper contrast
+        finalColor = pow(finalColor, vec3(1.15));
+
+        gl_FragColor.rgb = finalColor;
 
         #include <dithering_fragment>
         `
@@ -107,9 +111,8 @@ export const SceneBackground: React.FC = () => {
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          // Tighter intensity for cinematic feel
-          float intensity = pow(0.75 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.2);
-          gl_FragColor = vec4(0.6, 0.2, 1.0, 1.0) * intensity;
+          float intensity = pow(0.8 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+          gl_FragColor = vec4(0.8, 0.3, 1.0, 1.0) * intensity;
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -118,7 +121,7 @@ export const SceneBackground: React.FC = () => {
     });
 
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(7.4, 128, 128),
+      new THREE.SphereGeometry(7.5, 128, 128),
       atmosphereMaterial
     );
     scene.add(atmosphere);
@@ -127,8 +130,8 @@ export const SceneBackground: React.FC = () => {
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      planet.rotation.y += 0.0018;
-      atmosphere.rotation.y += 0.0018;
+      planet.rotation.y += 0.0015;
+      atmosphere.rotation.y += 0.0015;
       renderer.render(scene, camera);
     };
     animate();
