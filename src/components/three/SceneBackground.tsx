@@ -15,7 +15,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   const atmosphereRef = useRef<THREE.Mesh | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
   
-  // Storage for star positions
   const startPositionsRef = useRef<Float32Array | null>(null);
   const targetPositionsRef = useRef<Float32Array | null>(null);
   const currentPositionsRef = useRef<Float32Array | null>(null);
@@ -37,18 +36,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     containerRef.current.appendChild(renderer.domElement);
 
-    // Lights
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
     purpleSun.position.set(8, 4, 6);
     sceneThree.add(purpleSun);
     sceneThree.add(new THREE.AmbientLight(0x111111));
 
-    // Planet
     const loader = new THREE.TextureLoader();
     const earthMap = loader.load("https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg");
     const planetMaterial = new THREE.MeshStandardMaterial({ map: earthMap, roughness: 0.9, metalness: 0.05 });
     
-    // Custom shader for purple tint
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
@@ -69,7 +65,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     planetRef.current = planet;
     sceneThree.add(planet);
 
-    // Atmosphere
     const atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
@@ -93,7 +88,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     atmosphereRef.current = atmosphere;
     sceneThree.add(atmosphere);
 
-    // Stars Setup
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64; starCanvas.height = 64;
     const ctx = starCanvas.getContext("2d");
@@ -110,7 +104,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const starGeometry = new THREE.BufferGeometry();
     const posArray = new Float32Array(starCount * 3);
     
-    // Initial Orbit Position
     for (let i = 0; i < starCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 9 + Math.random() * 2;
@@ -144,7 +137,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (planetRef.current) planetRef.current.rotation.y += 0.0015;
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.0015;
 
-      if (starsRef.current && startPositionsRef.current && targetPositionsRef.current && currentPositionsRef.current) {
+      if (starsRef.current && startPositionsRef.current && targetPositionsRef.current) {
         const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
         const start = startPositionsRef.current;
         const target = targetPositionsRef.current;
@@ -152,12 +145,26 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
+          
           // Interpolate between start and target
-          const baseX = start[ix] + (target[ix] - start[ix]) * p;
-          const baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
-          const baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
+          let baseX = start[ix] + (target[ix] - start[ix]) * p;
+          let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
+          let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
 
-          // Add breathing/wave animation
+          // Apply orbital rotation only if in scene 1
+          if (scene === 1) {
+            const orbitSpeed = 0.15;
+            const angle = timeRef.current * orbitSpeed;
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+            
+            const rotatedX = baseX * cosA - baseZ * sinA;
+            const rotatedZ = baseX * sinA + baseZ * cosA;
+            
+            baseX = rotatedX;
+            baseZ = rotatedZ;
+          }
+
           positions[ix] = baseX + Math.sin(timeRef.current * 0.5 + i * 0.1) * 0.05;
           positions[ix + 1] = baseY + Math.cos(timeRef.current * 0.4 + i * 0.15) * 0.05;
           positions[ix + 2] = baseZ + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
@@ -182,13 +189,12 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (containerRef.current) containerRef.current.removeChild(renderer.domElement);
       renderer.dispose();
     };
-  }, []);
+  }, [scene]);
 
   useEffect(() => {
     if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current) return;
 
-    // Prepare for transition
-    if (currentPositionsRef.current && startPositionsRef.current && starsRef.current) {
+    if (starsRef.current && startPositionsRef.current) {
       const currentAttr = starsRef.current.geometry.attributes.position.array as Float32Array;
       startPositionsRef.current.set(currentAttr);
     }
@@ -217,7 +223,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     }
 
     if (scene === 1) {
-      // Intro: Orbital Ring
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
 
@@ -229,7 +234,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = Math.sin(angle) * radius;
       }
     } else if (scene === 2) {
-      // Web Dev: </> Symbol
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: -6, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
 
@@ -242,13 +246,12 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 8 + Math.random() * 15;
+        const r = 8 + Math.random() * 20;
         nextTargets[i * 3] = Math.cos(a) * r;
         nextTargets[i * 3 + 1] = Math.sin(a) * r;
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 10 - 5;
       }
     } else if (scene === 3) {
-      // Marketing: PS Symbol
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
 
@@ -267,7 +270,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 8 + Math.random() * 20;
+        const r = 8 + Math.random() * 25;
         nextTargets[i * 3] = Math.cos(a) * r;
         nextTargets[i * 3 + 1] = Math.sin(a) * r;
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 10 - 5;
