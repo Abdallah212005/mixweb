@@ -232,6 +232,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const nextTargets = new Float32Array(starCount * 3);
     let index = 0;
     const thickness = 0.25;
+    const isMobile = window.innerWidth < 768;
 
     function drawThickLine(x1: number, y1: number, x2: number, y2: number, count: number, xOff: number, yOff: number) {
       for (let i = 0; i < count; i++) {
@@ -264,15 +265,22 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = Math.sin(angle) * radius;
       }
     } else if (scene === 2) {
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: -6, y: 0, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
+      const xPos = isMobile ? 0 : -6;
+      const yPos = isMobile ? -8 : 0;
+      const scale = isMobile ? 0.35 : 0.5;
+      
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
 
       const sCount = 1400;
-      drawThickLine(-1.8, 1.5, -2.8, 0, sCount / 6, 4, 5.2);
-      drawThickLine(-2.8, 0, -1.8, -1.5, sCount / 6, 4, 5.2);
-      drawThickLine(0.6, 1.5, -0.6, -1.5, sCount / 4, 4, 5.2);
-      drawThickLine(1.8, 1.5, 2.8, 0, sCount / 6, 4, 5.2);
-      drawThickLine(2.8, 0, 1.8, -1.5, sCount / 6, 4, 5.2);
+      const xOff = isMobile ? 0 : 4;
+      const yOff = isMobile ? 5.8 : 5.2;
+
+      drawThickLine(-1.8, 1.5, -2.8, 0, sCount / 6, xOff, yOff);
+      drawThickLine(-2.8, 0, -1.8, -1.5, sCount / 6, xOff, yOff);
+      drawThickLine(0.6, 1.5, -0.6, -1.5, sCount / 4, xOff, yOff);
+      drawThickLine(1.8, 1.5, 2.8, 0, sCount / 6, xOff, yOff);
+      drawThickLine(2.8, 0, 1.8, -1.5, sCount / 6, xOff, yOff);
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
@@ -282,21 +290,28 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 20 - 10;
       }
     } else if (scene === 3) {
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, y: 0, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.45, y: 0.45, z: 0.45, duration: 1.5, ease: "power3.inOut" });
+      const xPos = isMobile ? 0 : 6;
+      const yPos = isMobile ? -8 : 0;
+      const scale = isMobile ? 0.3 : 0.45;
+
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
       gsap.to(planetRef.current.rotation, { y: planetRef.current.rotation.y + Math.PI * 4, duration: 1.5, ease: "power2.inOut" });
 
       const sCount = 2000;
-      drawThickLine(-3, 1.5, -3, -1.5, sCount / 6, -4, 5.2);
-      drawThickLine(-3, 1.5, -1.5, 1.5, sCount / 10, -4, 5.2);
-      drawThickLine(-1.5, 1.5, -1.5, 0, sCount / 10, -4, 5.2);
-      drawThickLine(-1.5, 0, -3, 0, sCount / 10, -4, 5.2);
+      const xOff = isMobile ? 0 : -4;
+      const yOff = isMobile ? 5.8 : 5.2;
+
+      drawThickLine(-3, 1.5, -3, -1.5, sCount / 6, xOff, yOff);
+      drawThickLine(-3, 1.5, -1.5, 1.5, sCount / 10, xOff, yOff);
+      drawThickLine(-1.5, 1.5, -1.5, 0, sCount / 10, xOff, yOff);
+      drawThickLine(-1.5, 0, -3, 0, sCount / 10, xOff, yOff);
       
-      drawThickLine(3, 1.5, 1, 1.5, sCount / 10, -4, 5.2);
-      drawThickLine(1, 1.5, 1, 0, sCount / 10, -4, 5.2);
-      drawThickLine(1, 0, 3, 0, sCount / 10, -4, 5.2);
-      drawThickLine(3, 0, 3, -1.5, sCount / 10, -4, 5.2);
-      drawThickLine(3, -1.5, 1, -1.5, sCount / 10, -4, 5.2);
+      drawThickLine(3, 1.5, 1, 1.5, sCount / 10, xOff, yOff);
+      drawThickLine(1, 1.5, 1, 0, sCount / 10, xOff, yOff);
+      drawThickLine(1, 0, 3, 0, sCount / 10, xOff, yOff);
+      drawThickLine(3, 0, 3, -1.5, sCount / 10, xOff, yOff);
+      drawThickLine(3, -1.5, 1, -1.5, sCount / 10, xOff, yOff);
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
@@ -306,16 +321,19 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
       }
     } else if (scene === 4) {
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 10, z: -10, duration: 1.5, ease: "power3.inOut" });
+      const yPos = isMobile ? 12 : 10;
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: yPos, z: -10, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1.5, y: 1.5, z: 1.5, duration: 1.5, ease: "power3.inOut" });
 
       const sCount = 2500;
-      drawThickLine(-3.5, 2, 3.5, 2, sCount / 10, 0, -2);
-      drawThickLine(3.5, 2, 3.5, -2, sCount / 10, 0, -2);
-      drawThickLine(3.5, -2, -3.5, -2, sCount / 10, 0, -2);
-      drawThickLine(-3.5, -2, -3.5, 2, sCount / 10, 0, -2);
-      drawThickLine(-3.5, 2, 0, 0, sCount / 10, 0, -2);
-      drawThickLine(0, 0, 3.5, 2, sCount / 10, 0, -2);
+      const yOff = isMobile ? -3 : -2;
+
+      drawThickLine(-3.5, 2, 3.5, 2, sCount / 10, 0, yOff);
+      drawThickLine(3.5, 2, 3.5, -2, sCount / 10, 0, yOff);
+      drawThickLine(3.5, -2, -3.5, -2, sCount / 10, 0, yOff);
+      drawThickLine(-3.5, -2, -3.5, 2, sCount / 10, 0, yOff);
+      drawThickLine(-3.5, 2, 0, 0, sCount / 10, 0, yOff);
+      drawThickLine(0, 0, 3.5, 2, sCount / 10, 0, yOff);
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
