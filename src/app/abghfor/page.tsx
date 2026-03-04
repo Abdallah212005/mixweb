@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { useCollection, useDoc, useFirebase, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, doc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Mail, Calendar, Trash2, CheckCircle, Search, LogIn, ShieldAlert, Key } from "lucide-react";
@@ -18,12 +18,22 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const submissionsQuery = useMemoFirebase(() => {
+  // First, check if the user is actually an admin by fetching their role doc
+  const adminDocRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, "contactSubmissions"), orderBy("submissionDateTime", "desc"));
+    return doc(firestore, "roles_admin", user.uid);
   }, [firestore, user]);
 
-  const { data: submissions, isLoading, error } = useCollection(submissionsQuery);
+  const { data: adminRole, isLoading: isAdminCheckLoading } = useDoc(adminDocRef);
+  const isAuthorized = !!adminRole;
+
+  // Only query submissions if the user is authorized
+  const submissionsQuery = useMemoFirebase(() => {
+    if (!firestore || !user || !isAuthorized) return null;
+    return query(collection(firestore, "contactSubmissions"), orderBy("submissionDateTime", "desc"));
+  }, [firestore, user, isAuthorized]);
+
+  const { data: submissions, isLoading: isDataLoading } = useCollection(submissionsQuery);
 
   const handleDelete = (id: string) => {
     if (!firestore) return;
@@ -49,11 +59,9 @@ export default function AdminDashboard() {
       { merge: true }
     );
     toast({ 
-      title: "Access Granted", 
-      description: "You have been promoted to System Administrator. Refreshing...",
+      title: "Access Request Sent", 
+      description: "Granting administrative privileges... Please wait.",
     });
-    // Give Firestore a moment to propagate rules before re-trying (usually instant but refresh helps UI)
-    setTimeout(() => window.location.reload(), 1500);
   };
 
   const filteredSubmissions = submissions?.filter(s => 
@@ -61,6 +69,8 @@ export default function AdminDashboard() {
     s.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.message.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const isLoading = isAdminCheckLoading || (isAuthorized && isDataLoading);
 
   return (
     <div className="min-h-screen bg-[#050406] text-white p-6 md:p-12 font-body selection:bg-accent selection:text-black">
@@ -116,7 +126,7 @@ export default function AdminDashboard() {
                 Login via Secure Tunnel
              </Button>
           </div>
-        ) : error ? (
+        ) : !isAuthorized && !isAdminCheckLoading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-xl">
              <ShieldAlert className="w-16 h-16 text-destructive mb-4" />
              <h2 className="text-2xl font-black mb-2 uppercase">Access Denied</h2>

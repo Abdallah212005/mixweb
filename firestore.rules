@@ -52,8 +52,10 @@ service cloud.firestore {
     }
 
     match /roles_admin/{adminId} {
-      // Allow list/get for admins
-      allow get, list: if isAdmin();
+      // Allow users to read their own admin status to avoid permission errors during verification
+      allow get: if isSignedIn() && request.auth.uid == adminId;
+      // Allow list only for established admins
+      allow list: if isAdmin();
       // PROTOTYPE FIX: Allow any signed-in user to promote themselves to admin for testing
       allow create: if isSignedIn() && request.auth.uid == adminId && isRelationalValid(adminId);
       allow update, delete: if isAdmin() && isRelationalValid(adminId);
