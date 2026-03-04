@@ -1,9 +1,10 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Terminal, Cpu } from "lucide-react";
+import { ChevronDown, Cpu } from "lucide-react";
 
 const SceneBackground = dynamic(
   () => import("@/components/three/SceneBackground").then((mod) => mod.SceneBackground),
@@ -81,22 +82,22 @@ export default function Page() {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 1.5 }}
+            transition={{ delay: 1, duration: 1 }}
             className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
           >
-            <div className="flex flex-col items-center gap-2 mt-32 ml-[30%]">
+            <div className="flex flex-col items-center gap-2 mt-[45vh]">
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 1.8, duration: 1 }}
-                className="text-[48px] font-black tracking-[0.2em] text-gradient uppercase glow-purple"
+                transition={{ delay: 1.2, duration: 1 }}
+                className="text-[48px] font-black tracking-[0.3em] text-gradient uppercase glow-purple text-center"
               >
-                Web Development
+                WEB DEVELOPMENT
               </motion.div>
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
-                transition={{ delay: 2.5, duration: 1 }}
+                transition={{ delay: 1.8, duration: 1 }}
                 className="max-w-md text-center text-[11px] font-code text-white uppercase tracking-[0.8em] mt-4"
               >
                 Architecture built for digital dominance
@@ -107,7 +108,7 @@ export default function Page() {
             <motion.div
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 2.8, duration: 1 }}
+              transition={{ delay: 2.2, duration: 1 }}
               className="fixed bottom-12 right-12 p-8 border-r-2 border-accent/20 bg-black/40 backdrop-blur-xl"
             >
               <div className="flex items-center gap-4 mb-4">
@@ -120,14 +121,6 @@ export default function Page() {
                 <p className="text-[10px] font-code text-white/40">INTEGRITY: 100%</p>
               </div>
             </motion.div>
-
-            {/* Bottom HUD Bar */}
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 0.2 }}
-              transition={{ delay: 3, duration: 1 }}
-              className="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"
-            />
           </motion.div>
         )}
       </AnimatePresence>

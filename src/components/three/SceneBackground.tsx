@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -144,7 +145,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     scene.add(atmosphere);
 
     // ===== STAR RING (Particle System) =====
-    const starCount = 900;
+    const starCount = 1000;
     const starGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(starCount * 3);
 
@@ -158,7 +159,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
 
     starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     
-    // Circular Texture for stars
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64;
     starCanvas.height = 64;
@@ -198,7 +198,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     };
     animate();
 
-    // ===== RESIZE =====
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -224,7 +223,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
       const tl = gsap.timeline();
       
-      // 1. Planet Spin + Move + Scale
       tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
         y: planetRef.current.rotation.y + Math.PI * 4,
         duration: 1.2,
@@ -240,23 +238,22 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       }, 0);
 
       tl.to([planetRef.current.position, atmosphereRef.current.position], {
-        x: -8,
+        x: -6,
         duration: 1.2,
         ease: "power2.inOut"
       }, 0);
 
-      // 2. Stars Form Real </> Shape
       gsap.to(starsRef.current.rotation, {
         y: 0,
         duration: 1,
         ease: "power2.inOut"
       });
 
-      const starCount = 900;
+      const starCount = 1000;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
-      function randomSpread(value: number, spread: number) {
-        return value + (Math.random() - 0.5) * spread;
+      function spread(v: number) {
+        return v + (Math.random() - 0.5) * 0.06;
       }
 
       for (let i = 0; i < starCount; i++) {
@@ -265,45 +262,41 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         let targetY = 0;
         let targetZ = 0;
 
+        const centerY = 2.2;
+
         if (t < 0.33) {
           // <
           let p = t / 0.33;
           if (p < 0.5) {
             let pp = p * 2;
-            targetX = -2 + pp * 1;
+            targetX = -2 + pp * 1.2;
             targetY = 1 - pp * 1;
           } else {
             let pp = (p - 0.5) * 2;
-            targetX = -1 - pp * 1;
+            targetX = -0.8 - pp * 1.2;
             targetY = 0 - pp * 1;
           }
         } else if (t < 0.66) {
           // /
           let p = (t - 0.33) / 0.33;
-          targetX = -0.3 + p * 1;
+          targetX = -0.2 + p * 0.8;
           targetY = 1 - p * 2;
         } else {
           // >
           let p = (t - 0.66) / 0.34;
           if (p < 0.5) {
             let pp = p * 2;
-            targetX = 0.8 + pp * 1;
+            targetX = 0.8 + pp * 1.2;
             targetY = -1 + pp * 1;
           } else {
             let pp = (p - 0.5) * 2;
-            targetX = 1.8 - pp * 1;
+            targetX = 2 - pp * 1.2;
             targetY = 0 + pp * 1;
           }
         }
 
-        // Add thickness/imperfection
-        targetX = randomSpread(targetX, 0.08);
-        targetY = randomSpread(targetY, 0.08);
-
-        // Apply scale and offsets for centering
-        targetX *= 2.5;
-        targetY *= 2.5;
-        targetX += 3.5; // Shift to the right half
+        targetX = spread(targetX);
+        targetY = spread(targetY) + centerY;
 
         gsap.to(positions, {
           [i * 3]: targetX,
