@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -85,12 +84,12 @@ export default function Page() {
             transition={{ delay: 1.5, duration: 1.5 }}
             className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
           >
-            <div className="flex flex-col items-center gap-2 mt-20">
+            <div className="flex flex-col items-center gap-2 mt-32 ml-[30%]">
               <motion.div 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1.8, duration: 1 }}
-                className="text-[28px] font-bold tracking-[1em] text-accent uppercase glow-purple"
+                className="text-[48px] font-black tracking-[0.2em] text-gradient uppercase glow-purple"
               >
                 Web Development
               </motion.div>
@@ -98,9 +97,9 @@ export default function Page() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
                 transition={{ delay: 2.5, duration: 1 }}
-                className="max-w-md text-center text-[11px] font-code text-white uppercase tracking-widest mt-6"
+                className="max-w-md text-center text-[11px] font-code text-white uppercase tracking-[0.8em] mt-4"
               >
-                Architecture built for dominance in the digital void
+                Architecture built for digital dominance
               </motion.p>
             </div>
 

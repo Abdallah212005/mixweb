@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -304,7 +303,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         // Apply scale and offsets for centering
         targetX *= 2.5;
         targetY *= 2.5;
-        targetX += 3; // Shift to the right half
+        targetX += 3.5; // Shift to the right half
 
         gsap.to(positions, {
           [i * 3]: targetX,
