@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -5,8 +6,6 @@ service cloud.firestore {
     /**
      * MIX AURA SECURITY POLICY
      */
-
-    // --- Helper Functions ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -16,49 +15,27 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    function isExistingAdmin() {
-      return isAdmin() && resource != null;
-    }
-
-    function isRelationalValid(id) {
-      return request.resource.data.id == id;
-    }
-
-    function isImmutable(field) {
-      return !(field in request.resource.data) || request.resource.data[field] == resource.data[field];
-    }
-
-    // --- Collection Rules ---
-
     match /services/{serviceId} {
       allow get, list: if true;
-      allow create: if isAdmin() && isRelationalValid(serviceId);
-      allow update: if isExistingAdmin() && isImmutable('id');
-      allow delete: if isExistingAdmin();
+      allow write: if isAdmin();
     }
 
     match /projects/{projectId} {
       allow get, list: if true;
-      allow create: if isAdmin() && isRelationalValid(projectId);
-      allow update: if isExistingAdmin() && isImmutable('id');
-      allow delete: if isExistingAdmin();
+      allow write: if isAdmin();
     }
 
     match /contactSubmissions/{submissionId} {
-      allow create: if isRelationalValid(submissionId);
-      allow get, list: if isAdmin();
-      allow update: if isAdmin() && isRelationalValid(submissionId);
-      allow delete: if isAdmin();
+      allow create: if true;
+      allow get, list, update, delete: if isAdmin();
     }
 
     match /roles_admin/{adminId} {
-      // Allow users to read their own admin status to avoid permission errors during verification
       allow get: if isSignedIn() && request.auth.uid == adminId;
-      // Allow list only for established admins
       allow list: if isAdmin();
-      // PROTOTYPE FIX: Allow any signed-in user to promote themselves to admin for testing
-      allow create: if isSignedIn() && request.auth.uid == adminId && isRelationalValid(adminId);
-      allow update, delete: if isAdmin() && isRelationalValid(adminId);
+      // Allow elevation for development setup
+      allow create: if isSignedIn() && request.auth.uid == adminId;
+      allow update, delete: if isAdmin();
     }
   }
 }
