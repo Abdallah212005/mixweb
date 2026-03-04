@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Globe, Cpu, Zap, ShieldCheck } from "lucide-react";
+import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Zap, ShieldCheck, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,9 @@ export default function Page() {
   const [scene, setScene] = useState(1);
   const totalScenes = 4;
   const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Refs for touch navigation
+  const touchStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -67,12 +70,39 @@ export default function Page() {
       }
     };
 
+    // Touch handlers for mobile swipe
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartRef.current = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (touchStartRef.current === null) return;
+      
+      const touchEnd = e.changedTouches[0].clientY;
+      const diff = touchStartRef.current - touchEnd;
+      const threshold = 50; // Minimum distance for swipe
+
+      if (Math.abs(diff) > threshold) {
+        if (diff > 0) {
+          handleNext();
+        } else {
+          handlePrev();
+        }
+      }
+      
+      touchStartRef.current = null;
+    };
+
     window.addEventListener("wheel", handleWheel, { passive: true });
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
   }, [handleNext, handlePrev, mounted]);
 
