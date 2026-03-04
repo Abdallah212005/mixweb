@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -27,6 +28,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       1000
     );
     
+    // Camera distance at 14 for a cinematic view
     camera.position.set(0, 0, 14);
 
     const renderer = new THREE.WebGLRenderer({
@@ -61,7 +63,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
 
-    // ===== STAR GLOW TEXTURE =====
+    // ===== STAR GLOW TEXTURE (Custom Gradient) =====
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64;
     starCanvas.height = 64;
@@ -76,7 +78,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     }
     const starTexture = new THREE.CanvasTexture(starCanvas);
 
-    // ===== PLANET MATERIAL (Custom Shader) =====
+    // ===== PLANET MATERIAL (Custom Shader Enhanced) =====
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
@@ -168,7 +170,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       transparent: true,
-      size: 0.15,
+      size: 0.12,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -252,26 +254,31 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       const starCount = 6000;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
-      // ==== DEFINE PRECISE </> SHAPE ====
+      // ==== DEFINE PERFECTED </> SHAPE ====
       const shape = new THREE.Shape();
+      const size = 1.2; 
+      const gap = 1.6;
+
       // <
-      shape.moveTo(-2.5, 1.8);
-      shape.lineTo(-3.8, 0);
-      shape.lineTo(-2.5, -1.8);
+      shape.moveTo(-gap, size);
+      shape.lineTo(-gap - 0.8, 0);
+      shape.lineTo(-gap, -size);
+
       // /
-      shape.moveTo(-0.6, 1.8);
-      shape.lineTo(0.6, -1.8);
+      shape.moveTo(0.4, size);
+      shape.lineTo(-0.4, -size);
+
       // >
-      shape.moveTo(2.5, 1.8);
-      shape.lineTo(3.8, 0);
-      shape.lineTo(2.5, -1.8);
+      shape.moveTo(gap, size);
+      shape.lineTo(gap + 0.8, 0);
+      shape.lineTo(gap, -size);
 
       const points = shape.getSpacedPoints(starCount - 1);
-      const centerX = 4.5; 
-      const centerY = 4.5; 
+      const centerX = 4.0; 
+      const centerY = 5.2; 
 
       function spread(v: number) {
-        return v + (Math.random() - 0.5) * 0.08;
+        return v + (Math.random() - 0.5) * 0.06;
       }
 
       for (let i = 0; i < starCount; i++) {
