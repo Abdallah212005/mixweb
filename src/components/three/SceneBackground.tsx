@@ -3,9 +3,6 @@
 
 import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,7 +18,7 @@ export const SceneBackground: React.FC = () => {
       0.1,
       1000
     );
-    camera.position.z = 18;
+    camera.position.z = 14;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -29,12 +26,28 @@ export const SceneBackground: React.FC = () => {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    // Cinematic Tone Mapping
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
+    
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    const sun = new THREE.DirectionalLight(0xffffff, 1.7);
-    sun.position.set(8, 5, 5);
+    // Sun Light
+    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+    sun.position.set(8, 4, 6);
     scene.add(sun);
+
+    // Purple Rim
+    const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.4);
+    purpleRim.position.set(-10, -3, -6);
+    scene.add(purpleRim);
+
+    // Fill Light
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(0, 0, 10);
+    scene.add(fillLight);
 
     const ambient = new THREE.AmbientLight(0x111111);
     scene.add(ambient);
@@ -48,7 +61,7 @@ export const SceneBackground: React.FC = () => {
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
 
-    // ===== PLANET MATERIAL WITH UPDATED SHADER =====
+    // ===== PLANET MATERIAL =====
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
@@ -63,12 +76,12 @@ export const SceneBackground: React.FC = () => {
         `
         float brightness = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
 
-        // نزود الكونتراست بس
-        gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.85));
+        // Contrast boost
+        gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.92));
 
-        // نضيف إحساس بنفسجي خفيف حسب الإضاءة
-        vec3 purpleLight = vec3(0.35, 0.1, 0.6);
-        gl_FragColor.rgb += purpleLight * (1.0 - brightness) * 0.25;
+        // Subtle purple in shadows
+        vec3 purple = vec3(0.4, 0.15, 0.65);
+        gl_FragColor.rgb += purple * (1.0 - brightness) * 0.18;
 
         #include <dithering_fragment>
         `
@@ -76,7 +89,7 @@ export const SceneBackground: React.FC = () => {
     };
 
     const planet = new THREE.Mesh(
-      new THREE.SphereGeometry(6, 128, 128),
+      new THREE.SphereGeometry(7, 128, 128),
       planetMaterial
     );
     scene.add(planet);
@@ -93,7 +106,7 @@ export const SceneBackground: React.FC = () => {
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+          float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
           gl_FragColor = vec4(0.6, 0.2, 1.0, 1.0) * intensity;
         }
       `,
@@ -103,23 +116,10 @@ export const SceneBackground: React.FC = () => {
     });
 
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(6.3, 128, 128),
+      new THREE.SphereGeometry(7.3, 128, 128),
       atmosphereMaterial
     );
     scene.add(atmosphere);
-
-    // ===== POST-PROCESSING (BLOOM) =====
-    const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.6, // Strength
-      0.4, // Radius
-      0.8  // Threshold
-    );
-
-    const composer = new EffectComposer(renderer);
-    composer.addPass(renderScene);
-    composer.addPass(bloomPass);
 
     // ===== ANIMATION =====
     let animationFrameId: number;
@@ -127,7 +127,7 @@ export const SceneBackground: React.FC = () => {
       animationFrameId = requestAnimationFrame(animate);
       planet.rotation.y += 0.002;
       atmosphere.rotation.y += 0.002;
-      composer.render();
+      renderer.render(scene, camera);
     };
     animate();
 
@@ -136,7 +136,6 @@ export const SceneBackground: React.FC = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      composer.setSize(window.innerWidth, window.innerHeight);
     };
     window.addEventListener("resize", handleResize);
 
@@ -147,7 +146,6 @@ export const SceneBackground: React.FC = () => {
         containerRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      composer.dispose();
       planetMaterial.dispose();
       atmosphereMaterial.dispose();
       planet.geometry.dispose();
