@@ -20,7 +20,7 @@ export const SceneBackground: React.FC = () => {
     );
     
     // 🎥 Cinematic Camera Distance
-    const distance = 22;
+    const distance = 20;
     camera.position.set(0, 0, distance);
 
     const renderer = new THREE.WebGLRenderer({
@@ -32,23 +32,23 @@ export const SceneBackground: React.FC = () => {
     
     // 🎬 Cinematic Tone Mapping
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.75;
+    renderer.toneMappingExposure = 0.9;
     
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    // Purple Sun (Main Light)
-    const purpleSun = new THREE.DirectionalLight(0xa855f7, 3.0);
+    // 💜 Purple Sun (Main Light)
+    const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
     purpleSun.position.set(8, 4, 6);
     scene.add(purpleSun);
 
-    // Purple Rim Light
-    const purpleRim = new THREE.DirectionalLight(0x7c3aed, 1.8);
-    purpleRim.position.set(-10, -5, -6);
-    scene.add(purpleRim);
+    // 💡 Fill Light (Details Light)
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(-5, 2, 5);
+    scene.add(fillLight);
 
     // Deep Ambient Light
-    const ambient = new THREE.AmbientLight(0x050505);
+    const ambient = new THREE.AmbientLight(0x111111);
     scene.add(ambient);
 
     // ===== TEXTURES =====
@@ -64,43 +64,44 @@ export const SceneBackground: React.FC = () => {
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
-      bumpScale: 0.7,
-      roughness: 0.95,
-      metalness: 0.02,
+      bumpScale: 0.8,
+      roughness: 0.9,
+      metalness: 0.05,
     });
 
-    // 🎨 Advanced Shader: فصل البحر عن اليابسة + نظام الظلال السينمائي
+    // 🎨 Advanced Shader: Enhanced Contrast & Shadow Logic
     planetMaterial.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <dithering_fragment>',
         `
         vec3 baseColor = gl_FragColor.rgb;
 
-        // 👇 حساب اتجاه وقوة الإضاءة الساقطة لمناطق الظل
-        float lightPower = dot(normalize(vNormal), normalize(vec3(8.0, 4.0, 6.0)));
+        // 👇 حساب الإضاءة (قوة الضوء الساقط)
+        vec3 lightDir = normalize(vec3(8.0, 4.0, 6.0));
+        float lightPower = dot(normalize(vNormal), lightDir);
         lightPower = clamp(lightPower, 0.0, 1.0);
 
-        // نحدد ماسك الظل (المناطق المظلمة تبقى سوداء فخمة)
-        float shadowMask = smoothstep(0.0, 0.25, lightPower);
+        // نحدد ماسك الظل (ظل أنعم)
+        float shadowMask = smoothstep(0.0, 0.45, lightPower);
 
         // ==== فصل المحيطات عن اليابسة ====
         float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
         oceanFactor = pow(oceanFactor, 2.0);
 
-        // 🌊 محيط فحمي تقيل
-        vec3 oceanColor = vec3(0.05, 0.05, 0.07);
+        // 🌊 محيط فحمي
+        vec3 oceanColor = vec3(0.07, 0.07, 0.09);
 
-        // 🏔 يابسة بنفسجي مشبع
-        vec3 landColor = vec3(0.55, 0.12, 0.75);
+        // 🏔 يابسة بنفسجي أوضح
+        vec3 landColor = vec3(0.6, 0.18, 0.85);
 
         // دمج ألوان المناطق المضيئة
         vec3 litColor = mix(landColor, oceanColor, oceanFactor);
 
         // زيادة التباين (Contrast)
-        litColor = pow(litColor, vec3(1.25));
+        litColor = pow(litColor, vec3(1.1));
 
-        // 👇 النتيجة النهائية: المناطق المضيئة تأخذ اللون، والمظلمة تختفي في السواد
-        vec3 finalColor = mix(vec3(0.0), litColor, shadowMask);
+        // 👇 النتيجة النهائية: الظل ليس أسود مطلقاً لإظهار العمق
+        vec3 finalColor = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
 
         gl_FragColor.rgb = finalColor;
 
@@ -110,7 +111,7 @@ export const SceneBackground: React.FC = () => {
     };
 
     const planet = new THREE.Mesh(
-      new THREE.SphereGeometry(7, 128, 128),
+      new THREE.SphereGeometry(6, 128, 128),
       planetMaterial
     );
     scene.add(planet);
@@ -137,7 +138,7 @@ export const SceneBackground: React.FC = () => {
     });
 
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(7.5, 128, 128),
+      new THREE.SphereGeometry(6.5, 128, 128),
       atmosphereMaterial
     );
     scene.add(atmosphere);
