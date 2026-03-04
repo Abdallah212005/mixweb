@@ -63,6 +63,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
     const planet = new THREE.Mesh(new THREE.SphereGeometry(6, 128, 128), planetMaterial);
     planetRef.current = planet;
+    planet.scale.set(0, 0, 0); // Start at scale 0 for intro
     sceneThree.add(planet);
 
     const atmosphereMaterial = new THREE.ShaderMaterial({
@@ -86,7 +87,18 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     });
     const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(6.4, 128, 128), atmosphereMaterial);
     atmosphereRef.current = atmosphere;
+    atmosphere.scale.set(0, 0, 0); // Start at scale 0 for intro
     sceneThree.add(atmosphere);
+
+    // Planet & Atmosphere Cinematic Intro
+    gsap.to([planet.scale, atmosphere.scale], {
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: 3,
+      ease: "expo.out",
+      delay: 0.5
+    });
 
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64; starCanvas.height = 64;
@@ -120,12 +132,20 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       transparent: true,
       size: 0.12,
       blending: THREE.AdditiveBlending,
-      depthWrite: false
+      depthWrite: false,
+      opacity: 0
     });
 
     const stars = new THREE.Points(starGeometry, starMaterial);
     starsRef.current = stars;
     sceneThree.add(stars);
+
+    // Stars Intro
+    gsap.to(starMaterial, {
+      opacity: 1,
+      duration: 2,
+      delay: 0.2
+    });
 
     const handleMouseMove = (event: MouseEvent) => {
       mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
