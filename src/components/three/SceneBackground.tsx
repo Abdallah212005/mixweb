@@ -107,7 +107,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       const angle = Math.random() * Math.PI * 2;
       const radius = 9 + Math.random() * 2;
       posArray[i * 3] = Math.cos(angle) * radius;
-      posArray[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+      posArray[i * 3 + 1] = (Math.random() - 0.5) * 1.5;
       posArray[i * 3 + 2] = Math.sin(angle) * radius;
     }
 
@@ -127,12 +127,10 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     starsRef.current = stars;
     sceneThree.add(stars);
 
-    // Mouse Tracking Logic
     const handleMouseMove = (event: MouseEvent) => {
       mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
       
-      // Project mouse to 3D plane (z=0)
       const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5);
       vector.unproject(camera);
       const dir = vector.sub(camera.position).normalize();
@@ -146,8 +144,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       animationFrameId = requestAnimationFrame(animate);
       timeRef.current += 0.01;
 
-      if (planetRef.current) planetRef.current.rotation.y += 0.002;
-      if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.002;
+      if (planetRef.current) planetRef.current.rotation.y += 0.003;
+      if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.003;
 
       if (starsRef.current && startPositionsRef.current && targetPositionsRef.current) {
         const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
@@ -159,27 +157,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
           
-          // 1. BASE TRANSITION CALCULATION
           let baseX = start[ix] + (target[ix] - start[ix]) * p;
           let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
           let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
 
-          // 2. SCENE 1 ORBITAL ROTATION (ACTIVE)
-          if (scene === 1 && p > 0.8) {
-            const orbitSpeed = 0.05;
-            const radius = Math.sqrt(baseX * baseX + baseZ * baseZ);
-            const initialAngle = Math.atan2(baseZ, baseX);
-            const angle = initialAngle + timeRef.current * orbitSpeed;
-            baseX = Math.cos(angle) * radius;
-            baseZ = Math.sin(angle) * radius;
-          }
-
-          // 3. MOUSE SCATTER LOGIC
           const dx = baseX - mouse3D.x;
           const dy = baseY - mouse3D.y;
           const dz = baseZ - mouse3D.z;
           const distSq = dx * dx + dy * dy + dz * dz;
-          const threshold = 16; // Interaction radius
+          const threshold = 16;
           
           let scatterX = 0;
           let scatterY = 0;
@@ -187,16 +173,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
           if (distSq < threshold) {
             const force = (threshold - distSq) / threshold;
-            const power = force * 2.5; // Scatter intensity
+            const power = force * 2.5;
             scatterX = (dx / Math.sqrt(distSq)) * power;
             scatterY = (dy / Math.sqrt(distSq)) * power;
             scatterZ = (dz / Math.sqrt(distSq)) * power;
           }
 
-          // 4. APPLY EVERYTHING WITH SMOOTH BREATHING
-          positions[ix] = baseX + scatterX + Math.sin(timeRef.current * 0.5 + i) * 0.05;
-          positions[ix + 1] = baseY + scatterY + Math.cos(timeRef.current * 0.4 + i * 0.5) * 0.05;
-          positions[ix + 2] = baseZ + scatterZ + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
+          positions[ix] = baseX + scatterX + Math.sin(timeRef.current * 0.6 + i * 0.1) * 0.15;
+          positions[ix + 1] = baseY + scatterY + Math.cos(timeRef.current * 0.5 + i * 0.15) * 0.15;
+          positions[ix + 2] = baseZ + scatterZ + Math.sin(timeRef.current * 0.4 + i * 0.05) * 0.1;
         }
         starsRef.current.geometry.attributes.position.needsUpdate = true;
       }
@@ -224,8 +209,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   useEffect(() => {
     if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current || !startPositionsRef.current) return;
 
-    // CAPTURE CURRENT BASE POSITIONS (without mouse scatter) to start next move
-    // We use the last intended target to ensure we don't start from a "scattered" state
     startPositionsRef.current.set(targetPositionsRef.current);
 
     const nextTargets = new Float32Array(starCount * 3);
@@ -252,7 +235,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     }
 
     if (scene === 1) {
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 0, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
 
       for (let i = 0; i < starCount; i++) {
@@ -263,7 +246,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = Math.sin(angle) * radius;
       }
     } else if (scene === 2) {
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: -6, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: -6, y: 0, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.5, y: 0.5, z: 0.5, duration: 1.5, ease: "power3.inOut" });
 
       const sCount = 1400;
@@ -281,7 +264,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 20 - 10;
       }
     } else if (scene === 3) {
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 6, y: 0, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.45, y: 0.45, z: 0.45, duration: 1.5, ease: "power3.inOut" });
       gsap.to(planetRef.current.rotation, { y: planetRef.current.rotation.y + Math.PI * 4, duration: 1.5, ease: "power2.inOut" });
 
@@ -302,7 +285,27 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         const r = 15 + Math.random() * 30;
         nextTargets[i * 3] = Math.cos(a) * r;
         nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 20 - 10;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
+      }
+    } else if (scene === 4) {
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 10, z: -10, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1.5, y: 1.5, z: 1.5, duration: 1.5, ease: "power3.inOut" });
+
+      // Envelope Shape
+      const sCount = 2500;
+      drawThickLine(-3.5, 2, 3.5, 2, sCount / 10, 0, -2);
+      drawThickLine(3.5, 2, 3.5, -2, sCount / 10, 0, -2);
+      drawThickLine(3.5, -2, -3.5, -2, sCount / 10, 0, -2);
+      drawThickLine(-3.5, -2, -3.5, 2, sCount / 10, 0, -2);
+      drawThickLine(-3.5, 2, 0, 0, sCount / 10, 0, -2);
+      drawThickLine(0, 0, 3.5, 2, sCount / 10, 0, -2);
+
+      for (let i = index; i < starCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 20 + Math.random() * 40;
+        nextTargets[i * 3] = Math.cos(a) * r;
+        nextTargets[i * 3 + 1] = Math.sin(a) * r;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 100;
       }
     }
 

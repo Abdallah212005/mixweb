@@ -4,7 +4,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Code, TrendingUp, Cpu } from "lucide-react";
+import { ChevronDown, Instagram, Facebook, MessageSquare, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const SceneBackground = dynamic(
   () => import("@/components/three/SceneBackground").then((mod) => mod.SceneBackground),
@@ -13,7 +16,7 @@ const SceneBackground = dynamic(
 
 export default function Page() {
   const [scene, setScene] = useState(1);
-  const totalScenes = 3;
+  const totalScenes = 4;
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleNext = useCallback(() => {
@@ -150,23 +153,6 @@ export default function Page() {
                 className="h-1 w-40 bg-accent mt-6 origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]"
               />
             </div>
-
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1, duration: 0.8 }}
-              className="fixed bottom-12 right-12 p-10 border-r-2 border-accent/20 bg-black/40 backdrop-blur-3xl"
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <Code size={18} className="text-accent animate-pulse" />
-                <span className="text-[11px] font-code text-accent uppercase tracking-[0.4em]">Engine: AuraCore 3.0</span>
-              </div>
-              <div className="space-y-2">
-                <p className="text-[10px] font-code text-white/40">PARTICLES: 6000 ACTIVE</p>
-                <p className="text-[10px] font-code text-white/40">MORPH: SYMBOL.CSS</p>
-                <p className="text-[10px] font-code text-white/40">SYNC: CLOUD_READY</p>
-              </div>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -208,23 +194,72 @@ export default function Page() {
                 className="h-1 w-40 bg-accent mt-6 origin-left shadow-[0_0_20px_rgba(168,85,247,0.7)]"
               />
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1, duration: 0.8 }}
-              className="fixed bottom-12 left-12 p-10 border-l-2 border-accent/20 bg-black/40 backdrop-blur-3xl"
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <TrendingUp size={18} className="text-accent animate-pulse" />
-                <span className="text-[11px] font-code text-accent uppercase tracking-[0.4em]">Engine: GrowthMatrix</span>
+      {/* 🚀 HUD Layer 4: Contact Reveal */}
+      <AnimatePresence mode="wait">
+        {scene === 4 && (
+          <motion.div 
+            key="scene-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
+          >
+            <div className="max-w-xl w-full px-6 flex flex-col items-center gap-8 pointer-events-auto">
+              <div className="text-center">
+                <motion.h2 
+                  initial={{ y: -20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  className="text-5xl font-black tracking-[12px] text-gradient uppercase glow-purple mb-4"
+                >
+                  COMMAND CENTER
+                </motion.h2>
+                <p className="text-[10px] font-code text-white/40 uppercase tracking-[0.5em]">Initiate Secure Communication</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-[10px] font-code text-white/40">KPI: +320% ENGAGEMENT</p>
-                <p className="text-[10px] font-code text-white/40">SENTIMENT: POSITIVE</p>
-                <p className="text-[10px] font-code text-white/40">REGION: GLOBAL_NODE</p>
+
+              <div className="w-full space-y-4 bg-black/40 backdrop-blur-3xl p-8 rounded-[2rem] border border-accent/10 shadow-[0_0_50px_rgba(168,85,247,0.1)]">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input placeholder="AGENT NAME" className="bg-white/5 border-white/10 font-code text-[10px] h-12 rounded-xl focus:border-accent/50 focus:ring-accent/20" />
+                  <Input placeholder="SECURE EMAIL" className="bg-white/5 border-white/10 font-code text-[10px] h-12 rounded-xl focus:border-accent/50 focus:ring-accent/20" />
+                </div>
+                <Textarea placeholder="ENCRYPTED MESSAGE..." className="bg-white/5 border-white/10 font-code text-[10px] min-h-[120px] rounded-xl focus:border-accent/50 focus:ring-accent/20" />
+                <Button className="w-full bg-accent hover:bg-accent/80 text-black font-black tracking-[0.3em] h-12 rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                  <Send size={16} className="mr-2" />
+                  SEND TRANSMISSION
+                </Button>
               </div>
-            </motion.div>
+
+              <div className="flex gap-10 items-center justify-center">
+                <motion.a 
+                  whileHover={{ scale: 1.2, color: "#a855f7" }}
+                  href="https://www.instagram.com/mixaura__?igsh=cGdtdGJoZzRoNXk0" 
+                  target="_blank"
+                  className="text-white/40 transition-colors"
+                >
+                  <Instagram size={24} />
+                </motion.a>
+                <motion.a 
+                  whileHover={{ scale: 1.2, color: "#a855f7" }}
+                  href="https://www.facebook.com/share/1DkvUeKDKD/" 
+                  target="_blank"
+                  className="text-white/40 transition-colors"
+                >
+                  <Facebook size={24} />
+                </motion.a>
+                <motion.a 
+                  whileHover={{ scale: 1.2, color: "#a855f7" }}
+                  href="https://wa.me/201020117504" 
+                  target="_blank"
+                  className="text-white/40 transition-colors"
+                >
+                  <MessageSquare size={24} />
+                </motion.a>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
