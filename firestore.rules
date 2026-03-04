@@ -3,139 +3,118 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * MIX AURA SECURITY ARCHITECTURE
+     * MIX AURA SECURITY POLICY
      *
-     * CORE PHILOSOPHY:
-     * This ruleset implements a "Public Portfolio / Admin Management" model. The application acts 
-     * primarily as a high-end cinematic display for agency services and projects. Consequently, 
-     * most content is globally readable to facilitate search engine indexing and anonymous 
-     * browsing, while all write operations and sensitive data (like contact leads) are 
-     * strictly guarded by an administrative role check.
+     * Core Philosophy:
+     * This ruleset implements a dual-access model designed for a professional portfolio and service showcase.
+     * 1. Public Content: Services and Projects are globally readable to maximize visibility but restricted
+     *    to administrative users for all modifications.
+     * 2. Secure Inquiries: Contact form submissions are publicly creatable to allow prospective clients 
+     *    to reach out, but the data is immediately siloed and only accessible by administrators.
      *
-     * DATA STRUCTURE:
-     * - /services/{serviceId}: Publicly readable agency services.
-     * - /projects/{projectId}: Publicly readable portfolio case studies.
-     * - /website_settings/global: Publicly readable site configuration.
-     * - /contact_submissions/{id}: Publicly writable (for lead gen), Admin-only readable.
-     * - /roles_admin/{uid}: Role-based access control (RBAC) lookup table.
+     * Data Structure:
+     * - /services/{serviceId}: Publicly viewable service offerings.
+     * - /projects/{projectId}: Publicly viewable portfolio case studies.
+     * - /contactSubmissions/{submissionId}: Private user inquiries.
+     * - /roles_admin/{adminId}: A lookup collection where the presence of a UID grants administrative rights.
      *
-     * KEY SECURITY DECISIONS:
-     * 1. Authorization Independence: Admin status is determined via a dedicated collection 
-     *    (/roles_admin). This allows any rule to verify permissions using a single exists() 
-     *    call without navigating complex document hierarchies.
-     * 2. Anonymous Lead Generation: The 'contact_submissions' collection allows any user 
-     *    (including unauthenticated ones) to create a document, but strictly forbids 
-     *    anyone except administrators from reading or listing the results.
-     * 3. Relational Integrity: In this prototyping phase, we enforce that the internal 
-     *    'id' field of documents matches their Firestore document ID to ensure data 
-     *    consistency for client-side routing.
+     * Key Security Decisions:
+     * - Authorization Independence: User permissions are verified by checking the /roles_admin collection,
+     *   ensuring that access logic is not coupled to complex document hierarchies.
+     * - Prototyping Flexibility: While authorization is strictly enforced based on roles, the schema 
+     *   validation is limited to relational integrity (ID consistency) to allow for rapid UI/UX iteration.
+     * - Protection of Admin Roles: Only existing administrators can modify the administrative user list.
      */
 
-    // --- Global Helper Functions ---
+    // --- Helper Functions ---
 
-    /** Checks if the requester is authenticated with Firebase Auth. */
+    /** Checks if the request is from an authenticated user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** Checks if the requester's UID exists in the admin roles collection. */
+    /** 
+     * Verifies if the authenticated user is an administrator.
+     * Checks for the existence of the user's UID in the roles_admin collection.
+     */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    /** Verifies administrative rights and ensures the document exists for state-changing operations. */
+    /** Helper for destructive or state-changing operations on existing documents. */
     function isExistingAdmin() {
       return isAdmin() && resource != null;
     }
 
-    /** Validates relational integrity: internal 'id' must match the path ID on creation. */
-    function isValidCreation(id) {
+    /** Ensures that the ID in the document data matches the path ID. */
+    function isRelationalValid(id) {
       return request.resource.data.id == id;
     }
 
-    /** Validates relational integrity: internal 'id' must remain immutable on update. */
-    function isValidUpdate() {
-      return request.resource.data.id == resource.data.id;
+    /** Ensures a field is not changed during an update. */
+    function isImmutable(field) {
+      return !(field in request.resource.data) || request.resource.data[field] == resource.data[field];
     }
 
     // --- Collection Rules ---
 
     /**
-     * @description Rules for agency services. Publicly visible, admin managed.
+     * @description Rules for the Service collection. Services are public for marketing but managed by admins.
      * @path /services/{serviceId}
-     * @allow (get, list) if true (public access)
-     * @deny (create, update, delete) if user is not an admin
-     * @principle Public consumption with restricted content management.
+     * @allow (get, list) All users, even unauthenticated.
+     * @allow (create, update, delete) Only authenticated users found in the roles_admin collection.
+     * @deny (write) Any user not in the roles_admin collection.
+     * @principle Public Read with Admin-Only Writes.
      */
     match /services/{serviceId} {
       allow get, list: if true;
-      allow create: if isAdmin() && isValidCreation(serviceId);
-      allow update: if isExistingAdmin() && isValidUpdate();
+      allow create: if isAdmin() && isRelationalValid(serviceId);
+      allow update: if isExistingAdmin() && isImmutable('id');
       allow delete: if isExistingAdmin();
     }
 
     /**
-     * @description Rules for portfolio projects. Publicly visible, admin managed.
+     * @description Rules for the Project collection. Portfolio projects are public for showcase.
      * @path /projects/{projectId}
-     * @allow (get, list) if true (public access)
-     * @deny (create) if id in data doesn't match projectId path
-     * @principle Structural segregation and public read access.
+     * @allow (get, list) All users, even unauthenticated.
+     * @allow (create, update, delete) Only authenticated users found in the roles_admin collection.
+     * @deny (write) Users without the admin role.
+     * @principle Public Read with Admin-Only Writes.
      */
     match /projects/{projectId} {
       allow get, list: if true;
-      allow create: if isAdmin() && isValidCreation(projectId);
-      allow update: if isExistingAdmin() && isValidUpdate();
+      allow create: if isAdmin() && isRelationalValid(projectId);
+      allow update: if isExistingAdmin() && isImmutable('id');
       allow delete: if isExistingAdmin();
     }
 
     /**
-     * @description Rules for lead generation submissions.
-     * @path /contact_submissions/{submissionId}
-     * @allow (create) if true (allow leads from any visitor)
-     * @allow (get, list, update, delete) if user is admin
-     * @principle Secure intake of private user data with restricted administrative review.
+     * @description Rules for Contact Submissions. Allows anyone to submit inquiries, but only admins to read or manage them.
+     * @path /contactSubmissions/{submissionId}
+     * @allow (create) Any user (including anonymous/public) to submit a contact form.
+     * @allow (get, list, update, delete) Restricted to administrators.
+     * @deny (get, list) Any non-admin user trying to read inquiries.
+     * @principle Public Create with Restricted Admin Access.
      */
-    match /contact_submissions/{submissionId} {
-      allow create: if isValidCreation(submissionId);
+    match /contactSubmissions/{submissionId} {
+      allow create: if isRelationalValid(submissionId);
       allow get, list: if isAdmin();
-      allow update: if isExistingAdmin() && isValidUpdate();
+      allow update: if isExistingAdmin() && isImmutable('id');
       allow delete: if isExistingAdmin();
     }
 
     /**
-     * @description Rules for global site settings. Single document 'global'.
-     * @path /website_settings/global
-     * @allow (get) if true (public config)
-     * @deny (list) if true (prevents collection scanning)
-     * @principle Single-record configuration with public visibility.
+     * @description Rules for the Administrative Roles lookup collection.
+     * @path /roles_admin/{adminId}
+     * @allow (get, list, create, update, delete) Restricted to existing administrators.
+     * @deny (read, write) Any user who is not already an administrator.
+     * @principle Role-Based Access Control (RBAC) Management.
      */
-    match /website_settings/{settingId} {
-      allow get: if true;
-      allow list: if isAdmin();
-      allow create: if isAdmin() && isValidCreation(settingId);
-      allow update: if isExistingAdmin() && isValidUpdate();
-      allow delete: if isExistingAdmin();
-    }
-
-    /**
-     * @description Rules for the admin role lookup table.
-     * @path /roles_admin/{adminUid}
-     * @allow (get, list, create, update, delete) if user is an existing admin.
-     * @deny (all) if user is not already authorized as an admin.
-     * @principle Authorization Independence via a dedicated RBAC collection.
-     */
-    match /roles_admin/{adminUid} {
-      // Note: Initial admin setup usually occurs via Firebase Console or Admin SDK.
+    match /roles_admin/{adminId} {
       allow get, list: if isAdmin();
-      allow create: if isAdmin() && isValidCreation(adminUid);
-      allow update: if isExistingAdmin() && isValidUpdate();
+      allow create: if isAdmin() && isRelationalValid(adminId);
+      allow update: if isExistingAdmin() && isImmutable('id');
       allow delete: if isExistingAdmin();
     }
   }
 }
-
-/** 
- * PROTOTYPING MODE ACTIVE:
- * These rules enforce strict authorization (who can access) but allow flexible data shapes 
- * (what the data looks like). Only relational fields (like 'id') are validated for integrity.
- */
