@@ -27,5 +27,9 @@
     "tailwindcss": "3.3.2",
     "three": "^0.153.0",
     "typescript": "5.1.6"
+  },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
   }
 }
