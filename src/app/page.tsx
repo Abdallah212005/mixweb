@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -13,11 +14,11 @@ export default function Page() {
     <main className="relative bg-black w-full h-screen overflow-hidden">
       <SceneBackground />
       
-      {/* HUD Overlay for start reference */}
+      {/* HUD Overlay Clean Starting Point */}
       <div className="fixed inset-0 pointer-events-none z-10 flex items-center justify-center">
         <div className="text-center">
-          <p className="font-code text-[10px] text-accent uppercase tracking-[0.5em] animate-pulse">
-            Neural Link Established
+          <p className="font-code text-[10px] text-accent/40 uppercase tracking-[0.8em] animate-pulse">
+            AuraForge Core Online
           </p>
         </div>
       </div>

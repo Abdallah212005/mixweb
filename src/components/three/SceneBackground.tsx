@@ -20,7 +20,7 @@ export const SceneBackground: React.FC = () => {
       0.1,
       1000
     );
-    camera.position.z = 20;
+    camera.position.z = 18;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -35,132 +35,55 @@ export const SceneBackground: React.FC = () => {
     sun.position.set(10, 5, 5);
     scene.add(sun);
 
-    scene.add(new THREE.AmbientLight(0x222222));
+    const ambient = new THREE.AmbientLight(0x222222);
+    scene.add(ambient);
 
-    // ===== PURPLE PLANET =====
+    // ===== TEXTURES =====
     const loader = new THREE.TextureLoader();
+    
+    // تحميل الخامات من مستودع Three.js الرسمي لضمان الجودة
+    const earthMap = loader.load(
+      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
+    );
     const bumpMap = loader.load(
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
 
-    const planetMaterial = new THREE.MeshStandardMaterial({
-      color: 0x5b2d91,
-      roughness: 0.9,
-      metalness: 0.05,
+    // ===== MATERIAL WITH PURPLE SHADER =====
+    const material = new THREE.MeshStandardMaterial({
+      map: earthMap,
       bumpMap: bumpMap,
       bumpScale: 0.4,
+      roughness: 0.9,
+      metalness: 0.05
     });
+
+    // تحويل الألوان إلى الأرجواني برمجياً عبر الـ Shader
+    material.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <dithering_fragment>',
+        `
+        vec3 purple = vec3(0.55, 0.25, 0.75);
+        float gray = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+        gl_FragColor.rgb = mix(vec3(gray) * purple * 2.0, gl_FragColor.rgb * 0.4, 0.3);
+        #include <dithering_fragment>
+        `
+      );
+    };
 
     const planet = new THREE.Mesh(
       new THREE.SphereGeometry(6, 128, 128),
-      planetMaterial
+      material
     );
     scene.add(planet);
-
-    // ===== ORBIT RING PATH FUNCTION =====
-    function createOrbit(radius: number, tiltX: number, tiltZ: number) {
-      const curve = new THREE.EllipseCurve(
-        0, 0,
-        radius, radius,
-        0, 2 * Math.PI,
-        false,
-        0
-      );
-
-      const points = curve.getPoints(200);
-      const geometry = new THREE.BufferGeometry().setFromPoints(
-        points.map(p => new THREE.Vector3(p.x, 0, p.y))
-      );
-
-      const material = new THREE.LineBasicMaterial({
-        color: 0xaaaaaa,
-        transparent: true,
-        opacity: 0.15,
-      });
-
-      const orbitLine = new THREE.LineLoop(geometry, material);
-      orbitLine.rotation.x = tiltX;
-      orbitLine.rotation.z = tiltZ;
-
-      scene.add(orbitLine);
-      return { curve, orbitLine };
-    }
-
-    const orbit1 = createOrbit(10, 0.4, 0);
-    const orbit2 = createOrbit(13, -0.5, 0.3);
-
-    // ===== MOVING SYMBOLS =====
-    const symbols = ["{ }", "< />", "#", ";", "()"];
-
-    function createSymbol(text: string) {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return new THREE.Sprite();
-
-      canvas.width = 128;
-      canvas.height = 128;
-
-      ctx.font = "bold 60px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "white";
-      ctx.fillText(text, 64, 64);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
-      const sprite = new THREE.Sprite(material);
-      sprite.scale.set(1, 1, 1);
-      return sprite;
-    }
-
-    interface MovingObject {
-      sprite: THREE.Sprite;
-      orbit: { curve: THREE.EllipseCurve; orbitLine: THREE.LineLoop };
-      offset: number;
-    }
-
-    const movingObjects: MovingObject[] = [];
-
-    function addMovingSymbols(orbit: any, count: number) {
-      for (let i = 0; i < count; i++) {
-        const sprite = createSymbol(
-          symbols[Math.floor(Math.random() * symbols.length)]
-        );
-        scene.add(sprite);
-        movingObjects.push({
-          sprite: sprite,
-          orbit: orbit,
-          offset: Math.random(),
-        });
-      }
-    }
-
-    addMovingSymbols(orbit1, 15);
-    addMovingSymbols(orbit2, 20);
 
     // ===== ANIMATION =====
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-
       planet.rotation.y += 0.002;
-
-      movingObjects.forEach(obj => {
-        obj.offset += 0.0008;
-        const t = obj.offset % 1;
-        const point = obj.orbit.curve.getPointAt(t);
-        const pos = new THREE.Vector3(point.x, 0, point.y);
-
-        // Apply orbit tilt rotations
-        pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), obj.orbit.orbitLine.rotation.x);
-        pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), obj.orbit.orbitLine.rotation.z);
-
-        obj.sprite.position.copy(pos);
-      });
-
       renderer.render(scene, camera);
     };
-
     animate();
 
     // ===== RESIZE =====
@@ -174,8 +97,12 @@ export const SceneBackground: React.FC = () => {
     return () => {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
-      containerRef.current?.removeChild(renderer.domElement);
+      if (containerRef.current && renderer.domElement) {
+        containerRef.current.removeChild(renderer.domElement);
+      }
       renderer.dispose();
+      material.dispose();
+      planet.geometry.dispose();
     };
   }, []);
 
