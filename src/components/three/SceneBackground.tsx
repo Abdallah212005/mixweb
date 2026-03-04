@@ -17,6 +17,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
   const triggeredRef = useRef(false);
   const basePositionsRef = useRef<Float32Array | null>(null);
   const timeRef = useRef(0);
+  const starCount = 6000;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -135,7 +136,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     const starTexture = new THREE.CanvasTexture(starCanvas);
 
     // Stars Setup
-    const starCount = 6000;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
 
@@ -178,10 +178,19 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
           const iy = ix + 1;
-          positions[ix] = base[ix] + Math.sin(timeRef.current + i) * 0.02;
-          positions[iy] = base[iy] + Math.cos(timeRef.current + i * 0.5) * 0.02;
+          const iz = ix + 2;
+
+          // Smooth flowing movement
+          positions[ix] = base[ix] + Math.sin(timeRef.current * 0.5 + i * 0.1) * 0.04;
+          positions[iy] = base[iy] + Math.cos(timeRef.current * 0.4 + i * 0.15) * 0.04;
+          positions[iz] = base[iz] + Math.sin(timeRef.current * 0.3 + i * 0.2) * 0.05;
         }
         starsRef.current.geometry.attributes.position.needsUpdate = true;
+
+        // Twinkle effect
+        if (starsRef.current.material instanceof THREE.PointsMaterial) {
+          starsRef.current.material.size = 0.11 + Math.sin(timeRef.current * 2) * 0.01;
+        }
       }
 
       renderer.render(scene, camera);
@@ -241,7 +250,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         ease: "power2.inOut"
       });
 
-      const starCount = 6000;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
       const targetPositions = new Float32Array(starCount * 3);
 
