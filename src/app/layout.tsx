@@ -1,10 +1,9 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'AuraForge | Digital Command Center',
+  title: 'Mix Aura | Digital Command Center',
   description: 'High-end digital agency specializing in futuristic web experiences.',
 };
 
