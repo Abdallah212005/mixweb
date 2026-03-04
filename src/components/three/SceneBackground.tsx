@@ -13,6 +13,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
   const containerRef = useRef<HTMLDivElement>(null);
   const planetRef = useRef<THREE.Mesh | null>(null);
   const atmosphereRef = useRef<THREE.Mesh | null>(null);
+  const starsRef = useRef<THREE.Points | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -26,7 +27,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       1000
     );
     
-    // Updated distance to 14 for the "Clean" look
     camera.position.set(0, 0, 14);
 
     const renderer = new THREE.WebGLRenderer({
@@ -49,7 +49,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     fillLight.position.set(-5, 2, 5);
     scene.add(fillLight);
 
-    const ambient = new THREE.AmbientLight(0x111111);
+    const ambient = new THREE.AmbientLight(0x050505);
     scene.add(ambient);
 
     // ===== TEXTURES =====
@@ -90,7 +90,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         vec3 litColor = mix(landColor, oceanColor, oceanFactor);
         litColor = pow(litColor, vec3(1.1));
 
-        vec3 finalColor = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
+        vec3 finalColor = mix(vec3(0.0, 0.0, 0.0), litColor, shadowMask);
 
         gl_FragColor.rgb = finalColor;
 
@@ -106,7 +106,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     planetRef.current = planet;
     scene.add(planet);
 
-    // ===== ATMOSPHERE GLOW =====
+    // ===== ATMOSPHERE =====
     const atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
@@ -134,6 +134,32 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     atmosphereRef.current = atmosphere;
     scene.add(atmosphere);
 
+    // ===== STAR RING =====
+    const starCount = 600;
+    const starGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(starCount * 3);
+
+    for (let i = 0; i < starCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 9 + Math.random() * 2;
+      positions[i * 3] = Math.cos(angle) * radius;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 1;
+      positions[i * 3 + 2] = Math.sin(angle) * radius;
+    }
+
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const starMaterial = new THREE.PointsMaterial({
+      color: 0xa855f7,
+      size: 0.08,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending
+    });
+
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    starsRef.current = stars;
+    scene.add(stars);
+
     // ===== ANIMATION =====
     let animationFrameId: number;
     const animate = () => {
@@ -141,6 +167,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       if (!isTransitioned) {
         planet.rotation.y += 0.0015;
         atmosphere.rotation.y += 0.0015;
+        stars.rotation.y += 0.001;
       }
       renderer.render(scene, camera);
     };
@@ -163,36 +190,94 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       renderer.dispose();
       planetMaterial.dispose();
       atmosphereMaterial.dispose();
-      planet.geometry.dispose();
-      atmosphere.geometry.dispose();
+      starMaterial.dispose();
     };
   }, []);
 
   // ===== HANDLE TRANSITION =====
   useEffect(() => {
-    if (isTransitioned && planetRef.current && atmosphereRef.current) {
+    if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
       const tl = gsap.timeline();
       
-      // Matched GSAP timing and values to the "Clean" version
+      // 1. Planet & Atmosphere Movement
       tl.to([planetRef.current.rotation, atmosphereRef.current.rotation], {
         y: planetRef.current.rotation.y + Math.PI * 4,
-        duration: 1,
+        duration: 1.5,
         ease: "power2.inOut"
       });
 
       tl.to([planetRef.current.scale, atmosphereRef.current.scale], {
-        x: 0.5,
-        y: 0.5,
-        z: 0.5,
-        duration: 1,
+        x: 0.4,
+        y: 0.4,
+        z: 0.4,
+        duration: 1.5,
         ease: "power2.inOut"
       }, 0);
 
       tl.to([planetRef.current.position, atmosphereRef.current.position], {
         x: -10,
-        duration: 1,
+        duration: 1.5,
         ease: "power2.inOut"
       }, 0);
+
+      // 2. Stars Transformation to </>
+      const starCount = 600;
+      const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
+      
+      gsap.to(starsRef.current.rotation, {
+        y: 0,
+        duration: 1,
+        ease: "power2.inOut"
+      });
+
+      for (let i = 0; i < starCount; i++) {
+        let targetX, targetY, targetZ = 0;
+
+        if (i < starCount / 3) { // Left Bracket <
+          const subIdx = i % 200;
+          if (subIdx < 100) {
+            targetX = 1 - (subIdx * 0.02);
+            targetY = subIdx * 0.02;
+          } else {
+            targetX = -1 + ((subIdx - 100) * 0.02);
+            targetY = 2 - ((subIdx - 100) * 0.02);
+          }
+          targetX -= 1.5;
+          targetY -= 1;
+        } else if (i < (starCount * 2) / 3) { // Slash /
+          const subIdx = i % 200;
+          targetX = (subIdx * 0.015) - 1.5;
+          targetY = (subIdx * 0.03) - 3;
+        } else { // Right Bracket >
+          const subIdx = i % 200;
+          if (subIdx < 100) {
+            targetX = -1 + (subIdx * 0.02);
+            targetY = subIdx * 0.02;
+          } else {
+            targetX = 1 - ((subIdx - 100) * 0.02);
+            targetY = 2 - ((subIdx - 100) * 0.02);
+          }
+          targetX += 1.5;
+          targetY -= 1;
+        }
+
+        // Apply offsets and scale
+        targetX *= 1.5;
+        targetY *= 1.5;
+
+        gsap.to(positions, {
+          [i * 3]: targetX,
+          [i * 3 + 1]: targetY,
+          [i * 3 + 2]: targetZ,
+          duration: 1.5 + Math.random() * 0.5,
+          ease: "power3.inOut",
+          onUpdate: () => {
+            if (starsRef.current) {
+              starsRef.current.geometry.attributes.position.needsUpdate = true;
+            }
+          }
+        });
+      }
     }
   }, [isTransitioned]);
 
