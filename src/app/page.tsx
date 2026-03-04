@@ -15,9 +15,14 @@ const SceneBackground = dynamic(
 );
 
 export default function Page() {
+  const [mounted, setMounted] = useState(false);
   const [scene, setScene] = useState(1);
   const totalScenes = 4;
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleNext = useCallback(() => {
     if (isTransitioning) return;
@@ -38,6 +43,8 @@ export default function Page() {
   }, [scene, isTransitioning]);
 
   useEffect(() => {
+    if (!mounted) return;
+
     let lastWheelTime = 0;
     
     const handleWheel = (e: WheelEvent) => {
@@ -68,7 +75,9 @@ export default function Page() {
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleNext, handlePrev]);
+  }, [handleNext, handlePrev, mounted]);
+
+  if (!mounted) return null;
 
   return (
     <main className="relative bg-black w-full h-screen overflow-hidden">
@@ -99,8 +108,8 @@ export default function Page() {
                 transition={{ duration: 1, ease: "easeOut" }}
                 className="text-7xl font-black tracking-tighter text-white uppercase glow-text leading-[0.9]"
               >
-                Engineer <br /> 
-                <span className="text-accent">Influence</span>
+                Mix <br /> 
+                <span className="text-accent">Aura</span>
               </motion.h1>
             </div>
 
