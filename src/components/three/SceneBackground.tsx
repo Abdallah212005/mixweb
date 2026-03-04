@@ -41,7 +41,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     containerRef.current.appendChild(renderer.domElement);
 
     // ===== LIGHTING =====
-    const purpleSun = new THREE.DirectionalLight(0xa855f7, 3.0);
+    const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
     purpleSun.position.set(8, 4, 6);
     scene.add(purpleSun);
 
@@ -49,7 +49,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     fillLight.position.set(-5, 2, 5);
     scene.add(fillLight);
 
-    const ambient = new THREE.AmbientLight(0x050505);
+    const ambient = new THREE.AmbientLight(0x111111);
     scene.add(ambient);
 
     // ===== TEXTURES =====
@@ -61,13 +61,13 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_bump_2048.jpg"
     );
 
-    // ===== PLANET MATERIAL (Dark Purple Shader) =====
+    // ===== PLANET MATERIAL (Custom Shader) =====
     const planetMaterial = new THREE.MeshStandardMaterial({
       map: earthMap,
       bumpMap: bumpMap,
-      bumpScale: 0.7,
-      roughness: 0.95,
-      metalness: 0.02,
+      bumpScale: 0.8,
+      roughness: 0.9,
+      metalness: 0.05,
     });
 
     planetMaterial.onBeforeCompile = (shader) => {
@@ -75,22 +75,32 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         '#include <dithering_fragment>',
         `
         vec3 baseColor = gl_FragColor.rgb;
+
+        // Light direction calculation
         vec3 lightDir = normalize(vec3(8.0, 4.0, 6.0));
         float lightPower = dot(normalize(vNormal), lightDir);
         lightPower = clamp(lightPower, 0.0, 1.0);
 
-        float shadowMask = smoothstep(0.0, 0.25, lightPower);
+        // Soft shadow mask
+        float shadowMask = smoothstep(0.0, 0.45, lightPower);
 
+        // Ocean vs Land Separation
         float oceanFactor = smoothstep(0.05, 0.25, baseColor.b - baseColor.r);
         oceanFactor = pow(oceanFactor, 2.0);
 
-        vec3 oceanColor = vec3(0.05, 0.05, 0.07);
-        vec3 landColor = vec3(0.55, 0.12, 0.75);
+        // Charcoal ocean
+        vec3 oceanColor = vec3(0.07, 0.07, 0.09);
+
+        // Vibrant purple land
+        vec3 landColor = vec3(0.6, 0.18, 0.85);
 
         vec3 litColor = mix(landColor, oceanColor, oceanFactor);
-        litColor = pow(litColor, vec3(1.25));
 
-        vec3 finalColor = mix(vec3(0.0, 0.0, 0.0), litColor, shadowMask);
+        // Balanced contrast
+        litColor = pow(litColor, vec3(1.1));
+
+        // Blend with shadow (not absolute black)
+        vec3 finalColor = mix(vec3(0.02, 0.02, 0.03), litColor, shadowMask);
 
         gl_FragColor.rgb = finalColor;
 
@@ -236,7 +246,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
         ease: "power2.inOut"
       }, 0);
 
-      // 2. Stars Form </> 
+      // 2. Stars Form Real </> Shape
       gsap.to(starsRef.current.rotation, {
         y: 0,
         duration: 1,
@@ -246,39 +256,61 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       const starCount = 900;
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
+      function randomSpread(value: number, spread: number) {
+        return value + (Math.random() - 0.5) * spread;
+      }
+
       for (let i = 0; i < starCount; i++) {
-        const t = i / starCount;
+        let t = i / starCount;
         let targetX = 0;
         let targetY = 0;
         let targetZ = 0;
 
         if (t < 0.33) {
-          // < Bracket
-          const p = t / 0.33;
-          targetX = -2 + p * 1.2;
-          targetY = 1 - p * 2;
+          // <
+          let p = t / 0.33;
+          if (p < 0.5) {
+            let pp = p * 2;
+            targetX = -2 + pp * 1;
+            targetY = 1 - pp * 1;
+          } else {
+            let pp = (p - 0.5) * 2;
+            targetX = -1 - pp * 1;
+            targetY = 0 - pp * 1;
+          }
         } else if (t < 0.66) {
-          // / Slash
-          const p = (t - 0.33) / 0.33;
-          targetX = -0.5 + p * 1;
+          // /
+          let p = (t - 0.33) / 0.33;
+          targetX = -0.3 + p * 1;
           targetY = 1 - p * 2;
         } else {
-          // > Bracket
-          const p = (t - 0.66) / 0.34;
-          targetX = 0.8 + p * 1.2;
-          targetY = -1 + p * 2;
+          // >
+          let p = (t - 0.66) / 0.34;
+          if (p < 0.5) {
+            let pp = p * 2;
+            targetX = 0.8 + pp * 1;
+            targetY = -1 + pp * 1;
+          } else {
+            let pp = (p - 0.5) * 2;
+            targetX = 1.8 - pp * 1;
+            targetY = 0 + pp * 1;
+          }
         }
 
-        // Apply scale and offsets for centering the code logo
+        // Add thickness/imperfection
+        targetX = randomSpread(targetX, 0.08);
+        targetY = randomSpread(targetY, 0.08);
+
+        // Apply scale and offsets for centering
         targetX *= 2.5;
         targetY *= 2.5;
-        targetX += 2; // Shift a bit to the right since planet moved left
+        targetX += 3; // Shift to the right half
 
         gsap.to(positions, {
           [i * 3]: targetX,
           [i * 3 + 1]: targetY,
           [i * 3 + 2]: targetZ,
-          duration: 1.6 + Math.random() * 0.4,
+          duration: 1.8 + Math.random() * 0.4,
           ease: "power3.inOut",
           onUpdate: () => {
             if (starsRef.current) {
