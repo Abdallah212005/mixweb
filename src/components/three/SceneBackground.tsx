@@ -1,200 +1,172 @@
-
 "use client";
 
 import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
-import { useScroll, useTransform, useSpring } from "framer-motion";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
 
 export const SceneBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Static state for now since we are on the first slide
-  const cameraZ = 40;
-  const cameraY = 10;
-  const cameraX = 0;
-  
-  const planetOpacity = 1;
-  const planetScale = 1.8;
-  const starOpacity = 0.8;
+  const mouse = useRef(new THREE.Vector2(0, 0));
 
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // ================= SCENE =================
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#000000");
-    scene.fog = new THREE.FogExp2("#000000", 0.012);
+    scene.fog = new THREE.FogExp2(0x0a0015, 0.03);
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 15000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 25;
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
     containerRef.current.appendChild(renderer.domElement);
 
-    const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
-    const composer = new EffectComposer(renderer);
-    composer.addPass(renderScene);
-    composer.addPass(bloomPass);
+    // ================= LIGHT =================
+    const light = new THREE.PointLight(0xaa55ff, 3, 200);
+    light.position.set(20, 20, 20);
+    scene.add(light);
 
-    // Stars
-    const starCount = 6000;
-    const starGeometry = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
-    
-    for (let i = 0; i < starCount; i++) {
-      starPositions[i * 3] = (Math.random() - 0.5) * 8000;
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 8000;
-      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 8000;
-      
-      const mixedColor = new THREE.Color().setHSL(0.75 + Math.random() * 0.1, 1.0, 0.6);
-      starColors[i * 3] = mixedColor.r;
-      starColors[i * 3 + 1] = mixedColor.g;
-      starColors[i * 3 + 2] = mixedColor.b;
+    const ambient = new THREE.AmbientLight(0x220044);
+    scene.add(ambient);
+
+    // ================= PLANET =================
+    const planetGeo = new THREE.SphereGeometry(6, 64, 64);
+    const planetMat = new THREE.MeshStandardMaterial({
+      color: 0x6d28d9,
+      emissive: 0x4c1d95,
+      roughness: 0.5,
+      metalness: 0.6,
+    });
+
+    const planet = new THREE.Mesh(planetGeo, planetMat);
+    scene.add(planet);
+
+    // ================= PARTICLES =================
+    const particleCount = 1200;
+    const particleGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const originalPositions: THREE.Vector3[] = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      const radius = 10 + Math.random() * 5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      originalPositions.push(new THREE.Vector3(x, y, z));
     }
-    
-    starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    starGeometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
-    
-    const starMaterial = new THREE.PointsMaterial({ 
-      size: 1.5, 
-      vertexColors: true, 
-      transparent: true, 
-      opacity: starOpacity, 
-      blending: THREE.AdditiveBlending 
-    });
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
 
-    // Planet Group
-    const planetGroup = new THREE.Group();
-    const loader = new THREE.TextureLoader();
-    
-    loader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (texture) => {
-      texture.colorSpace = THREE.SRGBColorSpace;
+    particleGeo.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3)
+    );
 
-      const planetMat = new THREE.MeshStandardMaterial({
-        map: texture,
-        roughness: 1.0,
-        metalness: 0.0,
-        transparent: true
-      });
-
-      planetMat.onBeforeCompile = (shader) => {
-        shader.uniforms.uOpacity = { value: planetOpacity };
-        shader.fragmentShader = `uniform float uOpacity;\n${shader.fragmentShader}`;
-        shader.fragmentShader = shader.fragmentShader.replace(
-          '#include <map_fragment>',
-          `
-          vec4 texColor = texture2D(map, vMapUv);
-          float brightness = (texColor.r + texColor.g + texColor.b)/3.0;
-
-          if(brightness < 0.4){
-            texColor.rgb *= vec3(0.08, 0.06, 0.15);
-          } else {
-            texColor.rgb = mix(texColor.rgb, vec3(0.4, 0.0, 0.7), 0.65);
-          }
-
-          diffuseColor *= texColor;
-          diffuseColor.a *= uOpacity;
-          `
-        );
-        planetMat.userData.shader = shader;
-      };
-
-      const planet = new THREE.Mesh(new THREE.SphereGeometry(6.5, 128, 128), planetMat);
-      planetGroup.add(planet);
-
-      // Sharper Atmosphere Glow
-      const atmoGeo = new THREE.SphereGeometry(6.75, 128, 128);
-      const atmoMat = new THREE.ShaderMaterial({
-        uniforms: { 
-          glowColor: { value: new THREE.Color("#C41BFD") }, 
-          uOpacity: { value: planetOpacity },
-          sunDirection: { value: new THREE.Vector3(1.0, 0.25, 0.5).normalize() }
-        },
-        vertexShader: `
-          varying float vIntensity;
-          varying vec3 vNormal;
-          varying vec3 vPosition;
-          void main() {
-            vNormal = normalize( normalMatrix * normal );
-            vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
-            vIntensity = pow( 0.85 - dot(vNormal, vec3(0,0,1.0)), 6.0 );
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-          }
-        `,
-        fragmentShader: `
-          uniform vec3 glowColor;
-          uniform float uOpacity;
-          uniform vec3 sunDirection;
-          varying float vIntensity;
-          varying vec3 vNormal;
-          void main() {
-            float sunBias = max(0.0, dot(vNormal, sunDirection));
-            float directionalFactor = 0.1 + 4.5 * pow(sunBias, 4.0);
-            gl_FragColor = vec4( glowColor, vIntensity * uOpacity * directionalFactor );
-          }
-        `,
-        side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true
-      });
-      const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
-      planetGroup.add(atmosphere);
-      scene.add(planetGroup);
-      
-      planetGroup.userData.atmoMat = atmoMat;
-      planetGroup.userData.planetMat = planetMat;
+    const particleMat = new THREE.PointsMaterial({
+      color: 0xc084fc,
+      size: 0.15,
+      transparent: true,
+      opacity: 0.8,
     });
 
-    const sunGeo = new THREE.SphereGeometry(30, 32, 32);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
-    sunMesh.position.set(1000, 250, 500);
-    scene.add(sunMesh);
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 4.0);
-    sunLight.position.set(400, 100, 200); 
-    scene.add(sunLight);
+    // ================= MOUSE =================
+    const raycaster = new THREE.Raycaster();
 
-    const subtleFill = new THREE.AmbientLight(0x050511, 0.1); 
-    scene.add(subtleFill);
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+
+    // ================= ANIMATION =================
+    let animationFrameId: number;
 
     const animate = () => {
-      requestAnimationFrame(animate);
-      
-      camera.position.set(cameraX, cameraY, cameraZ);
-      camera.lookAt(0, 0, 0);
+      animationFrameId = requestAnimationFrame(animate);
 
-      if (planetGroup) {
-        planetGroup.rotation.y += 0.0015;
-        planetGroup.scale.set(planetScale, planetScale, planetScale);
+      planet.rotation.y += 0.002;
+
+      // Project mouse to 3D space
+      const mouse3D = new THREE.Vector3(mouse.current.x, mouse.current.y, 0.5);
+      mouse3D.unproject(camera);
+      // Determine the direction from camera to mouse3D to find where it hits the plane at z=0
+      const dir = mouse3D.sub(camera.position).normalize();
+      const distance = -camera.position.z / dir.z;
+      const posAtZ0 = camera.position.clone().add(dir.multiplyScalar(distance));
+
+      const posAttribute = particleGeo.attributes.position;
+      const positionsArray = posAttribute.array as Float32Array;
+
+      for (let i = 0; i < particleCount; i++) {
+        const index = i * 3;
+        const original = originalPositions[i];
+
+        const currentPos = new THREE.Vector3(
+          positionsArray[index],
+          positionsArray[index + 1],
+          positionsArray[index + 2]
+        );
+
+        const distToMouse = currentPos.distanceTo(posAtZ0);
+
+        if (distToMouse < 6) {
+          // Magnetic pull
+          currentPos.lerp(posAtZ0, 0.08);
+        } else {
+          // Return to orbit
+          currentPos.lerp(original, 0.03);
+        }
+
+        positionsArray[index] = currentPos.x;
+        positionsArray[index + 1] = currentPos.y;
+        positionsArray[index + 2] = currentPos.z;
       }
-      
-      composer.render();
+
+      posAttribute.needsUpdate = true;
+
+      // Cinematic camera movement
+      camera.position.x = Math.sin(Date.now() * 0.0003) * 2;
+      camera.lookAt(scene.position);
+
+      renderer.render(scene, camera);
     };
 
     animate();
 
+    // ================= RESIZE =================
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      composer.setSize(window.innerWidth, window.innerHeight);
     };
     window.addEventListener("resize", handleResize);
 
     return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationFrameId);
       containerRef.current?.removeChild(renderer.domElement);
       renderer.dispose();
-      composer.dispose();
     };
   }, []);
 
-  return <div ref={containerRef} className="fixed inset-0 z-0 pointer-events-none" />;
+  return <div ref={containerRef} className="fixed inset-0 z-0 bg-[#050010]" />;
 };

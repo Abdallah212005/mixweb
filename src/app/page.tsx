@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -11,13 +10,15 @@ const SceneBackground = dynamic(
 
 export default function Page() {
   return (
-    <main className="relative bg-[#000000] w-full h-screen overflow-hidden">
-      {/* 3D Planet Scene Only */}
+    <main className="relative bg-[#050010] w-full h-screen overflow-hidden">
+      {/* Magnetic Planet Scene */}
       <SceneBackground />
       
-      {/* Clean Slate Layer */}
-      <div className="fixed inset-0 z-10 pointer-events-none flex items-center justify-center">
-        <div className="opacity-0">Planet Initialized</div>
+      {/* Overlay for interaction hint */}
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-10 pointer-events-none opacity-30">
+        <p className="font-code text-[10px] text-accent uppercase tracking-[0.4em]">
+          Magnetic Field Active • Move Mouse to Interact
+        </p>
       </div>
     </main>
   );
