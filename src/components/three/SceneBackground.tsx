@@ -217,7 +217,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
     };
   }, []);
 
-  // ===== HANDLE TRANSITION (PRECISION SYMBOL MORPHING) =====
+  // ===== HANDLE TRANSITION (DOTTED SYMBOL MORPHING) =====
   useEffect(() => {
     if (isTransitioned && planetRef.current && atmosphereRef.current && starsRef.current) {
       triggeredRef.current = true;
@@ -252,6 +252,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       });
 
       const starCount = 6000;
+      const symbolStarCount = 1200; // Only use 1200 stars for the symbol
       const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
 
       // ==== DEFINE PERFECTED </> SHAPE ====
@@ -273,18 +274,28 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ isTransitioned
       shape.lineTo(gap + 0.8, 0);
       shape.lineTo(gap, -size);
 
-      // Use fewer points for a spaced, dotted look
-      const symbolPoints = shape.getSpacedPoints(900); 
+      // Get points for the symbol
+      const symbolPoints = shape.getSpacedPoints(symbolStarCount); 
       const centerX = 4.0; 
       const centerY = 5.2; 
 
       for (let i = 0; i < starCount; i++) {
-        const p = symbolPoints[i % symbolPoints.length];
-        
-        const targetX = p.x + centerX;
-        const targetY = p.y + centerY;
-        // Simple depth variation for a stellar feel
-        const targetZ = (Math.random() - 0.5) * 0.05;
+        let targetX, targetY, targetZ;
+
+        if (i < symbolStarCount) {
+          // Stars that form the symbol
+          const p = symbolPoints[i];
+          targetX = p.x + centerX;
+          targetY = p.y + centerY;
+          targetZ = (Math.random() - 0.5) * 0.2; // Slight depth for 3D feel
+        } else {
+          // Remaining stars scattered around
+          const a = Math.random() * Math.PI * 2;
+          const r = 8 + Math.random() * 8; // Larger radius for background
+          targetX = Math.cos(a) * r;
+          targetY = Math.sin(a) * r;
+          targetZ = (Math.random() - 0.5) * 5; // Deep starfield effect
+        }
 
         gsap.to(positions, {
           [i * 3]: targetX,
