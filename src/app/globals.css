@@ -20,7 +20,18 @@
 }
 
 .glow-text {
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.2);
+  text-shadow: 
+    0 0 20px rgba(168, 85, 247, 0.8),
+    0 0 40px rgba(168, 85, 247, 0.4),
+    0 0 60px rgba(168, 85, 247, 0.2);
+}
+
+.hero-title-3d {
+  filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.5));
+  text-shadow: 
+    -1px -1px 0px rgba(255, 255, 255, 0.1),
+    1px 1px 0px rgba(0, 0, 0, 0.8),
+    4px 4px 15px rgba(0, 0, 0, 0.9);
 }
 
 .glow-purple {
@@ -32,7 +43,15 @@
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #a855f7, #ffffff, #a855f7);
+  background: linear-gradient(135deg, #ffffff 0%, #a855f7 50%, #ffffff 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: shine 5s linear infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
 }

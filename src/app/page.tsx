@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -178,40 +177,53 @@ export default function Page() {
           >
             <div className="relative text-center w-full px-4">
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
                 className="relative"
               >
-                <div className="absolute -inset-10 bg-accent/5 blur-[80px] rounded-full" />
-                <h1 className="text-6xl sm:text-8xl md:text-[12rem] font-black tracking-tighter text-white uppercase leading-[0.8] drop-shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+                {/* Enhanced Backdrop Glow */}
+                <div className="absolute -inset-20 bg-accent/10 blur-[120px] rounded-full opacity-50" />
+                <div className="absolute -inset-10 bg-primary/10 blur-[80px] rounded-full opacity-30 animate-pulse" />
+                
+                <motion.h1 
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="text-7xl sm:text-9xl md:text-[14rem] font-black tracking-tighter text-white uppercase leading-[0.75] hero-title-3d"
+                >
                   Mix <br /> 
-                  <span className="text-accent glow-text">Aura</span>
-                </h1>
+                  <span className="text-accent glow-text text-gradient">Aura</span>
+                </motion.h1>
               </motion.div>
               
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-                className="mt-6 md:mt-8 flex flex-col items-center gap-4"
+                transition={{ delay: 0.8, duration: 1 }}
+                className="mt-12 md:mt-16 flex flex-col items-center gap-6"
               >
-                <div className="h-px w-12 md:w-20 bg-accent/40" />
-                <p className="text-[10px] md:text-[14px] font-code text-white/60 uppercase tracking-[0.4em] md:tracking-[0.8em] text-center max-w-xs md:max-w-none">
+                <div className="h-0.5 w-16 md:w-24 bg-gradient-to-r from-transparent via-accent to-transparent" />
+                <p className="text-[12px] md:text-[18px] font-code text-white font-medium uppercase tracking-[0.5em] md:tracking-[1em] text-center max-w-xs md:max-w-none opacity-80">
                   Architects of Digital Dominance
                 </p>
-                <div className="flex gap-4 md:gap-8 mt-4">
-                   <div className="flex items-center gap-2 opacity-40">
-                      <Zap size={10} className="text-accent md:w-3 md:h-3" />
-                      <span className="text-[7px] md:text-[8px] font-code">Fast</span>
+                <div className="flex gap-6 md:gap-12 mt-6">
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="p-2 rounded-full bg-accent/5 border border-accent/20 group-hover:border-accent/50 transition-all">
+                        <Zap size={14} className="text-accent md:w-4 md:h-4" />
+                      </div>
+                      <span className="text-[8px] md:text-[9px] font-code uppercase tracking-widest text-white/40 group-hover:text-accent transition-all">Fast</span>
                    </div>
-                   <div className="flex items-center gap-2 opacity-40">
-                      <ShieldCheck size={10} className="text-accent md:w-3 md:h-3" />
-                      <span className="text-[7px] md:text-[8px] font-code">Secure</span>
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="p-2 rounded-full bg-accent/5 border border-accent/20 group-hover:border-accent/50 transition-all">
+                        <ShieldCheck size={14} className="text-accent md:w-4 md:h-4" />
+                      </div>
+                      <span className="text-[8px] md:text-[9px] font-code uppercase tracking-widest text-white/40 group-hover:text-accent transition-all">Secure</span>
                    </div>
-                   <div className="flex items-center gap-2 opacity-40">
-                      <Cpu size={10} className="text-accent md:w-3 md:h-3" />
-                      <span className="text-[7px] md:text-[8px] font-code">Smart</span>
+                   <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                      <div className="p-2 rounded-full bg-accent/5 border border-accent/20 group-hover:border-accent/50 transition-all">
+                        <Cpu size={14} className="text-accent md:w-4 md:h-4" />
+                      </div>
+                      <span className="text-[8px] md:text-[9px] font-code uppercase tracking-widest text-white/40 group-hover:text-accent transition-all">Smart</span>
                    </div>
                 </div>
               </motion.div>
@@ -223,7 +235,7 @@ export default function Page() {
               animate={{ y: [0, 10, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
             >
-              <span className="text-[7px] md:text-[8px] font-code uppercase tracking-[0.4em] group-hover:tracking-[0.6em] transition-all">Engage</span>
+              <span className="text-[7px] md:text-[8px] font-code uppercase tracking-[0.4em] group-hover:tracking-[0.6em] transition-all">Engage System</span>
               <ChevronDown size={20} className="md:w-6 md:h-6" />
             </motion.button>
           </motion.div>
@@ -336,6 +348,11 @@ export default function Page() {
                   onChange={(e) => setFormData({...formData, message: e.target.value})}
                   placeholder="ENCRYPTED MESSAGE..." 
                   className="bg-white/5 border-white/10 font-code text-[9px] md:text-[10px] min-h-[100px] md:min-h-[120px] rounded-xl focus:border-accent/50 focus:ring-accent/20" 
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                      handleSendTransmission();
+                    }
+                  }}
                 />
                 <Button 
                   onClick={handleSendTransmission}
