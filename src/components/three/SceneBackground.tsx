@@ -99,14 +99,16 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       delay: 0.5
     });
 
+    // Sharp Stars Canvas Generation
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64; starCanvas.height = 64;
     const ctx = starCanvas.getContext("2d");
     if (ctx) {
-      const gradient = ctx.createRadialGradient(32, 32, 2, 32, 32, 32);
-      gradient.addColorStop(0, "white");
-      gradient.addColorStop(0.3, "#d8b4fe");
-      gradient.addColorStop(1, "transparent");
+      const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gradient.addColorStop(0, "#ffffff"); // Core
+      gradient.addColorStop(0.1, "#e9d5ff"); // Light Purple
+      gradient.addColorStop(0.4, "#7e22ce"); // Darker Purple
+      gradient.addColorStop(1, "transparent"); // Edge
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 64, 64);
     }
@@ -129,7 +131,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       transparent: true,
-      size: 0.15,
+      size: 0.18, // Slightly larger and sharper
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       opacity: 0
