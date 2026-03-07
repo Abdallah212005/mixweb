@@ -316,7 +316,17 @@ export default function Page() {
             transition={{ duration: 0.8 }}
             className="fixed inset-0 z-10 flex flex-col items-center md:items-start justify-center md:pl-[55%] pointer-events-none p-6"
           >
-            <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left translate-y-[-35%]">
+            <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left translate-y-[-10%]">
+              <motion.div 
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-3 mb-2"
+              >
+                <div className="w-8 h-[1px] bg-accent/50" />
+                <span className="text-[10px] md:text-[12px] font-code text-accent uppercase tracking-[0.4em] font-medium">Our Clients</span>
+              </motion.div>
+
               <motion.div 
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
