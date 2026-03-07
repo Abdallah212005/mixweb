@@ -67,7 +67,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     planet.scale.set(0, 0, 0); 
     sceneThree.add(planet);
 
-    // Client Logo Moon - Plane to show the logo as-is
+    // Client Logo Moon - Plane to show the logo as a billboard
     const logoTexture = loader.load("/global.jpeg"); 
     const moonMaterial = new THREE.MeshBasicMaterial({ 
       map: logoTexture,
@@ -180,11 +180,12 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.003;
 
       if (moonRef.current && planetRef.current) {
-        const orbitRadius = 10;
+        // Reduced orbit radius to ensure visibility
+        const orbitRadius = 4.5; 
         const speed = 0.5;
         moonRef.current.position.x = planetRef.current.position.x + Math.cos(timeRef.current * speed) * orbitRadius;
         moonRef.current.position.z = planetRef.current.position.z + Math.sin(timeRef.current * speed) * orbitRadius;
-        moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.5) * 2;
+        moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.5) * 1.5;
         moonRef.current.lookAt(camera.position);
       }
 
@@ -346,13 +347,14 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       const yPos = isMobile ? -8 : 0;
       const scale = isMobile ? 0.35 : 0.5;
 
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: -5, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
+      // Moon is visible in Scene 4
       gsap.to(moonRef.current.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
 
       const sCount = 2500;
       const xOff = isMobile ? 0 : 4;
-      const yOff = isMobile ? 8 : 7.5; 
+      const yOff = isMobile ? 5.5 : 5; // Positioned stars above the lowered text
 
       // Insights arrow shape above the text on the right
       drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
