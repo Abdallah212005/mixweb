@@ -68,14 +68,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     sceneThree.add(planet);
 
     // القمر للعميل: Global Real Estate
-    // استخدام MeshBasicMaterial لضمان ظهور اللوجو بوضوح تام دون تأثر بالإضاءة
+    // تحويله إلى مستوي (Plane) لعرض اللوجو بشكل مسطح ونقي
     const logoTexture = loader.load("/global.jpeg"); 
     const moonMaterial = new THREE.MeshBasicMaterial({ 
       map: logoTexture,
       transparent: true,
       side: THREE.DoubleSide
     });
-    const moon = new THREE.Mesh(new THREE.SphereGeometry(1.8, 64, 64), moonMaterial);
+    // استخدام PlaneGeometry بدلاً من Sphere لعرض اللوجو كقطعة واحدة
+    const moon = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 3.5), moonMaterial);
     moonRef.current = moon;
     moon.scale.set(0, 0, 0);
     sceneThree.add(moon);
@@ -186,7 +187,9 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         moonRef.current.position.x = planetRef.current.position.x + Math.cos(timeRef.current * speed) * orbitRadius;
         moonRef.current.position.z = planetRef.current.position.z + Math.sin(timeRef.current * speed) * orbitRadius;
         moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.5) * 2;
-        moonRef.current.rotation.y += 0.01;
+        
+        // جعل اللوجو يواجه الكاميرا دائماً (Billboard effect)
+        moonRef.current.lookAt(camera.position);
       }
 
       if (starsRef.current && startPositionsRef.current && targetPositionsRef.current) {
@@ -353,7 +356,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       const sCount = 2500;
       const xOff = isMobile ? 0 : -4;
-      const yOff = isMobile ? 6 : 5; // Raised stars higher for arrows
+      // رفع تشكيل النجوم للأعلى ليكون فوق النص
+      const yOff = isMobile ? 8 : 7.5; 
 
       drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
       drawThickLine(0, 0, -2, -1.5, sCount / 8, xOff, yOff);
