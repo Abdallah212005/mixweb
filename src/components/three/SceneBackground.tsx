@@ -67,7 +67,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     planet.scale.set(0, 0, 0); 
     sceneThree.add(planet);
 
-    // Global Real Estate Logo Moon - Plane for clean display
+    // Client Logo Moon - Plane to show the logo as-is
     const logoTexture = loader.load("/global.jpeg"); 
     const moonMaterial = new THREE.MeshBasicMaterial({ 
       map: logoTexture,
@@ -354,7 +354,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       const xOff = isMobile ? 0 : 4;
       const yOff = isMobile ? 8 : 7.5; 
 
-      // Insights arrow shape above the text
+      // Insights arrow shape above the text on the right
       drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
       drawThickLine(0, 0, -2, -1.5, sCount / 8, xOff, yOff);
       drawThickLine(0.5, 1.5, 2.5, 0, sCount / 8, xOff, yOff);
