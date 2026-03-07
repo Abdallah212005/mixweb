@@ -316,7 +316,7 @@ export default function Page() {
             transition={{ duration: 0.8 }}
             className="fixed inset-0 z-10 flex flex-col items-center md:items-start justify-center md:pl-[12%] pointer-events-none p-6"
           >
-            <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left translate-y-[-15%]">
+            <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left translate-y-[-25%]">
               <motion.div 
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}

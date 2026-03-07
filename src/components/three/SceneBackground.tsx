@@ -68,14 +68,14 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     sceneThree.add(planet);
 
     // القمر للعميل: Global Real Estate
+    // استخدام MeshBasicMaterial لضمان ظهور اللوجو بوضوح تام دون تأثر بالإضاءة
     const logoTexture = loader.load("/global.jpeg"); 
-    const moonMaterial = new THREE.MeshStandardMaterial({ 
+    const moonMaterial = new THREE.MeshBasicMaterial({ 
       map: logoTexture,
-      emissive: 0xffffff,
-      emissiveMap: logoTexture,
-      emissiveIntensity: 0.8
+      transparent: true,
+      side: THREE.DoubleSide
     });
-    const moon = new THREE.Mesh(new THREE.SphereGeometry(1.5, 64, 64), moonMaterial);
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(1.8, 64, 64), moonMaterial);
     moonRef.current = moon;
     moon.scale.set(0, 0, 0);
     sceneThree.add(moon);
@@ -343,7 +343,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
       }
     } else if (scene === 4) {
-      // مشهد العميل: الكوكب والقمر مع لوجو /global.jpeg والنجوم بشكل أسهم Insights
       const xPos = isMobile ? 0 : 6;
       const yPos = isMobile ? -8 : 0;
       const scale = isMobile ? 0.3 : 0.45;
@@ -354,9 +353,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       const sCount = 2500;
       const xOff = isMobile ? 0 : -4;
-      const yOff = isMobile ? 5 : 4; // Moved arrows up higher
+      const yOff = isMobile ? 6 : 5; // Raised stars higher for arrows
 
-      // شكل أسهم الـ Insights (Chevron >>)
       drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
       drawThickLine(0, 0, -2, -1.5, sCount / 8, xOff, yOff);
       drawThickLine(0.5, 1.5, 2.5, 0, sCount / 8, xOff, yOff);
