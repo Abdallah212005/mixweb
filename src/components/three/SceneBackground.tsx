@@ -13,6 +13,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const planetRef = useRef<THREE.Mesh | null>(null);
   const atmosphereRef = useRef<THREE.Mesh | null>(null);
+  const moonRef = useRef<THREE.Mesh | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
   
   const startPositionsRef = useRef<Float32Array | null>(null);
@@ -66,6 +67,19 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     planet.scale.set(0, 0, 0); 
     sceneThree.add(planet);
 
+    // Moon for Clients (Global Real Estate)
+    // Replace the URL with the actual logo provided by the user later
+    const logoTexture = loader.load("https://picsum.photos/seed/client1/512/512"); 
+    const moonMaterial = new THREE.MeshStandardMaterial({ 
+      map: logoTexture,
+      emissive: 0xa855f7,
+      emissiveIntensity: 0.2
+    });
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(1.2, 64, 64), moonMaterial);
+    moonRef.current = moon;
+    moon.scale.set(0, 0, 0);
+    sceneThree.add(moon);
+
     const atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
@@ -99,16 +113,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       delay: 0.5
     });
 
-    // Sharp Stars Canvas Generation
     const starCanvas = document.createElement("canvas");
     starCanvas.width = 64; starCanvas.height = 64;
     const ctx = starCanvas.getContext("2d");
     if (ctx) {
       const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-      gradient.addColorStop(0, "#ffffff"); // Core
-      gradient.addColorStop(0.1, "#e9d5ff"); // Light Purple
-      gradient.addColorStop(0.4, "#7e22ce"); // Darker Purple
-      gradient.addColorStop(1, "transparent"); // Edge
+      gradient.addColorStop(0, "#ffffff");
+      gradient.addColorStop(0.1, "#e9d5ff");
+      gradient.addColorStop(0.4, "#7e22ce");
+      gradient.addColorStop(1, "transparent");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 64, 64);
     }
@@ -131,7 +144,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       transparent: true,
-      size: 0.18, // Slightly larger and sharper
+      size: 0.18,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       opacity: 0
@@ -167,6 +180,16 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (planetRef.current) planetRef.current.rotation.y += 0.003;
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.003;
 
+      // Moon Orbiting Logic
+      if (moonRef.current && planetRef.current) {
+        const orbitRadius = 10;
+        const speed = 0.5;
+        moonRef.current.position.x = planetRef.current.position.x + Math.cos(timeRef.current * speed) * orbitRadius;
+        moonRef.current.position.z = planetRef.current.position.z + Math.sin(timeRef.current * speed) * orbitRadius;
+        moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.5) * 2;
+        moonRef.current.rotation.y += 0.01;
+      }
+
       if (starsRef.current && startPositionsRef.current && targetPositionsRef.current) {
         const positions = starsRef.current.geometry.attributes.position.array as Float32Array;
         const start = startPositionsRef.current;
@@ -176,7 +199,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
-          
           let baseX = start[ix] + (target[ix] - start[ix]) * p;
           let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
           let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
@@ -187,9 +209,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
           const distSq = dx * dx + dy * dy + dz * dz;
           const threshold = 16;
           
-          let scatterX = 0;
-          let scatterY = 0;
-          let scatterZ = 0;
+          let scatterX = 0, scatterY = 0, scatterZ = 0;
 
           if (distSq < threshold) {
             const force = (threshold - distSq) / threshold;
@@ -227,10 +247,9 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   }, []);
 
   useEffect(() => {
-    if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current || !startPositionsRef.current) return;
+    if (!planetRef.current || !atmosphereRef.current || !starsRef.current || !targetPositionsRef.current || !startPositionsRef.current || !moonRef.current) return;
 
     startPositionsRef.current.set(targetPositionsRef.current);
-
     const nextTargets = new Float32Array(starCount * 3);
     let index = 0;
     const thickness = 0.25;
@@ -258,6 +277,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     if (scene === 1) {
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 0, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
 
       for (let i = 0; i < starCount; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -273,6 +293,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
 
       const sCount = 1400;
       const xOff = isMobile ? 0 : 4;
@@ -298,6 +319,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
 
       const sCount = 2000;
       const xOff = isMobile ? 0 : -4;
@@ -322,9 +344,24 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
       }
     } else if (scene === 4) {
+      // Clients Scene: Moon Appears
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 0, z: -5, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.8, y: 0.8, z: 0.8, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(moonRef.current.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
+
+      // Star halo around the orbit
+      for (let i = 0; i < starCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 10 + (Math.random() - 0.5) * 1.5;
+        nextTargets[i * 3] = Math.cos(a) * r;
+        nextTargets[i * 3 + 1] = (Math.random() - 0.5) * 12;
+        nextTargets[i * 3 + 2] = Math.sin(a) * r;
+      }
+    } else if (scene === 5) {
       const yPos = isMobile ? 12 : 10;
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: yPos, z: -10, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1.5, y: 1.5, z: 1.5, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
 
       const sCount = 2500;
       const yOff = isMobile ? -3 : -2;
@@ -346,7 +383,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     }
 
     targetPositionsRef.current.set(nextTargets);
-    
     transitionRef.current.progress = 0;
     gsap.to(transitionRef.current, { 
       progress: 1, 

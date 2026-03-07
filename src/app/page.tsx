@@ -1,9 +1,10 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Zap, ShieldCheck, Cpu, Loader2 } from "lucide-react";
+import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Zap, ShieldCheck, Cpu, Loader2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +21,7 @@ const SceneBackground = dynamic(
 export default function Page() {
   const [mounted, setMounted] = useState(false);
   const [scene, setScene] = useState(1);
-  const totalScenes = 4;
+  const totalScenes = 5;
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
   const { firestore } = useFirebase();
@@ -182,7 +183,6 @@ export default function Page() {
                 transition={{ duration: 1.2, ease: "easeOut" }}
                 className="relative"
               >
-                {/* Enhanced Backdrop Glow */}
                 <div className="absolute -inset-20 bg-accent/10 blur-[120px] rounded-full opacity-50" />
                 <div className="absolute -inset-10 bg-primary/10 blur-[80px] rounded-full opacity-30 animate-pulse" />
                 
@@ -310,6 +310,44 @@ export default function Page() {
         {scene === 4 && (
           <motion.div 
             key="scene-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none p-6"
+          >
+            <div className="flex flex-col items-center gap-4 text-center">
+              <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                className="flex items-center gap-4 mb-4"
+              >
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                  <Globe className="text-accent w-6 h-6 md:w-8 md:h-8" />
+                </div>
+                <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[4px] md:tracking-[8px] text-white uppercase leading-none">
+                  GLOBAL <span className="text-accent">REAL ESTATE</span>
+                </h2>
+              </motion.div>
+              
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 0.5, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+                className="max-w-xl text-[10px] md:text-[12px] font-code text-white uppercase tracking-[0.4em] md:tracking-[0.6em] leading-loose"
+              >
+                Strategic Partnership: Revolutionizing property showcasing through advanced visual intelligence and orbital-grade web experiences.
+              </motion.p>
+
+              <div className="h-0.5 w-32 md:w-60 bg-gradient-to-r from-transparent via-accent to-transparent mt-8 shadow-[0_0_30px_#a855f7]" />
+            </div>
+          </motion.div>
+        )}
+
+        {scene === 5 && (
+          <motion.div 
+            key="scene-5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
