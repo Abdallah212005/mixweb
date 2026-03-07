@@ -354,7 +354,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       const sCount = 2500;
       const xOff = isMobile ? 0 : -4;
-      const yOff = isMobile ? 2 : 0;
+      const yOff = isMobile ? 5 : 4; // Moved arrows up higher
 
       // شكل أسهم الـ Insights (Chevron >>)
       drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
