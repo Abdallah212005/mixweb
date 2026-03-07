@@ -73,7 +73,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       map: logoTexture,
       emissive: 0xffffff,
       emissiveMap: logoTexture,
-      emissiveIntensity: 0.4
+      emissiveIntensity: 0.8
     });
     const moon = new THREE.Mesh(new THREE.SphereGeometry(1.5, 64, 64), moonMaterial);
     moonRef.current = moon;
@@ -343,7 +343,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
       }
     } else if (scene === 4) {
-      // مشهد العميل: الكوكب للجنب والقمر يظهر والنجوم تعمل سهم Insights
+      // مشهد العميل: الكوكب والقمر مع لوجو /global.jpeg والنجوم بشكل أسهم Insights
       const xPos = isMobile ? 0 : 6;
       const yPos = isMobile ? -8 : 0;
       const scale = isMobile ? 0.3 : 0.45;
