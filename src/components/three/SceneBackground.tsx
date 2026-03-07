@@ -40,7 +40,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const purpleSun = new THREE.DirectionalLight(0xa855f7, 2.5);
     purpleSun.position.set(8, 4, 6);
     sceneThree.add(purpleSun);
-    sceneThree.add(new THREE.AmbientLight(0x111111));
+    sceneThree.add(new THREE.AmbientLight(0x222222));
 
     const loader = new THREE.TextureLoader();
     const earthMap = loader.load("https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg");
@@ -72,9 +72,10 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const moonMaterial = new THREE.MeshStandardMaterial({ 
       map: logoTexture,
       emissive: 0xffffff,
-      emissiveIntensity: 0.1
+      emissiveMap: logoTexture,
+      emissiveIntensity: 0.4
     });
-    const moon = new THREE.Mesh(new THREE.SphereGeometry(1.2, 64, 64), moonMaterial);
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(1.5, 64, 64), moonMaterial);
     moonRef.current = moon;
     moon.scale.set(0, 0, 0);
     sceneThree.add(moon);
@@ -342,7 +343,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
       }
     } else if (scene === 4) {
-      // مشهد العميل: الكوكب للجنب والقمر يظهر
+      // مشهد العميل: الكوكب للجنب والقمر يظهر والنجوم تعمل سهم Insights
       const xPos = isMobile ? 0 : 6;
       const yPos = isMobile ? -8 : 0;
       const scale = isMobile ? 0.3 : 0.45;
@@ -351,12 +352,22 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
       gsap.to(moonRef.current.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
 
-      for (let i = 0; i < starCount; i++) {
+      const sCount = 2500;
+      const xOff = isMobile ? 0 : -4;
+      const yOff = isMobile ? 2 : 0;
+
+      // شكل أسهم الـ Insights (Chevron >>)
+      drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
+      drawThickLine(0, 0, -2, -1.5, sCount / 8, xOff, yOff);
+      drawThickLine(0.5, 1.5, 2.5, 0, sCount / 8, xOff, yOff);
+      drawThickLine(2.5, 0, 0.5, -1.5, sCount / 8, xOff, yOff);
+
+      for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 10 + (Math.random() - 0.5) * 1.5;
+        const r = 15 + Math.random() * 25;
         nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = (Math.random() - 0.5) * 12;
-        nextTargets[i * 3 + 2] = Math.sin(a) * r;
+        nextTargets[i * 3 + 1] = Math.sin(a) * r;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 40;
       }
     } else if (scene === 5) {
       const yPos = isMobile ? 12 : 10;
