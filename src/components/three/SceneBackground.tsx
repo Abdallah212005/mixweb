@@ -67,13 +67,12 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     planet.scale.set(0, 0, 0); 
     sceneThree.add(planet);
 
-    // Moon for Clients (Global Real Estate)
-    // Replace the URL with the actual logo provided by the user later
-    const logoTexture = loader.load("https://picsum.photos/seed/client1/512/512"); 
+    // القمر للعميل: Global Real Estate
+    const logoTexture = loader.load("/global.jpeg"); 
     const moonMaterial = new THREE.MeshStandardMaterial({ 
       map: logoTexture,
-      emissive: 0xa855f7,
-      emissiveIntensity: 0.2
+      emissive: 0xffffff,
+      emissiveIntensity: 0.1
     });
     const moon = new THREE.Mesh(new THREE.SphereGeometry(1.2, 64, 64), moonMaterial);
     moonRef.current = moon;
@@ -180,7 +179,6 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (planetRef.current) planetRef.current.rotation.y += 0.003;
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.003;
 
-      // Moon Orbiting Logic
       if (moonRef.current && planetRef.current) {
         const orbitRadius = 10;
         const speed = 0.5;
@@ -344,12 +342,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
       }
     } else if (scene === 4) {
-      // Clients Scene: Moon Appears
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 0, z: -5, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 0.8, y: 0.8, z: 0.8, duration: 1.5, ease: "power3.inOut" });
+      // مشهد العميل: الكوكب للجنب والقمر يظهر
+      const xPos = isMobile ? 0 : 6;
+      const yPos = isMobile ? -8 : 0;
+      const scale = isMobile ? 0.3 : 0.45;
+
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: -5, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
       gsap.to(moonRef.current.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
 
-      // Star halo around the orbit
       for (let i = 0; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
         const r = 10 + (Math.random() - 0.5) * 1.5;
