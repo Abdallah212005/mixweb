@@ -23,7 +23,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
   
   const transitionRef = useRef({ progress: 1 });
   const timeRef = useRef(0);
-  const starCount = 6000;
+  const starCount = 5000; // Slightly reduced for mobile performance
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -62,20 +62,26 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       );
     };
 
-    const planet = new THREE.Mesh(new THREE.SphereGeometry(6, 128, 128), planetMaterial);
+    const planet = new THREE.Mesh(new THREE.SphereGeometry(6, 64, 64), planetMaterial);
     planetRef.current = planet;
     planet.scale.set(0, 0, 0); 
     sceneThree.add(planet);
 
     // Client Logo Moon
-    const logoTexture = loader.load("/global.jpeg"); 
     const moonMaterial = new THREE.MeshBasicMaterial({ 
-      map: logoTexture,
       transparent: true,
       side: THREE.DoubleSide,
-      color: 0xffffff
+      color: 0xffffff,
+      opacity: 0.8
     });
-    const moon = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 3.5), moonMaterial);
+    
+    // Attempt to load client logo
+    loader.load("/global.jpeg", (texture) => {
+      moonMaterial.map = texture;
+      moonMaterial.needsUpdate = true;
+    });
+
+    const moon = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), moonMaterial);
     moonRef.current = moon;
     moon.scale.set(0, 0, 0);
     sceneThree.add(moon);
@@ -99,7 +105,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       side: THREE.BackSide,
       transparent: true,
     });
-    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(6.4, 128, 128), atmosphereMaterial);
+    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(6.4, 64, 64), atmosphereMaterial);
     atmosphereRef.current = atmosphere;
     atmosphere.scale.set(0, 0, 0);
     sceneThree.add(atmosphere);
@@ -144,7 +150,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     const starMaterial = new THREE.PointsMaterial({
       map: starTexture,
       transparent: true,
-      size: 0.18,
+      size: 0.15,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       opacity: 0
@@ -154,21 +160,11 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     starsRef.current = stars;
     sceneThree.add(stars);
 
-    gsap.to(starMaterial, {
-      opacity: 1,
-      duration: 2,
-      delay: 0.2
-    });
+    gsap.to(starMaterial, { opacity: 1, duration: 2, delay: 0.2 });
 
     const handleMouseMove = (event: MouseEvent) => {
       mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      
-      const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5);
-      vector.unproject(camera);
-      const dir = vector.sub(camera.position).normalize();
-      const distance = -camera.position.z / dir.z;
-      mouse3DRef.current.copy(camera.position).add(dir.multiplyScalar(distance));
     };
     window.addEventListener("mousemove", handleMouseMove);
 
@@ -181,12 +177,11 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.003;
 
       if (moonRef.current && planetRef.current && planetRef.current.scale.x > 0.1) {
-        const scale = planetRef.current.scale.x;
-        const orbitRadius = 6 * scale + 1.8; 
+        const orbitRadius = 6 * planetRef.current.scale.x + 2.5; 
         const speed = 0.4;
         moonRef.current.position.x = planetRef.current.position.x + Math.cos(timeRef.current * speed) * orbitRadius;
         moonRef.current.position.z = planetRef.current.position.z + Math.sin(timeRef.current * speed) * orbitRadius;
-        moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.7) * (orbitRadius * 0.15);
+        moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.7) * 1.5;
         moonRef.current.lookAt(camera.position);
       }
 
@@ -195,33 +190,12 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         const start = startPositionsRef.current;
         const target = targetPositionsRef.current;
         const p = transitionRef.current.progress;
-        const mouse3D = mouse3DRef.current;
 
         for (let i = 0; i < starCount; i++) {
           const ix = i * 3;
-          let baseX = start[ix] + (target[ix] - start[ix]) * p;
-          let baseY = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p;
-          let baseZ = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
-
-          const dx = baseX - mouse3D.x;
-          const dy = baseY - mouse3D.y;
-          const dz = baseZ - mouse3D.z;
-          const distSq = dx * dx + dy * dy + dz * dz;
-          const threshold = 16;
-          
-          let scatterX = 0, scatterY = 0, scatterZ = 0;
-
-          if (distSq < threshold) {
-            const force = (threshold - distSq) / threshold;
-            const power = force * 2.5;
-            scatterX = (dx / Math.sqrt(distSq)) * power;
-            scatterY = (dy / Math.sqrt(distSq)) * power;
-            scatterZ = (dz / Math.sqrt(distSq)) * power;
-          }
-
-          positions[ix] = baseX + scatterX + Math.sin(timeRef.current * 0.6 + i * 0.1) * 0.15;
-          positions[ix + 1] = baseY + scatterY + Math.cos(timeRef.current * 0.5 + i * 0.15) * 0.15;
-          positions[ix + 2] = baseZ + scatterZ + Math.sin(timeRef.current * 0.4 + i * 0.05) * 0.1;
+          positions[ix] = start[ix] + (target[ix] - start[ix]) * p + Math.sin(timeRef.current * 0.6 + i * 0.1) * 0.1;
+          positions[ix + 1] = start[ix + 1] + (target[ix + 1] - start[ix + 1]) * p + Math.cos(timeRef.current * 0.5 + i * 0.15) * 0.1;
+          positions[ix + 2] = start[ix + 2] + (target[ix + 2] - start[ix + 2]) * p;
         }
         starsRef.current.geometry.attributes.position.needsUpdate = true;
       }
@@ -252,8 +226,8 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     startPositionsRef.current.set(targetPositionsRef.current);
     const nextTargets = new Float32Array(starCount * 3);
     let index = 0;
-    const thickness = 0.25;
     const isMobile = window.innerWidth < 768;
+    const thickness = isMobile ? 0.15 : 0.25;
 
     function drawThickLine(x1: number, y1: number, x2: number, y2: number, count: number, xOff: number, yOff: number) {
       for (let i = 0; i < count; i++) {
@@ -275,10 +249,10 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     }
 
     if (scene === 1) {
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: 0, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
+      const yPos = isMobile ? 1 : 0;
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: isMobile ? 0.7 : 1, y: isMobile ? 0.7 : 1, z: isMobile ? 0.7 : 1, duration: 1.5 });
+      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.5 });
       for (let i = 0; i < starCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const radius = 9 + Math.random() * 2;
@@ -286,213 +260,46 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 1] = (Math.random() - 0.5) * 1.5;
         nextTargets[i * 3 + 2] = Math.sin(angle) * radius;
       }
-    } else if (scene === 2) {
-      const xPos = isMobile ? 0 : -6;
-      const yPos = isMobile ? -8 : 0;
-      const scale = isMobile ? 0.35 : 0.5;
+    } else {
+      const isEven = scene % 2 === 0;
+      const xPos = isMobile ? 0 : (isEven ? -6 : 6);
+      const yPos = isMobile ? (scene === 9 ? 8 : -7) : 0;
+      const planetScale = isMobile ? 0.35 : 0.5;
       
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
-      const sCount = 1400;
-      const xOff = isMobile ? 0 : 4;
-      const yOff = isMobile ? 5.8 : 5.2;
-
-      drawThickLine(-1.8, 1.5, -2.8, 0, sCount / 6, xOff, yOff);
-      drawThickLine(-2.8, 0, -1.8, -1.5, sCount / 6, xOff, yOff);
-      drawThickLine(0.6, 1.5, -0.6, -1.5, sCount / 4, xOff, yOff);
-      drawThickLine(1.8, 1.5, 2.8, 0, sCount / 6, xOff, yOff);
-      drawThickLine(2.8, 0, 1.8, -1.5, sCount / 6, xOff, yOff);
-
-      for (let i = index; i < starCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 10 + Math.random() * 20;
-        nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 20 - 10;
-      }
-    } else if (scene === 3) {
-      const xPos = isMobile ? 0 : 6;
-      const yPos = isMobile ? -8 : 0;
-      const scale = isMobile ? 0.3 : 0.45;
-
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
-      const sCount = 2000;
-      const xOff = isMobile ? 0 : -4;
-      const yOff = isMobile ? 5.8 : 5.2;
-
-      drawThickLine(-3, 1.5, -3, -1.5, sCount / 6, xOff, yOff);
-      drawThickLine(-3, 1.5, -1.5, 1.5, sCount / 10, xOff, yOff);
-      drawThickLine(-1.5, 1.5, -1.5, 0, sCount / 10, xOff, yOff);
-      drawThickLine(-1.5, 0, -3, 0, sCount / 10, xOff, yOff);
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: planetScale, y: planetScale, z: planetScale, duration: 1.5 });
       
-      drawThickLine(3, 1.5, 1, 1.5, sCount / 10, xOff, yOff);
-      drawThickLine(1, 1.5, 1, 0, sCount / 10, xOff, yOff);
-      drawThickLine(1, 0, 3, 0, sCount / 10, xOff, yOff);
-      drawThickLine(3, 0, 3, -1.5, sCount / 10, xOff, yOff);
-      drawThickLine(3, -1.5, 1, -1.5, sCount / 10, xOff, yOff);
+      // Moon only in Scene 4
+      gsap.to(moonRef.current.scale, { x: scene === 4 ? 1 : 0, y: scene === 4 ? 1 : 0, z: scene === 4 ? 1 : 0, duration: 1 });
 
-      for (let i = index; i < starCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 15 + Math.random() * 30;
-        nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 80;
+      // Star Formations
+      const sCount = 1500;
+      const xOff = isMobile ? 0 : (isEven ? 4.5 : -4.5);
+      const yOff = isMobile ? 4.5 : 5.5;
+      const w = isMobile ? 1.5 : 2.5;
+
+      if (scene === 2 || scene === 4 || scene === 6 || scene === 8) { // Arrows / Geometric
+        drawThickLine(-w, 1, 0, 0, sCount / 4, xOff, yOff);
+        drawThickLine(0, 0, -w, -1, sCount / 4, xOff, yOff);
+        drawThickLine(w, 1, 0, 0, sCount / 4, xOff, yOff);
+        drawThickLine(0, 0, w, -1, sCount / 4, xOff, yOff);
+      } else if (scene === 3 || scene === 5 || scene === 7) { // Bars / Points
+        drawThickLine(-w, 0, w, 0, sCount / 3, xOff, yOff);
+        drawThickLine(-w, 0.5, -w, -0.5, sCount / 6, xOff, yOff);
+        drawThickLine(w, 0.5, w, -0.5, sCount / 6, xOff, yOff);
+      } else if (scene === 9) { // Box / Shield
+        drawThickLine(-2, 2, 2, 2, sCount / 10, 0, -2);
+        drawThickLine(2, 2, 2, -2, sCount / 10, 0, -2);
+        drawThickLine(2, -2, -2, -2, sCount / 10, 0, -2);
+        drawThickLine(-2, -2, -2, 2, sCount / 10, 0, -2);
       }
-    } else if (scene === 4) {
-      const xPos = isMobile ? 0 : -5;
-      const yPos = isMobile ? -8 : 0;
-      const scale = isMobile ? 0.35 : 0.5;
-
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
-
-      const sCount = 2500;
-      const xOff = isMobile ? 0 : 4.5;
-      const yOff = isMobile ? 5.8 : 5.2;
-
-      drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
-      drawThickLine(0, 0, -2, -1.5, sCount / 8, xOff, yOff);
-      drawThickLine(0.5, 1.5, 2.5, 0, sCount / 8, xOff, yOff);
-      drawThickLine(2.5, 0, 0.5, -1.5, sCount / 8, xOff, yOff);
-
-      for (let i = index; i < starCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 15 + Math.random() * 25;
-        nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 40;
-      }
-    } else if (scene === 5) {
-      const xPos = isMobile ? 0 : 6;
-      const yPos = isMobile ? -8 : 0;
-      const scale = isMobile ? 0.3 : 0.45;
-
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
-      const sCount = 2000;
-      const xOff = isMobile ? 0 : -4.5;
-      const yOff = isMobile ? 5.8 : 5.2;
-
-      drawThickLine(0, 2, 2, 0, sCount / 8, xOff, yOff);
-      drawThickLine(2, 0, 0, -2, sCount / 8, xOff, yOff);
-      drawThickLine(0, -2, -2, 0, sCount / 8, xOff, yOff);
-      drawThickLine(-2, 0, 0, 2, sCount / 8, xOff, yOff);
 
       for (let i = index; i < starCount; i++) {
         const a = Math.random() * Math.PI * 2;
         const r = 20 + Math.random() * 30;
         nextTargets[i * 3] = Math.cos(a) * r;
         nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 60;
-      }
-    } else if (scene === 6) {
-      const xPos = isMobile ? 0 : -5;
-      const yPos = isMobile ? -8 : 0;
-      const scale = isMobile ? 0.35 : 0.5;
-
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
-      const sCount = 2500;
-      const xOff = isMobile ? 0 : 4.5;
-      const yOff = isMobile ? 5.8 : 5.2;
-
-      drawThickLine(-2, 1, 2, 1, sCount / 10, xOff, yOff);
-      drawThickLine(2, 1, 2, -1, sCount / 10, xOff, yOff);
-      drawThickLine(2, -1, -2, -1, sCount / 10, xOff, yOff);
-      drawThickLine(-2, -1, -2, 1, sCount / 10, xOff, yOff);
-
-      for (let i = index; i < starCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 25 + Math.random() * 35;
-        nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = Math.sin(a) * r;
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 50;
-      }
-    } else if (scene === 7) {
-      // Garage Gym - Right
-      const xPos = isMobile ? 0 : 6;
-      const yPos = isMobile ? -8 : 0;
-      const scale = isMobile ? 0.3 : 0.45;
-
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
-      const sCount = 2000;
-      const xOff = isMobile ? 0 : -4.5;
-      const yOff = isMobile ? 5.8 : 5.2;
-
-      // Dumbbell / Barbell shape
-      drawThickLine(-2, 0, 2, 0, sCount / 5, xOff, yOff);
-      drawThickLine(-2.5, 1, -2.5, -1, sCount / 10, xOff, yOff);
-      drawThickLine(2.5, 1, 2.5, -1, sCount / 10, xOff, yOff);
-
-      for (let i = index; i < starCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 25 + Math.random() * 40;
-        nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 70;
-      }
-    } else if (scene === 8) {
-      // Script Services - Left
-      const xPos = isMobile ? 0 : -5;
-      const yPos = isMobile ? -8 : 0;
-      const scale = isMobile ? 0.35 : 0.5;
-
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
-      const sCount = 2500;
-      const xOff = isMobile ? 0 : 4.5;
-      const yOff = isMobile ? 5.8 : 5.2;
-
-      // Code brackets < >
-      drawThickLine(-2, 1, -3.5, 0, sCount / 10, xOff, yOff);
-      drawThickLine(-3.5, 0, -2, -1, sCount / 10, xOff, yOff);
-      drawThickLine(2, 1, 3.5, 0, sCount / 10, xOff, yOff);
-      drawThickLine(3.5, 0, 2, -1, sCount / 10, xOff, yOff);
-
-      for (let i = index; i < starCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 30 + Math.random() * 45;
-        nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 90;
-      }
-    } else if (scene === 9) {
-      const yPos = isMobile ? 12 : 10;
-      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: yPos, z: -10, duration: 1.5, ease: "power3.inOut" });
-      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1.5, y: 1.5, z: 1.5, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
-
-      const sCount = 2500;
-      const yOff = isMobile ? -3 : -2;
-
-      drawThickLine(-3.5, 2, 3.5, 2, sCount / 10, 0, yOff);
-      drawThickLine(3.5, 2, 3.5, -2, sCount / 10, 0, yOff);
-      drawThickLine(3.5, -2, -3.5, -2, sCount / 10, 0, yOff);
-      drawThickLine(-3.5, -2, -3.5, 2, sCount / 10, 0, yOff);
-      drawThickLine(-3.5, 2, 0, 0, sCount / 10, 0, yOff);
-      drawThickLine(0, 0, 3.5, 2, sCount / 10, 0, yOff);
-
-      for (let i = index; i < starCount; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 20 + Math.random() * 40;
-        nextTargets[i * 3] = Math.cos(a) * r;
-        nextTargets[i * 3 + 1] = Math.sin(a) * r;
-        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 100;
       }
     }
 
