@@ -1,8 +1,6 @@
-# Settings to manage and configure a Firebase App Hosting backend.
-# https://firebase.google.com/docs/app-hosting/configure
 
+# إعدادات Firebase App Hosting للرفع المجاني
 runConfig:
-  # Configurations optimized for efficiency and free tier limits
   maxInstances: 2
   minInstances: 0
   memory: 512Mi

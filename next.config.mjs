@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -13,9 +14,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'raw.githubusercontent.com',
-      }
+      },
     ],
   },
+  // Firebase App Hosting supports Next.js out of the box
 };
 
 export default nextConfig;
