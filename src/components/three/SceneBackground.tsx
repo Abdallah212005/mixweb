@@ -373,6 +373,32 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 40;
       }
     } else if (scene === 5) {
+      const xPos = isMobile ? 0 : 6;
+      const yPos = isMobile ? -8 : 0;
+      const scale = isMobile ? 0.3 : 0.45;
+
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
+
+      const sCount = 2000;
+      const xOff = isMobile ? 0 : -4.5;
+      const yOff = isMobile ? 5.8 : 5.2;
+
+      // Jewel shape (diamond-like)
+      drawThickLine(0, 2, 2, 0, sCount / 8, xOff, yOff);
+      drawThickLine(2, 0, 0, -2, sCount / 8, xOff, yOff);
+      drawThickLine(0, -2, -2, 0, sCount / 8, xOff, yOff);
+      drawThickLine(-2, 0, 0, 2, sCount / 8, xOff, yOff);
+
+      for (let i = index; i < starCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 20 + Math.random() * 30;
+        nextTargets[i * 3] = Math.cos(a) * r;
+        nextTargets[i * 3 + 1] = Math.sin(a) * r;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 60;
+      }
+    } else if (scene === 6) {
       const yPos = isMobile ? 12 : 10;
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: yPos, z: -10, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1.5, y: 1.5, z: 1.5, duration: 1.5, ease: "power3.inOut" });
