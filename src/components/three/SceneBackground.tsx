@@ -68,7 +68,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     sceneThree.add(planet);
 
     // Client Logo Moon - Plane to show the logo as a billboard
-    // IMPORTANT: Make sure global.jpeg is in the 'public' folder
+    // IMPORTANT: Ensure global.jpeg is in the 'public' folder
     const logoTexture = loader.load("/global.jpeg"); 
     const moonMaterial = new THREE.MeshBasicMaterial({ 
       map: logoTexture,
