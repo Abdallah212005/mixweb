@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Zap, ShieldCheck, Cpu, Loader2, Globe, Hotel } from "lucide-react";
+import { ChevronDown, Instagram, Facebook, MessageSquare, Send, Zap, ShieldCheck, Cpu, Loader2, Globe, Hotel, Sofa } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +21,7 @@ const SceneBackground = dynamic(
 export default function Page() {
   const [mounted, setMounted] = useState(false);
   const [scene, setScene] = useState(1);
-  const totalScenes = 6;
+  const totalScenes = 7;
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
   const { firestore } = useFirebase();
@@ -406,6 +406,54 @@ export default function Page() {
         {scene === 6 && (
           <motion.div 
             key="scene-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-10 flex flex-col items-center md:items-start justify-center md:pl-[55%] pointer-events-none p-6"
+          >
+            <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left translate-y-[15%]">
+              <motion.div 
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-3 mb-2"
+              >
+                <div className="w-8 h-[1px] bg-accent/50" />
+                <span className="text-[10px] md:text-[12px] font-code text-accent uppercase tracking-[0.4em] font-medium">Our Clients</span>
+              </motion.div>
+
+              <motion.div 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                className="flex items-center gap-4 mb-4"
+              >
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+                  <Sofa className="text-accent w-6 h-6 md:w-8 md:h-8" />
+                </div>
+                <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[4px] md:tracking-[8px] text-white uppercase leading-none">
+                  COMETA <span className="text-accent">FURNITURE</span>
+                </h2>
+              </motion.div>
+              
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 0.5, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+                className="max-w-xl text-[10px] md:text-[12px] font-code text-white uppercase tracking-[0.4em] md:tracking-[0.6em] leading-loose"
+              >
+                Strategic Partnership: Redefining interior elegance through high-fidelity visualization and architectural precision in digital commerce.
+              </motion.p>
+
+              <div className="h-0.5 w-32 md:w-60 bg-gradient-to-r from-transparent via-accent to-transparent mt-8 shadow-[0_0_30px_#a855f7]" />
+            </div>
+          </motion.div>
+        )}
+
+        {scene === 7 && (
+          <motion.div 
+            key="scene-7"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

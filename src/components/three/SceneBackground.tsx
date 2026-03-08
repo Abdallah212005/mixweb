@@ -357,7 +357,7 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       const sCount = 2500;
       const xOff = isMobile ? 0 : 4.5;
-      const yOff = isMobile ? 5.2 : 5.8; // Position above text
+      const yOff = isMobile ? 5.8 : 5.2;
 
       // Insights arrow shape (>>)
       drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
@@ -399,6 +399,33 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
         nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 60;
       }
     } else if (scene === 6) {
+      // Cometa Furniture - Back to Left
+      const xPos = isMobile ? 0 : -5;
+      const yPos = isMobile ? -8 : 0;
+      const scale = isMobile ? 0.35 : 0.5;
+
+      gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
+      gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(moonRef.current.scale, { x: 0, y: 0, z: 0, duration: 0.8 });
+
+      const sCount = 2500;
+      const xOff = isMobile ? 0 : 4.5;
+      const yOff = isMobile ? 5.8 : 5.2;
+
+      // Geometric furniture frame shape
+      drawThickLine(-2, 1, 2, 1, sCount / 10, xOff, yOff);
+      drawThickLine(2, 1, 2, -1, sCount / 10, xOff, yOff);
+      drawThickLine(2, -1, -2, -1, sCount / 10, xOff, yOff);
+      drawThickLine(-2, -1, -2, 1, sCount / 10, xOff, yOff);
+
+      for (let i = index; i < starCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 25 + Math.random() * 35;
+        nextTargets[i * 3] = Math.cos(a) * r;
+        nextTargets[i * 3 + 1] = Math.sin(a) * r;
+        nextTargets[i * 3 + 2] = (Math.random() - 0.5) * 50;
+      }
+    } else if (scene === 7) {
       const yPos = isMobile ? 12 : 10;
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: 0, y: yPos, z: -10, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: 1.5, y: 1.5, z: 1.5, duration: 1.5, ease: "power3.inOut" });
