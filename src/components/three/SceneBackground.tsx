@@ -67,15 +67,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
     planet.scale.set(0, 0, 0); 
     sceneThree.add(planet);
 
-    // Client Logo Moon - Plane to show the logo as a billboard
+    // Client Logo Moon - Plane to show the logo clearly
     const logoTexture = loader.load("/global.jpeg"); 
     const moonMaterial = new THREE.MeshBasicMaterial({ 
       map: logoTexture,
       transparent: true,
       side: THREE.DoubleSide,
-      color: 0xffffff // Fallback color to ensure visibility
+      color: 0xffffff
     });
-    const moon = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), moonMaterial);
+    const moon = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 3.5), moonMaterial);
     moonRef.current = moon;
     moon.scale.set(0, 0, 0);
     sceneThree.add(moon);
@@ -180,14 +180,14 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
       if (planetRef.current) planetRef.current.rotation.y += 0.003;
       if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.003;
 
-      if (moonRef.current && planetRef.current) {
-        // Dynamic orbit radius based on planet scale to keep it visible on screen
+      if (moonRef.current && planetRef.current && planetRef.current.scale.x > 0.1) {
         const scale = planetRef.current.scale.x;
-        const orbitRadius = 6 * scale + 2.5; 
-        const speed = 0.5;
+        // Adjusted radius to be visible and rotating around the offset planet
+        const orbitRadius = 6 * scale + 1.8; 
+        const speed = 0.4;
         moonRef.current.position.x = planetRef.current.position.x + Math.cos(timeRef.current * speed) * orbitRadius;
         moonRef.current.position.z = planetRef.current.position.z + Math.sin(timeRef.current * speed) * orbitRadius;
-        moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.5) * (orbitRadius * 0.2);
+        moonRef.current.position.y = planetRef.current.position.y + Math.sin(timeRef.current * speed * 0.7) * (orbitRadius * 0.15);
         moonRef.current.lookAt(camera.position);
       }
 
@@ -351,14 +351,15 @@ export const SceneBackground: React.FC<SceneBackgroundProps> = ({ scene }) => {
 
       gsap.to([planetRef.current.position, atmosphereRef.current.position], { x: xPos, y: yPos, z: 0, duration: 1.5, ease: "power3.inOut" });
       gsap.to([planetRef.current.scale, atmosphereRef.current.scale], { x: scale, y: scale, z: scale, duration: 1.5, ease: "power3.inOut" });
-      // Show moon in scene 4
+      
+      // SHOW MOON (CLIENT LOGO) IN SCENE 4
       gsap.to(moonRef.current.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
 
       const sCount = 2500;
       const xOff = isMobile ? 0 : 4.5;
-      const yOff = isMobile ? 6.2 : 5.8;
+      const yOff = isMobile ? 5.2 : 5.8; // Position above text
 
-      // Insights arrow shape
+      // Insights arrow shape (>>)
       drawThickLine(-2, 1.5, 0, 0, sCount / 8, xOff, yOff);
       drawThickLine(0, 0, -2, -1.5, sCount / 8, xOff, yOff);
       drawThickLine(0.5, 1.5, 2.5, 0, sCount / 8, xOff, yOff);
